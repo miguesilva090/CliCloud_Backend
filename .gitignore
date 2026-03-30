@@ -382,4 +382,4 @@ Luma.API.WebApi/wwwroot/assets/reports/
 # Client-specific configuration files (should not be in source control)
 **/appsettings.Production.json
 # But keep the template file
-!**/appsettings.Production.Template.json
+!**/appsettings.Production.Template.jsonCliCloud.WebApi/appsettings.Development.json
