@@ -1,0 +1,28 @@
+using Ardalis.Specification;
+using CliCloud.Domain.Entities.Tecnicos;
+
+namespace CliCloud.Application.Services.Tecnicos.TecnicoService.Specifications
+{
+  public class TecnicoMatchNContrib : Specification<Tecnico>
+  {
+    public TecnicoMatchNContrib(string? ncontrib)
+    {
+      _ = Query.Include(x => x.Rua)
+        .ThenInclude(x => x.Freguesia)
+        .ThenInclude(x => x.Concelho)
+        .ThenInclude(x => x.Distrito);
+
+      _ = Query.Include(x => x.Rua)
+        .ThenInclude(x => x.CodigoPostal);
+
+      _ = Query.Include(x => x.EntidadeContactos);
+
+      _ = Query.Include(x => x.Especialidade);
+
+      if(!string.IsNullOrWhiteSpace(ncontrib))
+      {
+        _ = Query.Where(x => x.NumeroContribuinte == ncontrib);
+      }
+    }
+  }
+}

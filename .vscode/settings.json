@@ -1,0 +1,48 @@
+{
+  // Identificação visual do projeto Frontend Luma
+  "workbench.colorCustomizations": {
+    "titleBar.activeBackground": "#803fa5",
+    "titleBar.activeForeground": "#ffffff",
+    "titleBar.inactiveBackground": "#803fa599",
+    "titleBar.inactiveForeground": "#ffffffcc",
+    "statusBar.background": "#803fa5",
+    "statusBar.foreground": "#ffffff",
+    "statusBar.debuggingBackground": "#803fa5",
+    "statusBar.debuggingForeground": "#ffffff",
+    "statusBar.noFolderBackground": "#803fa5",
+    "activityBar.activeBackground": "#803fa533",
+    "activityBar.activeBorder": "#803fa5",
+    "panel.border": "#803fa5",
+    "sideBar.border": "#803fa533"
+  },
+  "window.title": "LUMA API - ${dirty}${activeEditorShort}${separator}${rootName}",
+  // Format on save configuration
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "editor.formatOnType": false,
+  "editor.insertSpaces": true,
+  "editor.tabSize": 2,
+  "editor.detectIndentation": false,
+  // C# formatting configuration
+  "[csharp]": {
+    "editor.defaultFormatter": "ms-dotnettools.csharp",
+    "editor.formatOnSave": true,
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "editor.detectIndentation": false,
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "explicit",
+      "source.organizeImports": "explicit"
+    }
+  },
+  // Use .editorconfig for formatting
+  "omnisharp.enableEditorConfigSupport": true,
+  "omnisharp.enableRoslynAnalyzers": true,
+  "cSpell.words": [
+    "Codigo",
+    "Codigos",
+    "Concelho",
+    "Concelhos",
+    "Postais"
+  ]
+}

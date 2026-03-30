@@ -1,0 +1,1342 @@
+﻿{
+  "ReportVersion": "2025.4.2",
+  "ReportGuid": "8de18b016795618a7f5573fad8a13a95",
+  "ReportName": "listagem-sepulturas",
+  "ReportAlias": "listagem-sepulturas",
+  "ReportFile": "listagem-sepulturas.mrt",
+  "ReportCreated": "/Date(1763715105000+0000)/",
+  "ReportChanged": "/Date(1763976830000+0000)/",
+  "EngineVersion": "EngineV2",
+  "ReportUnit": "Centimeters",
+  "ScriptLanguage": "CSharp",
+  "UsePlatformDependentScript": false,
+  "Culture": "pt-PT",
+  "CalculationMode": "Interpretation",
+  "Dictionary": {
+    "DataSources": {
+      "0": {
+        "Ident": "StiDataTableSource",
+        "Name": "root",
+        "Alias": "root",
+        "Columns": {
+          "0": {
+            "Name": "anulado",
+            "NameInSource": "anulado",
+            "Alias": "anulado",
+            "Type": "System.Boolean"
+          },
+          "1": {
+            "Name": "area",
+            "NameInSource": "area",
+            "Alias": "area",
+            "Type": "System.Decimal"
+          },
+          "2": {
+            "Name": "bloqueada",
+            "NameInSource": "bloqueada",
+            "Alias": "bloqueada",
+            "Type": "System.Boolean"
+          },
+          "3": {
+            "Name": "cemiterioCodigoPostalCodigo",
+            "NameInSource": "cemiterioCodigoPostalCodigo",
+            "Alias": "cemiterioCodigoPostalCodigo",
+            "Type": "System.String"
+          },
+          "4": {
+            "Name": "cemiterioCodigoPostalId",
+            "NameInSource": "cemiterioCodigoPostalId",
+            "Alias": "cemiterioCodigoPostalId",
+            "Type": "System.String"
+          },
+          "5": {
+            "Name": "cemiterioId",
+            "NameInSource": "cemiterioId",
+            "Alias": "cemiterioId",
+            "Type": "System.String"
+          },
+          "6": {
+            "Name": "cemiterioMorada",
+            "NameInSource": "cemiterioMorada",
+            "Alias": "cemiterioMorada",
+            "Type": "System.String"
+          },
+          "7": {
+            "Name": "cemiterioNome",
+            "NameInSource": "cemiterioNome",
+            "Alias": "cemiterioNome",
+            "Type": "System.String"
+          },
+          "8": {
+            "Name": "cemiterioPredefinido",
+            "NameInSource": "cemiterioPredefinido",
+            "Alias": "cemiterioPredefinido",
+            "Type": "System.Boolean"
+          },
+          "9": {
+            "Name": "coluna",
+            "NameInSource": "coluna",
+            "Alias": "coluna",
+            "Type": "System.String"
+          },
+          "10": {
+            "Name": "comprimento",
+            "NameInSource": "comprimento",
+            "Alias": "comprimento",
+            "Type": "System.Decimal"
+          },
+          "11": {
+            "Name": "createdOn",
+            "NameInSource": "createdOn",
+            "Alias": "createdOn",
+            "Type": "System.String"
+          },
+          "12": {
+            "Name": "dataAnulacao",
+            "NameInSource": "dataAnulacao",
+            "Alias": "dataAnulacao",
+            "Type": "System.String"
+          },
+          "13": {
+            "Name": "dataConcessao",
+            "NameInSource": "dataConcessao",
+            "Alias": "dataConcessao",
+            "Type": "System.String"
+          },
+          "14": {
+            "Name": "dataConhecimento",
+            "NameInSource": "dataConhecimento",
+            "Alias": "dataConhecimento",
+            "Type": "System.String"
+          },
+          "15": {
+            "Name": "dataFimAluguer",
+            "NameInSource": "dataFimAluguer",
+            "Alias": "dataFimAluguer",
+            "Type": "System.String"
+          },
+          "16": {
+            "Name": "dataFimReserva",
+            "NameInSource": "dataFimReserva",
+            "Alias": "dataFimReserva",
+            "Type": "System.String"
+          },
+          "17": {
+            "Name": "dataInicioAluguer",
+            "NameInSource": "dataInicioAluguer",
+            "Alias": "dataInicioAluguer",
+            "Type": "System.String"
+          },
+          "18": {
+            "Name": "dataInicioReserva",
+            "NameInSource": "dataInicioReserva",
+            "Alias": "dataInicioReserva",
+            "Type": "System.String"
+          },
+          "19": {
+            "Name": "defuntoCount",
+            "NameInSource": "defuntoCount",
+            "Alias": "defuntoCount",
+            "Type": "System.Decimal"
+          },
+          "20": {
+            "Name": "epocaAno",
+            "NameInSource": "epocaAno",
+            "Alias": "epocaAno",
+            "Type": "System.String"
+          },
+          "21": {
+            "Name": "epocaAnteriorAno",
+            "NameInSource": "epocaAnteriorAno",
+            "Alias": "epocaAnteriorAno",
+            "Type": "System.String"
+          },
+          "22": {
+            "Name": "epocaAnteriorBloqueada",
+            "NameInSource": "epocaAnteriorBloqueada",
+            "Alias": "epocaAnteriorBloqueada",
+            "Type": "System.Boolean"
+          },
+          "23": {
+            "Name": "epocaAnteriorCreatedOn",
+            "NameInSource": "epocaAnteriorCreatedOn",
+            "Alias": "epocaAnteriorCreatedOn",
+            "Type": "System.String"
+          },
+          "24": {
+            "Name": "epocaAnteriorDescricao",
+            "NameInSource": "epocaAnteriorDescricao",
+            "Alias": "epocaAnteriorDescricao",
+            "Type": "System.String"
+          },
+          "25": {
+            "Name": "epocaAnteriorEpocaAnterior",
+            "NameInSource": "epocaAnteriorEpocaAnterior",
+            "Alias": "epocaAnteriorEpocaAnterior",
+            "Type": "System.String"
+          },
+          "26": {
+            "Name": "epocaAnteriorEpocaAnteriorId",
+            "NameInSource": "epocaAnteriorEpocaAnteriorId",
+            "Alias": "epocaAnteriorEpocaAnteriorId",
+            "Type": "System.String"
+          },
+          "27": {
+            "Name": "epocaAnteriorId",
+            "NameInSource": "epocaAnteriorId",
+            "Alias": "epocaAnteriorId",
+            "Type": "System.String"
+          },
+          "28": {
+            "Name": "epocaAnteriorPredefinida",
+            "NameInSource": "epocaAnteriorPredefinida",
+            "Alias": "epocaAnteriorPredefinida",
+            "Type": "System.Boolean"
+          },
+          "29": {
+            "Name": "epocaBloqueada",
+            "NameInSource": "epocaBloqueada",
+            "Alias": "epocaBloqueada",
+            "Type": "System.Boolean"
+          },
+          "30": {
+            "Name": "epocaCreatedOn",
+            "NameInSource": "epocaCreatedOn",
+            "Alias": "epocaCreatedOn",
+            "Type": "System.DateTime"
+          },
+          "31": {
+            "Name": "epocaDescricao",
+            "NameInSource": "epocaDescricao",
+            "Alias": "epocaDescricao",
+            "Type": "System.String"
+          },
+          "32": {
+            "Name": "epocaEpocaAnteriorId",
+            "NameInSource": "epocaEpocaAnteriorId",
+            "Alias": "epocaEpocaAnteriorId",
+            "Type": "System.String"
+          },
+          "33": {
+            "Name": "epocaId",
+            "NameInSource": "epocaId",
+            "Alias": "epocaId",
+            "Type": "System.String"
+          },
+          "34": {
+            "Name": "epocaPredefinida",
+            "NameInSource": "epocaPredefinida",
+            "Alias": "epocaPredefinida",
+            "Type": "System.Boolean"
+          },
+          "35": {
+            "Name": "fila",
+            "NameInSource": "fila",
+            "Alias": "fila",
+            "Type": "System.String"
+          },
+          "36": {
+            "Name": "fundura1",
+            "NameInSource": "fundura1",
+            "Alias": "fundura1",
+            "Type": "System.Boolean"
+          },
+          "37": {
+            "Name": "fundura2",
+            "NameInSource": "fundura2",
+            "Alias": "fundura2",
+            "Type": "System.Boolean"
+          },
+          "38": {
+            "Name": "fundura3",
+            "NameInSource": "fundura3",
+            "Alias": "fundura3",
+            "Type": "System.Boolean"
+          },
+          "39": {
+            "Name": "id",
+            "NameInSource": "id",
+            "Alias": "id",
+            "Type": "System.String"
+          },
+          "40": {
+            "Name": "largura",
+            "NameInSource": "largura",
+            "Alias": "largura",
+            "Type": "System.Decimal"
+          },
+          "41": {
+            "Name": "litigio",
+            "NameInSource": "litigio",
+            "Alias": "litigio",
+            "Type": "System.Boolean"
+          },
+          "42": {
+            "Name": "nome",
+            "NameInSource": "nome",
+            "Alias": "nome",
+            "Type": "System.String"
+          },
+          "43": {
+            "Name": "numeroConhecimento",
+            "NameInSource": "numeroConhecimento",
+            "Alias": "numeroConhecimento",
+            "Type": "System.String"
+          },
+          "44": {
+            "Name": "observacao",
+            "NameInSource": "observacao",
+            "Alias": "observacao",
+            "Type": "System.String"
+          },
+          "45": {
+            "Name": "profundidade",
+            "NameInSource": "profundidade",
+            "Alias": "profundidade",
+            "Type": "System.Decimal"
+          },
+          "46": {
+            "Name": "proprietarioCount",
+            "NameInSource": "proprietarioCount",
+            "Alias": "proprietarioCount",
+            "Type": "System.Decimal"
+          },
+          "47": {
+            "Name": "sepulturaEstadoId",
+            "NameInSource": "sepulturaEstadoId",
+            "Alias": "sepulturaEstadoId",
+            "Type": "System.Decimal"
+          },
+          "48": {
+            "Name": "sepulturaSituacaoId",
+            "NameInSource": "sepulturaSituacaoId",
+            "Alias": "sepulturaSituacaoId",
+            "Type": "System.Decimal"
+          },
+          "49": {
+            "Name": "sepulturaTipoAluguerDescricao",
+            "NameInSource": "sepulturaTipoAluguerDescricao",
+            "Alias": "sepulturaTipoAluguerDescricao",
+            "Type": "System.String"
+          },
+          "50": {
+            "Name": "sepulturaTipoAluguerRubrica",
+            "NameInSource": "sepulturaTipoAluguerRubrica",
+            "Alias": "sepulturaTipoAluguerRubrica",
+            "Type": "System.String"
+          },
+          "51": {
+            "Name": "sepulturaTipoAluguerValor",
+            "NameInSource": "sepulturaTipoAluguerValor",
+            "Alias": "sepulturaTipoAluguerValor",
+            "Type": "System.String"
+          },
+          "52": {
+            "Name": "sepulturaTipoAlvaraDescricao",
+            "NameInSource": "sepulturaTipoAlvaraDescricao",
+            "Alias": "sepulturaTipoAlvaraDescricao",
+            "Type": "System.String"
+          },
+          "53": {
+            "Name": "sepulturaTipoAlvaraRubrica",
+            "NameInSource": "sepulturaTipoAlvaraRubrica",
+            "Alias": "sepulturaTipoAlvaraRubrica",
+            "Type": "System.String"
+          },
+          "54": {
+            "Name": "sepulturaTipoAlvaraValor",
+            "NameInSource": "sepulturaTipoAlvaraValor",
+            "Alias": "sepulturaTipoAlvaraValor",
+            "Type": "System.String"
+          },
+          "55": {
+            "Name": "sepulturaTipoConcessionadaDescricao",
+            "NameInSource": "sepulturaTipoConcessionadaDescricao",
+            "Alias": "sepulturaTipoConcessionadaDescricao",
+            "Type": "System.String"
+          },
+          "56": {
+            "Name": "sepulturaTipoConcessionadaRubrica",
+            "NameInSource": "sepulturaTipoConcessionadaRubrica",
+            "Alias": "sepulturaTipoConcessionadaRubrica",
+            "Type": "System.String"
+          },
+          "57": {
+            "Name": "sepulturaTipoConcessionadaValor",
+            "NameInSource": "sepulturaTipoConcessionadaValor",
+            "Alias": "sepulturaTipoConcessionadaValor",
+            "Type": "System.String"
+          },
+          "58": {
+            "Name": "sepulturaTipoCreatedOn",
+            "NameInSource": "sepulturaTipoCreatedOn",
+            "Alias": "sepulturaTipoCreatedOn",
+            "Type": "System.String"
+          },
+          "59": {
+            "Name": "sepulturaTipoDescricaoCreatedOn",
+            "NameInSource": "sepulturaTipoDescricaoCreatedOn",
+            "Alias": "sepulturaTipoDescricaoCreatedOn",
+            "Type": "System.String"
+          },
+          "60": {
+            "Name": "sepulturaTipoDescricaoDescricao",
+            "NameInSource": "sepulturaTipoDescricaoDescricao",
+            "Alias": "sepulturaTipoDescricaoDescricao",
+            "Type": "System.String"
+          },
+          "61": {
+            "Name": "sepulturaTipoDescricaoId",
+            "NameInSource": "sepulturaTipoDescricaoId",
+            "Alias": "sepulturaTipoDescricaoId",
+            "Type": "System.String"
+          },
+          "62": {
+            "Name": "sepulturaTipoEpocaId",
+            "NameInSource": "sepulturaTipoEpocaId",
+            "Alias": "sepulturaTipoEpocaId",
+            "Type": "System.String"
+          },
+          "63": {
+            "Name": "sepulturaTipoExumacaoDescricao",
+            "NameInSource": "sepulturaTipoExumacaoDescricao",
+            "Alias": "sepulturaTipoExumacaoDescricao",
+            "Type": "System.String"
+          },
+          "64": {
+            "Name": "sepulturaTipoExumacaoRubrica",
+            "NameInSource": "sepulturaTipoExumacaoRubrica",
+            "Alias": "sepulturaTipoExumacaoRubrica",
+            "Type": "System.String"
+          },
+          "65": {
+            "Name": "sepulturaTipoExumacaoValor",
+            "NameInSource": "sepulturaTipoExumacaoValor",
+            "Alias": "sepulturaTipoExumacaoValor",
+            "Type": "System.String"
+          },
+          "66": {
+            "Name": "sepulturaTipoId",
+            "NameInSource": "sepulturaTipoId",
+            "Alias": "sepulturaTipoId",
+            "Type": "System.String"
+          },
+          "67": {
+            "Name": "sepulturaTipoInumacaoDescricao",
+            "NameInSource": "sepulturaTipoInumacaoDescricao",
+            "Alias": "sepulturaTipoInumacaoDescricao",
+            "Type": "System.String"
+          },
+          "68": {
+            "Name": "sepulturaTipoInumacaoRubrica",
+            "NameInSource": "sepulturaTipoInumacaoRubrica",
+            "Alias": "sepulturaTipoInumacaoRubrica",
+            "Type": "System.String"
+          },
+          "69": {
+            "Name": "sepulturaTipoInumacaoValor",
+            "NameInSource": "sepulturaTipoInumacaoValor",
+            "Alias": "sepulturaTipoInumacaoValor",
+            "Type": "System.String"
+          },
+          "70": {
+            "Name": "sepulturaTipoNome",
+            "NameInSource": "sepulturaTipoNome",
+            "Alias": "sepulturaTipoNome",
+            "Type": "System.String"
+          },
+          "71": {
+            "Name": "sepulturaTipoSepulturaTipoDescricaoId",
+            "NameInSource": "sepulturaTipoSepulturaTipoDescricaoId",
+            "Alias": "sepulturaTipoSepulturaTipoDescricaoId",
+            "Type": "System.String"
+          },
+          "72": {
+            "Name": "sepulturaTipoTransferenciaDescricao",
+            "NameInSource": "sepulturaTipoTransferenciaDescricao",
+            "Alias": "sepulturaTipoTransferenciaDescricao",
+            "Type": "System.String"
+          },
+          "73": {
+            "Name": "sepulturaTipoTransferenciaRubrica",
+            "NameInSource": "sepulturaTipoTransferenciaRubrica",
+            "Alias": "sepulturaTipoTransferenciaRubrica",
+            "Type": "System.String"
+          },
+          "74": {
+            "Name": "sepulturaTipoTransferenciaValor",
+            "NameInSource": "sepulturaTipoTransferenciaValor",
+            "Alias": "sepulturaTipoTransferenciaValor",
+            "Type": "System.String"
+          },
+          "75": {
+            "Name": "sepulturaTipoTransladacaoDescricao",
+            "NameInSource": "sepulturaTipoTransladacaoDescricao",
+            "Alias": "sepulturaTipoTransladacaoDescricao",
+            "Type": "System.String"
+          },
+          "76": {
+            "Name": "sepulturaTipoTransladacaoRubrica",
+            "NameInSource": "sepulturaTipoTransladacaoRubrica",
+            "Alias": "sepulturaTipoTransladacaoRubrica",
+            "Type": "System.String"
+          },
+          "77": {
+            "Name": "sepulturaTipoTransladacaoValor",
+            "NameInSource": "sepulturaTipoTransladacaoValor",
+            "Alias": "sepulturaTipoTransladacaoValor",
+            "Type": "System.String"
+          },
+          "78": {
+            "Name": "sepulturaTipoVendaDescricao",
+            "NameInSource": "sepulturaTipoVendaDescricao",
+            "Alias": "sepulturaTipoVendaDescricao",
+            "Type": "System.String"
+          },
+          "79": {
+            "Name": "sepulturaTipoVendaRubrica",
+            "NameInSource": "sepulturaTipoVendaRubrica",
+            "Alias": "sepulturaTipoVendaRubrica",
+            "Type": "System.String"
+          },
+          "80": {
+            "Name": "sepulturaTipoVendaValor",
+            "NameInSource": "sepulturaTipoVendaValor",
+            "Alias": "sepulturaTipoVendaValor",
+            "Type": "System.String"
+          },
+          "81": {
+            "Name": "shapeId",
+            "NameInSource": "shapeId",
+            "Alias": "shapeId",
+            "Type": "System.String"
+          },
+          "82": {
+            "Name": "talhaoCreatedOn",
+            "NameInSource": "talhaoCreatedOn",
+            "Alias": "talhaoCreatedOn",
+            "Type": "System.String"
+          },
+          "83": {
+            "Name": "talhaoId",
+            "NameInSource": "talhaoId",
+            "Alias": "talhaoId",
+            "Type": "System.String"
+          },
+          "84": {
+            "Name": "talhaoNome",
+            "NameInSource": "talhaoNome",
+            "Alias": "talhaoNome",
+            "Type": "System.String"
+          },
+          "85": {
+            "Name": "talhaoShapeId",
+            "NameInSource": "talhaoShapeId",
+            "Alias": "talhaoShapeId",
+            "Type": "System.String"
+          },
+          "86": {
+            "Name": "talhaoTemSvgShape",
+            "NameInSource": "talhaoTemSvgShape",
+            "Alias": "talhaoTemSvgShape",
+            "Type": "System.Boolean"
+          },
+          "87": {
+            "Name": "talhaoZonaId",
+            "NameInSource": "talhaoZonaId",
+            "Alias": "talhaoZonaId",
+            "Type": "System.String"
+          },
+          "88": {
+            "Name": "temSvgShape",
+            "NameInSource": "temSvgShape",
+            "Alias": "temSvgShape",
+            "Type": "System.Boolean"
+          },
+          "89": {
+            "Name": "zonaCemiterioId",
+            "NameInSource": "zonaCemiterioId",
+            "Alias": "zonaCemiterioId",
+            "Type": "System.String"
+          },
+          "90": {
+            "Name": "zonaId",
+            "NameInSource": "zonaId",
+            "Alias": "zonaId",
+            "Type": "System.String"
+          },
+          "91": {
+            "Name": "zonaNome",
+            "NameInSource": "zonaNome",
+            "Alias": "zonaNome",
+            "Type": "System.String"
+          }
+        },
+        "NameInSource": "listagem-sepulturas.root"
+      }
+    },
+    "Databases": {
+      "0": {
+        "Ident": "StiJsonDatabase",
+        "Name": "listagem-sepulturas",
+        "Alias": "listagem-sepulturas",
+        "PathData": "resource://listagem-sepulturas",
+        "HeadersString": "YyoQVHvZXeyY3LY5ASN05g=="
+      }
+    }
+  },
+  "Pages": {
+    "0": {
+      "Ident": "StiPage",
+      "Name": "Page1",
+      "Guid": "3a14db763859b3a2fd8f4e2c13a8bc9c",
+      "Interaction": {
+        "Ident": "StiInteraction"
+      },
+      "Border": ";;2;;;;;solid:Black",
+      "Brush": "solid:",
+      "Components": {
+        "0": {
+          "Ident": "StiPageHeaderBand",
+          "Name": "PageHeaderBand1",
+          "CanGrow": true,
+          "ClientRectangle": "0,0.4,19,1.6",
+          "Interaction": {
+            "Ident": "StiInteraction"
+          },
+          "Border": ";;;;;;;solid:Black",
+          "Brush": "solid:",
+          "Components": {
+            "0": {
+              "Ident": "StiText",
+              "Name": "Text4",
+              "Guid": "c673d1f184ed4bd26938a18a3c82f1ce",
+              "ClientRectangle": "0,0,19,1.6",
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<div style=\"text-align: center;\"><font size=\"18\"><b>Sepulturas</b></font></div>"
+              },
+              "HorAlignment": "Center",
+              "VertAlignment": "Center",
+              "Border": ";;;;;;;solid:Black",
+              "Brush": "solid:",
+              "TextBrush": "solid:Black",
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            },
+            "1": {
+              "Ident": "StiText",
+              "Name": "Text1",
+              "Guid": "32f4a2107ca9a70d9cfdc688d8a94e1f",
+              "ClientRectangle": "17.6,0.2,1.4,0.4",
+              "Expressions": {
+                "0": {
+                  "Name": "Font"
+                }
+              },
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<font size=\"8\">{Today}</font>"
+              },
+              "HorAlignment": "Right",
+              "VertAlignment": "Center",
+              "Border": ";105,105,105;;;;;;solid:105,105,105",
+              "Brush": "solid:",
+              "TextBrush": "solid:0,0,0",
+              "AllowHtmlTags": true,
+              "TextFormat": {
+                "Ident": "StiDateFormatService",
+                "StringFormat": "dd/MM/yyyy"
+              },
+              "Type": "Expression"
+            },
+            "2": {
+              "Ident": "StiText",
+              "Name": "Text7",
+              "Guid": "82b13e76eba28f23097092596fb7a405",
+              "ClientRectangle": "16.6,0.2,1,0.4",
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<font size=\"8\">Data:</font>"
+              },
+              "HorAlignment": "Right",
+              "VertAlignment": "Center",
+              "Border": ";105,105,105;;;;;;solid:105,105,105",
+              "Brush": "solid:",
+              "TextBrush": "solid:0,0,0",
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            },
+            "3": {
+              "Ident": "StiText",
+              "Name": "Text8",
+              "Guid": "b0c7399b8c7dc383aca93c9d330a0253",
+              "ClientRectangle": "16.6,0.8,1,0.4",
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<font size=\"8\">Hora:</font>"
+              },
+              "HorAlignment": "Right",
+              "VertAlignment": "Center",
+              "Border": ";105,105,105;;;;;;solid:105,105,105",
+              "Brush": "solid:",
+              "TextBrush": "solid:0,0,0",
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            },
+            "4": {
+              "Ident": "StiText",
+              "Name": "Text2",
+              "Guid": "3135046576c55cbe7bcec649a663ff87",
+              "ClientRectangle": "17.6,0.8,1.4,0.4",
+              "Expressions": {
+                "0": {
+                  "Name": "Font"
+                }
+              },
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<font size=\"8\">{Time}</font>"
+              },
+              "HorAlignment": "Right",
+              "VertAlignment": "Center",
+              "Border": ";105,105,105;;;;;;solid:105,105,105",
+              "Brush": "solid:",
+              "TextBrush": "solid:0,0,0",
+              "AllowHtmlTags": true,
+              "TextFormat": {
+                "Ident": "StiTimeFormatService",
+                "StringFormat": "HH:mm:ss"
+              },
+              "Type": "Expression"
+            }
+          }
+        },
+        "1": {
+          "Ident": "StiPageFooterBand",
+          "Name": "PageFooterBand1",
+          "CanGrow": true,
+          "ClientRectangle": "0,26.9,19,0.8",
+          "Interaction": {
+            "Ident": "StiInteraction"
+          },
+          "Border": ";;;;;;;solid:Black",
+          "Brush": "solid:",
+          "Components": {
+            "0": {
+              "Ident": "StiText",
+              "Name": "Text6",
+              "Guid": "93cf002455c3f5c768fecb5b69f6004b",
+              "ClientRectangle": "0.2,0.1,4,0.6",
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<font size=\"8\">Plataforma LUMA</font>"
+              },
+              "VertAlignment": "Center",
+              "Border": ";;;;;;;solid:0,0,0",
+              "Brush": "solid:",
+              "TextBrush": "solid:0,0,0",
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            },
+            "1": {
+              "Ident": "StiText",
+              "Name": "Text5",
+              "Guid": "142400442c70a1226eba624d54eb1eb4",
+              "ClientRectangle": "15.8,0.1,3,0.6",
+              "Expressions": {
+                "0": {
+                  "Name": "Font"
+                }
+              },
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "{PageNofM}"
+              },
+              "HorAlignment": "Right",
+              "VertAlignment": "Center",
+              "Border": ";;;;;;;solid:Black",
+              "Brush": "solid:",
+              "TextBrush": "solid:Black"
+            }
+          }
+        },
+        "2": {
+          "Ident": "StiGroupHeaderBand",
+          "Name": "GroupHeaderBand1",
+          "CanGrow": true,
+          "ClientRectangle": "0,2.8,19,0.6",
+          "Interaction": {
+            "Ident": "StiBandInteraction"
+          },
+          "Border": ";;;;;;;solid:Black",
+          "Brush": "solid:",
+          "Components": {
+            "0": {
+              "Ident": "StiText",
+              "Name": "Text11",
+              "ClientRectangle": "0,0,19,0.6",
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<b>{root.cemiterioNome}</b>"
+              },
+              "VertAlignment": "Center",
+              "Font": ";10;;",
+              "Border": ";;;;;;;solid:0,0,0",
+              "Brush": "solid:",
+              "TextBrush": "solid:0,0,0",
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            }
+          },
+          "Condition": {
+            "Value": "{root.cemiterioNome}"
+          }
+        },
+        "3": {
+          "Ident": "StiGroupHeaderBand",
+          "Name": "GroupHeaderBand2",
+          "CanGrow": true,
+          "ClientRectangle": "0,4.2,19,0.6",
+          "Interaction": {
+            "Ident": "StiBandInteraction"
+          },
+          "Border": ";;;;;;;solid:Black",
+          "Brush": "solid:",
+          "Components": {
+            "0": {
+              "Ident": "StiText",
+              "Name": "Text12",
+              "ClientRectangle": "0,0,19,0.6",
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<ul><li><b>{root.zonaNome}</b></li></ul>"
+              },
+              "VertAlignment": "Center",
+              "Font": ";10;;",
+              "Border": ";;;;;;;solid:0,0,0",
+              "Brush": "solid:",
+              "TextBrush": "solid:0,0,0",
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            }
+          },
+          "Condition": {
+            "Value": "{root.zonaNome}"
+          }
+        },
+        "4": {
+          "Ident": "StiDataBand",
+          "Name": "Dataroot",
+          "CanGrow": true,
+          "ClientRectangle": "0,5.6,19,11.8",
+          "Interaction": {
+            "Ident": "StiBandInteraction"
+          },
+          "Border": ";;;;;;;solid:Black",
+          "Brush": "solid:",
+          "Components": {
+            "0": {
+              "Ident": "StiText",
+              "Name": "Dataroot_nome",
+              "CanGrow": true,
+              "ClientRectangle": "0,0,19,0.6",
+              "Expressions": {
+                "0": {
+                  "Name": "Font"
+                }
+              },
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<b>Nome:&nbsp;</b>{root.nome}"
+              },
+              "VertAlignment": "Center",
+              "Font": ";10;;",
+              "Border": "All;;;;;;;solid:0,0,0",
+              "Brush": "solid:",
+              "TextBrush": "solid:Black",
+              "TextOptions": {
+                "WordWrap": true
+              },
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            },
+            "1": {
+              "Ident": "StiText",
+              "Name": "Dataroot_talhaoNome",
+              "CanGrow": true,
+              "ClientRectangle": "0,0.6,19,0.6",
+              "Expressions": {
+                "0": {
+                  "Name": "Font"
+                }
+              },
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<b>Talhão:</b>&nbsp;{root.talhaoNome}"
+              },
+              "VertAlignment": "Center",
+              "Font": ";10;;",
+              "Border": "All;;;;;;;solid:0,0,0",
+              "Brush": "solid:",
+              "TextBrush": "solid:Black",
+              "TextOptions": {
+                "WordWrap": true
+              },
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            },
+            "2": {
+              "Ident": "StiText",
+              "Name": "Dataroot_sepulturaTipoNome",
+              "CanGrow": true,
+              "ClientRectangle": "0,1.2,19,0.6",
+              "Expressions": {
+                "0": {
+                  "Name": "Font"
+                }
+              },
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<b>Tipo:</b> {root.sepulturaTipoNome}"
+              },
+              "VertAlignment": "Center",
+              "Font": ";10;;",
+              "Border": "All;;;;;;;solid:0,0,0",
+              "Brush": "solid:",
+              "TextBrush": "solid:Black",
+              "TextOptions": {
+                "WordWrap": true
+              },
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            },
+            "3": {
+              "Ident": "StiText",
+              "Name": "Dataroot_sepulturaSituacaoId",
+              "CanGrow": true,
+              "ClientRectangle": "0,2.4,19,0.6",
+              "Expressions": {
+                "0": {
+                  "Name": "Font"
+                }
+              },
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<font face=\"Arial\"><b>Situação:</b> {IIF(root.sepulturaSituacaoId == 1, \"Alugada\", IIF(root.sepulturaSituacaoId == 2, \"Caducada / Concessão vencida\", IIF(root.sepulturaSituacaoId == 3, \"Concessionada\", IIF(root.sepulturaSituacaoId == 4, \"Em litígio\", IIF(root.sepulturaSituacaoId == 5, \"Indefinida\", IIF(root.sepulturaSituacaoId == 6, \"Municipal / Pública\", IIF(root.sepulturaSituacaoId == 7, \"Provisória\", IIF(root.sepulturaSituacaoId == 8, \"Reservada\", \"Desconhecido\"))))))))}</font>"
+              },
+              "VertAlignment": "Center",
+              "Font": ";10;;",
+              "Border": "All;;;;;;;solid:0,0,0",
+              "Brush": "solid:",
+              "TextBrush": "solid:Black",
+              "TextOptions": {
+                "WordWrap": true
+              },
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            },
+            "4": {
+              "Ident": "StiText",
+              "Name": "Dataroot_dataInicioAluguer",
+              "CanGrow": true,
+              "ClientRectangle": "0,3,19,0.6",
+              "Expressions": {
+                "0": {
+                  "Name": "Font"
+                }
+              },
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<b>Data Início Aluguer:</b>&nbsp;{root.dataInicioAluguer}"
+              },
+              "VertAlignment": "Center",
+              "Font": ";10;;",
+              "Border": "All;;;;;;;solid:0,0,0",
+              "Brush": "solid:",
+              "TextBrush": "solid:Black",
+              "TextOptions": {
+                "WordWrap": true
+              },
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            },
+            "5": {
+              "Ident": "StiText",
+              "Name": "Dataroot_dataFimAluguer",
+              "CanGrow": true,
+              "ClientRectangle": "0,3.6,19,0.6",
+              "Expressions": {
+                "0": {
+                  "Name": "Font"
+                }
+              },
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<b>Data Fim Aluguer:</b> {root.dataFimAluguer}"
+              },
+              "VertAlignment": "Center",
+              "Font": ";10;;",
+              "Border": "All;;;;;;;solid:0,0,0",
+              "Brush": "solid:",
+              "TextBrush": "solid:Black",
+              "TextOptions": {
+                "WordWrap": true
+              },
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            },
+            "6": {
+              "Ident": "StiText",
+              "Name": "Dataroot_dataInicioReserva",
+              "CanGrow": true,
+              "ClientRectangle": "0,4.2,19,0.6",
+              "Expressions": {
+                "0": {
+                  "Name": "Font"
+                }
+              },
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<b>Data Início Reserva:</b> {root.dataInicioReserva}"
+              },
+              "VertAlignment": "Center",
+              "Font": ";10;;",
+              "Border": "All;;;;;;;solid:0,0,0",
+              "Brush": "solid:",
+              "TextBrush": "solid:Black",
+              "TextOptions": {
+                "WordWrap": true
+              },
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            },
+            "7": {
+              "Ident": "StiText",
+              "Name": "Dataroot_dataFimReserva",
+              "CanGrow": true,
+              "ClientRectangle": "0,4.8,19,0.6",
+              "Expressions": {
+                "0": {
+                  "Name": "Font"
+                }
+              },
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<b>Data Fim Reserva:</b> {root.dataFimReserva}"
+              },
+              "VertAlignment": "Center",
+              "Font": ";10;;",
+              "Border": "All;;;;;;;solid:0,0,0",
+              "Brush": "solid:",
+              "TextBrush": "solid:Black",
+              "TextOptions": {
+                "WordWrap": true
+              },
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            },
+            "8": {
+              "Ident": "StiText",
+              "Name": "Dataroot_dataConhecimento",
+              "CanGrow": true,
+              "ClientRectangle": "0,5.4,19,0.6",
+              "Expressions": {
+                "0": {
+                  "Name": "Font"
+                }
+              },
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<b>Data Conhecimento:</b> {root.dataConhecimento}"
+              },
+              "VertAlignment": "Center",
+              "Font": ";10;;",
+              "Border": "All;;;;;;;solid:0,0,0",
+              "Brush": "solid:",
+              "TextBrush": "solid:Black",
+              "TextOptions": {
+                "WordWrap": true
+              },
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            },
+            "9": {
+              "Ident": "StiText",
+              "Name": "Dataroot_numeroConhecimento",
+              "CanGrow": true,
+              "ClientRectangle": "0,6,19,0.6",
+              "Expressions": {
+                "0": {
+                  "Name": "Font"
+                }
+              },
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<b>Número Conhecimento:</b> {root.numeroConhecimento}"
+              },
+              "VertAlignment": "Center",
+              "Font": ";10;;",
+              "Border": "All;;;;;;;solid:0,0,0",
+              "Brush": "solid:",
+              "TextBrush": "solid:Black",
+              "TextOptions": {
+                "WordWrap": true
+              },
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            },
+            "10": {
+              "Ident": "StiText",
+              "Name": "Dataroot_dataConcessao",
+              "CanGrow": true,
+              "ClientRectangle": "0,6.6,19,0.6",
+              "Expressions": {
+                "0": {
+                  "Name": "Font"
+                }
+              },
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<b>Data Concessão:</b> {root.dataConcessao}"
+              },
+              "VertAlignment": "Center",
+              "Font": ";10;;",
+              "Border": "All;;;;;;;solid:0,0,0",
+              "Brush": "solid:",
+              "TextBrush": "solid:Black",
+              "TextOptions": {
+                "WordWrap": true
+              },
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            },
+            "11": {
+              "Ident": "StiText",
+              "Name": "Dataroot_dataAnulacao",
+              "CanGrow": true,
+              "ClientRectangle": "0,7.2,19,0.6",
+              "Expressions": {
+                "0": {
+                  "Name": "Font"
+                }
+              },
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<b>Data Anulação:</b> {root.dataAnulacao}"
+              },
+              "VertAlignment": "Center",
+              "Font": ";10;;",
+              "Border": "All;;;;;;;solid:0,0,0",
+              "Brush": "solid:",
+              "TextBrush": "solid:Black",
+              "TextOptions": {
+                "WordWrap": true
+              },
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            },
+            "12": {
+              "Ident": "StiText",
+              "Name": "Dataroot_defuntoCount",
+              "CanGrow": true,
+              "ClientRectangle": "0,10.2,19,0.6",
+              "Expressions": {
+                "0": {
+                  "Name": "Font"
+                }
+              },
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<b>Número de Defuntos:</b> {root.defuntoCount}"
+              },
+              "VertAlignment": "Center",
+              "Font": ";10;;",
+              "Border": "All;;;;;;;solid:0,0,0",
+              "Brush": "solid:",
+              "TextBrush": "solid:Black",
+              "TextOptions": {
+                "WordWrap": true
+              },
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            },
+            "13": {
+              "Ident": "StiText",
+              "Name": "Dataroot_proprietarioCount",
+              "CanGrow": true,
+              "ClientRectangle": "0,9.6,19,0.6",
+              "Expressions": {
+                "0": {
+                  "Name": "Font"
+                }
+              },
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<b>Número de Proprietários:</b> {root.proprietarioCount}"
+              },
+              "VertAlignment": "Center",
+              "Font": ";10;;",
+              "Border": "All;;;;;;;solid:0,0,0",
+              "Brush": "solid:",
+              "TextBrush": "solid:Black",
+              "TextOptions": {
+                "WordWrap": true
+              },
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            },
+            "14": {
+              "Ident": "StiText",
+              "Name": "Text10",
+              "ClientRectangle": "0,9,19,0.6",
+              "Expressions": {
+                "0": {
+                  "Name": "Font"
+                }
+              },
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<b>Litígio:</b> {IIF(root.litigio, \"Sim\", \"Não\")}"
+              },
+              "VertAlignment": "Center",
+              "Font": ";10;;",
+              "Border": "All;105,105,105;;;;;;solid:105,105,105",
+              "Brush": "solid:",
+              "TextBrush": "solid:0,0,0",
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            },
+            "15": {
+              "Ident": "StiText",
+              "Name": "Text9",
+              "ClientRectangle": "0,8.4,19,0.6",
+              "Expressions": {
+                "0": {
+                  "Name": "Font"
+                }
+              },
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<b>Bloqueada:</b> {IIF(root.bloqueada, \"Sim\", \"Não\")}"
+              },
+              "VertAlignment": "Center",
+              "Font": ";10;;",
+              "Border": "All;105,105,105;;;;;;solid:105,105,105",
+              "Brush": "solid:",
+              "TextBrush": "solid:0,0,0",
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            },
+            "16": {
+              "Ident": "StiText",
+              "Name": "Text3",
+              "ClientRectangle": "0,7.8,19,0.6",
+              "Expressions": {
+                "0": {
+                  "Name": "Font"
+                }
+              },
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<b>Anulado:</b> {IIF(root.anulado, \"Sim\", \"Não\")}"
+              },
+              "VertAlignment": "Center",
+              "Font": ";10;;",
+              "Border": "All;105,105,105;;;;;;solid:105,105,105",
+              "Brush": "solid:",
+              "TextBrush": "solid:0,0,0",
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            },
+            "17": {
+              "Ident": "StiText",
+              "Name": "Dataroot_sepulturaEstadoId",
+              "CanGrow": true,
+              "ClientRectangle": "0,1.8,19,0.6",
+              "Expressions": {
+                "0": {
+                  "Name": "Font"
+                }
+              },
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<font face=\"Arial\"><b>Estado: </b>{IIF(root.sepulturaEstadoId == 1, \"Em estado de abandono\", IIF(root.sepulturaEstadoId == 2, \"Bom Estado\", IIF(root.sepulturaEstadoId == 3, \"Danificada\", IIF(root.sepulturaEstadoId == 4, \"Em obras / Em reparação\", IIF(root.sepulturaEstadoId == 5, \"Interditado / Inseguro\", IIF(root.sepulturaEstadoId == 6, \"Manutenção leve necessária\", IIF(root.sepulturaEstadoId == 7, \"Recuperada\", \"Desconhecido\")))))))}</font>"
+              },
+              "VertAlignment": "Center",
+              "Font": ";10;;",
+              "Border": "All;;;;;;;solid:0,0,0",
+              "Brush": "solid:",
+              "TextBrush": "solid:Black",
+              "TextOptions": {
+                "WordWrap": true
+              },
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            }
+          },
+          "DataSourceName": "root"
+        }
+      },
+      "Watermark": {
+        "TextBrush": "solid:50,0,0,0",
+        "ImageTransparency": 155,
+        "ImageAlignment": "BottomCenter"
+      }
+    }
+  }
+}

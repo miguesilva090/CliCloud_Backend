@@ -1,0 +1,73 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Configure hot reload to auto-restart when needed -->
+    <HotReloadProfile>aspnetcore</HotReloadProfile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="wwwroot\ReadMe.txt" />
+    <!-- Exclude development data folders from publish -->
+    <Content Remove="wwwroot\assets\reports\**" />
+    <Content Remove="wwwroot\assets\imagens\**" />
+    <Content Remove="wwwroot\assets\cemiterios\arquivos\**" />
+    <Content Remove="wwwroot\assets\cemiterios\mapas\**" />
+    <!-- Exclude appsettings.json - not used anymore, only environment-specific files are loaded -->
+    <Content Remove="appsettings.json" />
+    <None Remove="appsettings.json" />
+    <!-- Exclude appsettings.Production.json from build/publish - clients will create their own appsettings.Production.json -->
+    <Content Remove="appsettings.Production.json" />
+    <None Remove="appsettings.Production.json" />
+    <!-- Exclude development config from production builds -->
+    <Content Remove="appsettings.Development.json" />
+    <None Remove="appsettings.Development.json" />
+    <!-- Exclude old template file - we use appsettings.Production.Template.json instead -->
+    <Content Remove="appsettings.Template.json" />
+    <None Remove="appsettings.Template.json" />
+  </ItemGroup>
+
+  <!-- Exclude these files from publish output -->
+  <ItemGroup>
+    <ContentWithTargetPath Remove="appsettings.json" />
+    <ContentWithTargetPath Remove="appsettings.Production.json" />
+    <ContentWithTargetPath Remove="appsettings.Development.json" />
+    <ContentWithTargetPath Remove="appsettings.Template.json" />
+  </ItemGroup>
+
+  <!-- Create empty folders on publish -->
+  <Target Name="CreateEmptyFolders" AfterTargets="Publish">
+    <MakeDir Directories="$(PublishDir)wwwroot\assets\reports" />
+    <MakeDir Directories="$(PublishDir)wwwroot\assets\imagens" />
+    <MakeDir Directories="$(PublishDir)wwwroot\assets\cemiterios\arquivos" />
+    <MakeDir Directories="$(PublishDir)wwwroot\assets\cemiterios\mapas" />
+  </Target>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="13.0.1" />
+    <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.OpenApi" Version="2.3.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
+    <PackageReference Include="QuestPDF" Version="2026.2.1" />
+    <PackageReference Include="Stimulsoft.Reports.Web" Version="2026.1.4" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CliCloud.Application\CliCloud.Application.csproj" />
+    <ProjectReference Include="..\CliCloud.Infrastructure\CliCloud.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

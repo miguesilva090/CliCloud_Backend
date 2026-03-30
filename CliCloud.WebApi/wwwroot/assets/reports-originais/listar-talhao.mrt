@@ -1,0 +1,490 @@
+﻿{
+  "ReportVersion": "2025.4.2",
+  "ReportGuid": "c97e1d192a5f202d8c1e7ee188860e54",
+  "ReportName": "listar-talhao",
+  "ReportAlias": "listar-talhao",
+  "ReportCreated": "/Date(1764340462000+0000)/",
+  "ReportChanged": "/Date(1764340611000+0000)/",
+  "EngineVersion": "EngineV2",
+  "ReportUnit": "Centimeters",
+  "ScriptLanguage": "CSharp",
+  "UsePlatformDependentScript": false,
+  "Culture": "pt-PT",
+  "CalculationMode": "Interpretation",
+  "Dictionary": {
+    "Resources": {
+      "0": {
+        "Name": "listar-talhao",
+        "Alias": "listar-talhao",
+        "Type": "Json",
+        "Image": "hdiSJcQ9/LCk9sYTAfCENPbC0eG/w222fCKpA3skq5VtBOx3HNgMX2Bm/k1nNcpgL+uKoMP9OSvoj6WyCjOSagJyXPUOG8Vycl4dX6pUqmlkEFfne1r3qTJ39tCR/Ngx7MGmdxC6XFFFlHvFpkmrenhap8Tm4KzFL4DKG2UZe2zkOKIuHvDUDcS5Lw7wgSbXSBd/aI4VrbGZkAD9L3BGOMCB/iRTY95AeBh6AcOHoOjoxOb4JgbKRkiiDPeq39bPwjMlJdoPOeH1a4pO4XAUsLLUEu2fzazNudUSrm88JerRCPw5vl9uCk0EcohKLI47ajM93DF28TpA9qKLbz8/JhDRTf0EYYdtcNj3AYP9TK24/9keRhnnZk5fXLmbKWBKQwGisV8D547ddG5NUYWBQoCC9yGgiigRmyBehdNr7INHl5eScBC99+QI0rudBm+YcTO54w=="
+      }
+    },
+    "DataSources": {
+      "0": {
+        "Ident": "StiDataTableSource",
+        "Name": "root",
+        "Alias": "root",
+        "Columns": {
+          "0": {
+            "Name": "cemiterioCodigoPostalCodigo",
+            "NameInSource": "cemiterioCodigoPostalCodigo",
+            "Alias": "cemiterioCodigoPostalCodigo",
+            "Type": "System.String"
+          },
+          "1": {
+            "Name": "cemiterioCodigoPostalId",
+            "NameInSource": "cemiterioCodigoPostalId",
+            "Alias": "cemiterioCodigoPostalId",
+            "Type": "System.String"
+          },
+          "2": {
+            "Name": "cemiterioId",
+            "NameInSource": "cemiterioId",
+            "Alias": "cemiterioId",
+            "Type": "System.String"
+          },
+          "3": {
+            "Name": "cemiterioMorada",
+            "NameInSource": "cemiterioMorada",
+            "Alias": "cemiterioMorada",
+            "Type": "System.String"
+          },
+          "4": {
+            "Name": "cemiterioNome",
+            "NameInSource": "cemiterioNome",
+            "Alias": "cemiterioNome",
+            "Type": "System.String"
+          },
+          "5": {
+            "Name": "cemiterioPredefinido",
+            "NameInSource": "cemiterioPredefinido",
+            "Alias": "cemiterioPredefinido",
+            "Type": "System.Boolean"
+          },
+          "6": {
+            "Name": "createdOn",
+            "NameInSource": "createdOn",
+            "Alias": "createdOn",
+            "Type": "System.String"
+          },
+          "7": {
+            "Name": "id",
+            "NameInSource": "id",
+            "Alias": "id",
+            "Type": "System.String"
+          },
+          "8": {
+            "Name": "nome",
+            "NameInSource": "nome",
+            "Alias": "nome",
+            "Type": "System.String"
+          },
+          "9": {
+            "Name": "shapeId",
+            "NameInSource": "shapeId",
+            "Alias": "shapeId",
+            "Type": "System.String"
+          },
+          "10": {
+            "Name": "temSvgShape",
+            "NameInSource": "temSvgShape",
+            "Alias": "temSvgShape",
+            "Type": "System.Boolean"
+          },
+          "11": {
+            "Name": "zonaCemiterioId",
+            "NameInSource": "zonaCemiterioId",
+            "Alias": "zonaCemiterioId",
+            "Type": "System.String"
+          },
+          "12": {
+            "Name": "zonaId",
+            "NameInSource": "zonaId",
+            "Alias": "zonaId",
+            "Type": "System.String"
+          },
+          "13": {
+            "Name": "zonaNome",
+            "NameInSource": "zonaNome",
+            "Alias": "zonaNome",
+            "Type": "System.String"
+          }
+        },
+        "NameInSource": "listar-talhao.root"
+      }
+    },
+    "Databases": {
+      "0": {
+        "Ident": "StiJsonDatabase",
+        "Name": "listar-talhao",
+        "Alias": "listar-talhao",
+        "PathData": "resource://listar-talhao",
+        "HeadersString": "YyoQVHvZXeyY3LY5ASN05g=="
+      }
+    }
+  },
+  "Pages": {
+    "0": {
+      "Ident": "StiPage",
+      "Name": "Page1",
+      "Guid": "6e6d1f904656d700bb26c1a3562c3cb7",
+      "Interaction": {
+        "Ident": "StiInteraction"
+      },
+      "Border": ";;2;;;;;solid:Black",
+      "Brush": "solid:",
+      "Components": {
+        "0": {
+          "Ident": "StiPageHeaderBand",
+          "Name": "PageHeaderBand1",
+          "Guid": "bbf351755173b1c3dd28e7cb814770b9",
+          "CanGrow": true,
+          "ClientRectangle": "0,0.4,19,1.6",
+          "Interaction": {
+            "Ident": "StiInteraction"
+          },
+          "Border": ";;;;;;;solid:Black",
+          "Brush": "solid:",
+          "Components": {
+            "0": {
+              "Ident": "StiText",
+              "Name": "Text4",
+              "Guid": "e1ffbae717ec679944914893de04f78b",
+              "ClientRectangle": "0,0,19,1.6",
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<div style=\"text-align: center;\"><font size=\"18\" style=\"\"><b>Talhão</b></font></div>"
+              },
+              "HorAlignment": "Center",
+              "VertAlignment": "Center",
+              "Border": ";;;;;;;solid:Black",
+              "Brush": "solid:",
+              "TextBrush": "solid:Black",
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            },
+            "1": {
+              "Ident": "StiText",
+              "Name": "Text2",
+              "Guid": "44ed5467e4a77753f6cf339ba0730c36",
+              "ClientRectangle": "17.6,1,1.4,0.4",
+              "Expressions": {
+                "0": {
+                  "Name": "Font"
+                }
+              },
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<font size=\"8\">{Time}</font>"
+              },
+              "HorAlignment": "Right",
+              "VertAlignment": "Center",
+              "Border": ";105,105,105;;;;;;solid:105,105,105",
+              "Brush": "solid:",
+              "TextBrush": "solid:0,0,0",
+              "AllowHtmlTags": true,
+              "TextFormat": {
+                "Ident": "StiTimeFormatService",
+                "StringFormat": "HH:mm:ss"
+              },
+              "Type": "Expression"
+            },
+            "2": {
+              "Ident": "StiText",
+              "Name": "Text1",
+              "Guid": "1460bb8d9c48e5081dd8314b4c44648d",
+              "ClientRectangle": "17.6,0.4,1.4,0.4",
+              "Expressions": {
+                "0": {
+                  "Name": "Font"
+                }
+              },
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<font size=\"8\">{Today}</font>"
+              },
+              "HorAlignment": "Right",
+              "VertAlignment": "Center",
+              "Border": ";105,105,105;;;;;;solid:105,105,105",
+              "Brush": "solid:",
+              "TextBrush": "solid:0,0,0",
+              "AllowHtmlTags": true,
+              "TextFormat": {
+                "Ident": "StiDateFormatService",
+                "StringFormat": "dd/MM/yyyy"
+              },
+              "Type": "Expression"
+            },
+            "3": {
+              "Ident": "StiText",
+              "Name": "Text7",
+              "Guid": "70c070ff41fb204354e4fd5ad49fa832",
+              "ClientRectangle": "16.6,0.4,1,0.4",
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<font size=\"8\">Data:</font>"
+              },
+              "HorAlignment": "Right",
+              "VertAlignment": "Center",
+              "Border": ";105,105,105;;;;;;solid:105,105,105",
+              "Brush": "solid:",
+              "TextBrush": "solid:0,0,0",
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            },
+            "4": {
+              "Ident": "StiText",
+              "Name": "Text8",
+              "Guid": "aa521da61b4ae16dd58fada5534ee385",
+              "ClientRectangle": "16.6,1,1,0.4",
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<font size=\"8\">Hora:</font>"
+              },
+              "HorAlignment": "Right",
+              "VertAlignment": "Center",
+              "Border": ";105,105,105;;;;;;solid:105,105,105",
+              "Brush": "solid:",
+              "TextBrush": "solid:0,0,0",
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            }
+          }
+        },
+        "1": {
+          "Ident": "StiPageFooterBand",
+          "Name": "PageFooterBand1",
+          "Guid": "6e13e3e3ef60c5a9434d871530d6ef78",
+          "CanGrow": true,
+          "ClientRectangle": "0,26.9,19,0.8",
+          "Interaction": {
+            "Ident": "StiInteraction"
+          },
+          "Border": ";;;;;;;solid:Black",
+          "Brush": "solid:",
+          "Components": {
+            "0": {
+              "Ident": "StiText",
+              "Name": "Text6",
+              "Guid": "3c53dc8bd5b1b142e64efc1577929763",
+              "ClientRectangle": "0.2,0.1,4,0.6",
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<font size=\"8\">Plataforma LUMA</font>"
+              },
+              "VertAlignment": "Center",
+              "Border": ";;;;;;;solid:0,0,0",
+              "Brush": "solid:",
+              "TextBrush": "solid:0,0,0",
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            },
+            "1": {
+              "Ident": "StiText",
+              "Name": "Text5",
+              "Guid": "c12a115d8a988f9e0ac2081f880a2a2e",
+              "ClientRectangle": "15.8,0.1,3,0.6",
+              "Expressions": {
+                "0": {
+                  "Name": "Font"
+                }
+              },
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "{PageNofM}"
+              },
+              "HorAlignment": "Right",
+              "VertAlignment": "Center",
+              "Border": ";;;;;;;solid:Black",
+              "Brush": "solid:",
+              "TextBrush": "solid:Black"
+            }
+          }
+        },
+        "2": {
+          "Ident": "StiGroupHeaderBand",
+          "Name": "GroupHeaderBand1",
+          "Guid": "7234b4d9b9dc2ed6c9a9330fa8954008",
+          "CanGrow": true,
+          "ClientRectangle": "0,2.8,19,0.6",
+          "Interaction": {
+            "Ident": "StiBandInteraction"
+          },
+          "Border": ";;;;;;;solid:Black",
+          "Brush": "solid:",
+          "Components": {
+            "0": {
+              "Ident": "StiText",
+              "Name": "Text9",
+              "Guid": "56a28102d17e5acb7a807a2d7819ddb8",
+              "CanGrow": true,
+              "ClientRectangle": "0,0,19,0.6",
+              "Expressions": {
+                "0": {
+                  "Name": "Font"
+                }
+              },
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "{root.cemiterioNome}"
+              },
+              "CanBreak": true,
+              "VertAlignment": "Center",
+              "Font": ";10;Bold;",
+              "Border": ";;;;;;;solid:Black",
+              "Brush": "solid:",
+              "TextBrush": "solid:Black",
+              "TextOptions": {
+                "WordWrap": true
+              },
+              "Type": "Expression"
+            }
+          },
+          "Condition": {
+            "Value": "{root.cemiterioNome}"
+          }
+        },
+        "3": {
+          "Ident": "StiGroupHeaderBand",
+          "Name": "GroupHeaderBand2",
+          "Guid": "95766bad11c5cb2265497d21415822ca",
+          "CanGrow": true,
+          "ClientRectangle": "0,4.2,19,0.6",
+          "Interaction": {
+            "Ident": "StiBandInteraction"
+          },
+          "Border": ";;;;;;;solid:Black",
+          "Brush": "solid:",
+          "Components": {
+            "0": {
+              "Ident": "StiText",
+              "Name": "Text10",
+              "Guid": "bea4849fae49d2fa9e22a0142f6c8955",
+              "CanGrow": true,
+              "ClientRectangle": "0,0,19,0.6",
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<ul><li><b>{root.zonaNome}</b></li></ul>"
+              },
+              "CanBreak": true,
+              "VertAlignment": "Center",
+              "Font": ";10;Bold;",
+              "Border": ";;;;;;;solid:0,0,0",
+              "Brush": "solid:",
+              "TextBrush": "solid:0,0,0",
+              "TextOptions": {
+                "WordWrap": true
+              },
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            }
+          },
+          "Condition": {
+            "Value": "{root.zonaNome}"
+          }
+        },
+        "4": {
+          "Ident": "StiTable",
+          "Name": "Tableroot",
+          "Guid": "e707d83b89f4b9d251cc2b0da98327fa",
+          "CanGrow": true,
+          "ClientRectangle": "0,5.6,19,1",
+          "Interaction": {
+            "Ident": "StiBandInteraction"
+          },
+          "Border": ";;;;;;;solid:Black",
+          "Brush": "solid:",
+          "Components": {
+            "0": {
+              "Ident": "StiTableCell",
+              "Name": "Tableroot_Cell1",
+              "Guid": "bf6f99ab0d7aa95d8eb27b14e4d4b730",
+              "ClientRectangle": "0,0,19,0.5",
+              "Restrictions": "AllowMove, AllowSelect, AllowChange",
+              "Expressions": {
+                "0": {
+                  "Name": "Font"
+                }
+              },
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "   Nome"
+              },
+              "VertAlignment": "Center",
+              "Font": ";10;Bold;",
+              "Border": "All;105,105,105;;;;;;solid:105,105,105",
+              "Brush": "solid:216,216,216",
+              "TextBrush": "solid:0,0,0",
+              "Type": "Expression",
+              "ID": 0
+            },
+            "1": {
+              "Ident": "StiTableCell",
+              "Name": "Tableroot_Cell2",
+              "Guid": "76917cb042072ae0ae910156b6e25408",
+              "CanGrow": true,
+              "GrowToHeight": true,
+              "ClientRectangle": "0,0.5,19,0.5",
+              "Restrictions": "AllowMove, AllowSelect, AllowChange",
+              "Expressions": {
+                "0": {
+                  "Name": "Font"
+                }
+              },
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "      {root.nome}"
+              },
+              "CanBreak": true,
+              "VertAlignment": "Center",
+              "Font": ";10;;",
+              "Border": "All;105,105,105;;;;;;solid:105,105,105",
+              "Brush": "solid:255,255,255",
+              "TextBrush": "solid:Black",
+              "TextOptions": {
+                "WordWrap": true
+              },
+              "Type": "Expression",
+              "ID": 1
+            }
+          },
+          "MinHeight": 0.4,
+          "DataSourceName": "root",
+          "RowCount": 2,
+          "ColumnCount": 1,
+          "HeaderRowsCount": 1,
+          "NumberID": 2
+        }
+      },
+      "Watermark": {
+        "TextBrush": "solid:50,0,0,0",
+        "ImageTransparency": 146,
+        "Image": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+DQo8c3ZnDQogICB2ZXJzaW9uPSIxLjEiDQogICB3aWR0aD0iMTAwIg0KICAgaGVpZ2h0PSIxMDAiDQogICB2aWV3Qm94PSIwIDAgMTAwIDEwMCINCiAgIGlkPSJzdmc2Ig0KICAgc29kaXBvZGk6ZG9jbmFtZT0ibHVtYS1zbWFsbC5zdmciDQogICBpbmtzY2FwZTp2ZXJzaW9uPSIxLjMuMSAoOTFiNjZiMDc4MywgMjAyMy0xMS0xNikiDQogICBpbmtzY2FwZTpleHBvcnQtZmlsZW5hbWU9Imx1bWEucG5nIg0KICAgaW5rc2NhcGU6ZXhwb3J0LXhkcGk9IjMyMCINCiAgIGlua3NjYXBlOmV4cG9ydC15ZHBpPSIzMjAiDQogICB4bWxuczppbmtzY2FwZT0iaHR0cDovL3d3dy5pbmtzY2FwZS5vcmcvbmFtZXNwYWNlcy9pbmtzY2FwZSINCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCINCiAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyINCiAgIHhtbG5zOnN2Zz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPg0KICA8ZGVmcw0KICAgICBpZD0iZGVmczYiIC8+DQogIDxzb2RpcG9kaTpuYW1lZHZpZXcNCiAgICAgaWQ9Im5hbWVkdmlldzYiDQogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiINCiAgICAgYm9yZGVyY29sb3I9IiMwMDAwMDAiDQogICAgIGJvcmRlcm9wYWNpdHk9IjAuMjUiDQogICAgIGlua3NjYXBlOnNob3dwYWdlc2hhZG93PSIyIg0KICAgICBpbmtzY2FwZTpwYWdlb3BhY2l0eT0iMC4wIg0KICAgICBpbmtzY2FwZTpwYWdlY2hlY2tlcmJvYXJkPSIwIg0KICAgICBpbmtzY2FwZTpkZXNrY29sb3I9IiNkMWQxZDEiDQogICAgIGlua3NjYXBlOnpvb209IjIuNjIyNzAwMyINCiAgICAgaW5rc2NhcGU6Y3g9IjEwMy4zMjg2MiINCiAgICAgaW5rc2NhcGU6Y3k9IjEyMS44MjEwMSINCiAgICAgaW5rc2NhcGU6d2luZG93LXdpZHRoPSIxOTIwIg0KICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSIxMDE3Ig0KICAgICBpbmtzY2FwZTp3aW5kb3cteD0iMTkxMiINCiAgICAgaW5rc2NhcGU6d2luZG93LXk9Ii04Ig0KICAgICBpbmtzY2FwZTp3aW5kb3ctbWF4aW1pemVkPSIxIg0KICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJnNiIgLz4NCiAgPGcNCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciINCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiDQogICAgIGlkPSJnNiI+DQogICAgPGcNCiAgICAgICBpZD0iZzciDQogICAgICAgdHJhbnNmb3JtPSJtYXRyaXgoMC4wNzg4ODY5MiwwLDAsMC4wNzg4ODY5MiwtNC41NjAzNDM1LDEzLjA5OTg2MikiPg0KICAgICAgPHBhdGgNCiAgICAgICAgIHRyYW5zZm9ybT0ibWF0cml4KDEsMCwwLC0xLDAsOTM1LjQzMzEpIg0KICAgICAgICAgZD0ibSAxMDM2LjkwNTIsNjQ5LjM5NTIgYyAxMTMuNDk2NywtMTMuODIxNCAyMDIuMTY5MiwtMTExLjE3MDggMjAyLjE2OTIsLTIyOC4yNDc2IHYgLTMyLjA1MjIgLTE0Ny4yMTA4IC00MS4yMjggYyAwLC0zOS42MDk5IC0zMi40MDYzLC03Mi4wMTU4IC03Mi4wMTYyLC03Mi4wMTU4IC0zOS42MDk5LDAgLTcyLjAxNTgsMzIuNDA1OSAtNzIuMDE1OCw3Mi4wMTU4IHYgNTYuMTI4MyAxMzIuMzEwNSAzOS45MjY4IGMgMCwxOC4wNjU1IC01LjU2MjIsMzQuODk3MyAtMTUuMDU1Miw0OC44NjM2IDE3LjMwMDIsNTMuMzA5OCA1LjU1NTQsMTE0LjA2MzEgLTM3LjgzLDE2NS4zMjY4IHogbSAtMjYuOTU4NCwtMTMzLjA3NjEgYyAtMC43NDE4LDAuMDIwNCAtMS40ODMzLDAuMDMwMyAtMi4yMzE3LDAuMDMwMyAwLjc0ODQsMCAxLjQ4OTksLTAuMDEgMi4yMzE3LC0wLjAzMDMiDQogICAgICAgICBmaWxsPSIjYWYzNjlmIg0KICAgICAgICAgZmlsbC1ydWxlPSJldmVub2RkIg0KICAgICAgICAgaWQ9InBhdGgxIiAvPg0KICAgICAgPHBhdGgNCiAgICAgICAgIHRyYW5zZm9ybT0ibWF0cml4KDEsMCwwLC0xLDAsOTM1LjQzMzEpIg0KICAgICAgICAgZD0ibSA5OTkuMDIxLDY1MS4wOTA5IGMgMS45MDgzLDAgMy44MTI5LC0wLjAyMzggNS43MTA3LC0wLjA3MDkgbCAwLjE5ODksLTAuMDAzIDAuMjM1OSwtMC4wMTAyIGggMC4wNjcgYyAxLjU4NDIsLTAuMDQzNiAzLjE2MiwtMC4xMDQzIDQuNzM2NCwtMC4xODIgbCAwLjQzNDgsLTAuMDIwMSAwLjksLTAuMDQ3MyBjIDEuNDczMiwtMC4wODA4IDIuOTQyOSwtMC4xNzE4IDQuNDA1OSwtMC4yNzk4IGwgMS42MzE2LC0wLjEyNDcgMC40MzE3LC0wLjAzNzIgMC40MzE1LC0wLjAzNjggMi41ODU0LC0wLjIzMjcgMC40MzE1LC0wLjA0MDYgMi41NzU1LC0wLjI2NjEgMC40MjgzLC0wLjA0NzQgMC40MjgxLC0wLjA0NyAwLjg1NjMsLTAuMDk3OCAwLjQyODEsLTAuMDUwNSAwLjQyNDYsLTAuMDUwNyAwLjQyODMsLTAuMDUwNSA1LjI1MiwtNi4xODI2IGMgNDMuMzg1NSwtNTEuMjYzNyA1NS4xMzAyLC0xMTIuMDE3IDM3LjgzMDIsLTE2NS4zMjY4IGwgLTAuMTM1MSwwLjE5NTYgLTAuNzc4NiwxLjExOTEgLTAuNDE0NywwLjU3OTcgLTAuNzU4NiwxLjAzODQgLTAuMTk4NywwLjI3MjkgLTAuMDY4LDAuMDk0NCAtMC4zNDcyLDAuNDUxOSAtMC42MzM4LDAuODI5NCAtMC40Nzg1LDAuNjEgLTAuMDcxLDAuMDkxIC0wLjgyMjYsMS4wMjEzIC0wLjAzNywwLjA0MzkgLTAuNzMxNCwwLjg3NjUgLTAuMjE1NywwLjI1NjMgLTAuNzA4MSwwLjgyNiAtMC44NjYzLDAuOTgwOCAtMC4wNjQsMC4wNzA4IC0wLjczNSwwLjgwOTEgLTAuMDgxLDAuMDg3NSAtMC44OTY2LDAuOTU3NiAtMC4wOTEsMC4wOTc4IC0wLjI4MzIsMC4yODk3IC0wLjg3OTYsMC45MDM3IC0wLjQ2ODUsMC40NzE3IC0wLjEwNzksMC4xMDggLTAuOTM3MywwLjkxMzYgLTAuMTA0NiwwLjA5NzggLTAuNjAzMiwwLjU2OTcgLTAuNTE5MywwLjQ4ODcgLTAuNjg0MywwLjYzMDQgLTAuOTc3NiwwLjg3MzEgLTAuMTY4NCwwLjE0NDkgLTAuNjc0NCwwLjU4NjcgLTAuMTQ4MiwwLjEyNzkgLTEuMDAxMiwwLjg0MyAtMC43MDEzLDAuNTcyOSAtMC41OTMzLDAuNDc4NyAtMC43NDUsMC41ODY1IHYgMC4wMDMgbCAtMS4wMzgzLDAuNzk5MSAtMC4xMTc5LDAuMDg3NiAtMC40ODU2LDAuMzY0IC0xLjQzMjUsMS4wNDUxIC0wLjA3NywwLjA1NzMgLTEuNDM5NSwwLjk5NzggLTAuNDc1NCwwLjMyMDMgLTAuMjQ5NCwwLjE2ODQgLTEuMDk5LDAuNzIxNCAtMC4xNDUsMC4wOTQ0IC0wLjMwMDEsMC4xODg4IC0xLjA1MTYsMC42NTczIC0wLjY4NDMsMC40MjE1IC0xLjQzMywwLjg0OTYgLTAuMzg3NCwwLjIyMjUgLTEuMDIxNiwwLjU3MjkgLTEuMDc1MiwwLjU4NjcgLTEuMTYzMSwwLjYxMzUgLTAuMzYwOCwwLjE4NTMgLTEuNTU0LDAuNzc4NyAtMC4xNzUxLDAuMDg0NSAtMC4wNzEsMC4wMzM3IC0xLjcyOTUsMC44MTI0IC0wLjE3ODYsMC4wODA4IC0xLjYxODMsMC43MTEyIC0wLjcwNzgsMC4zMDAyIC0xLjE4NjYsMC40ODUzIC0wLjM0MzksMC4xNDE4IC0wLjA1NCwwLjAyMDEgLTAuMDYxLDAuMDIzNSAtMS43MTI2LDAuNjUwOCAtMC4zLDAuMTExMiAtMS42NzU1LDAuNTk2NyAtMC4yMDIxLDAuMDcwOCAtMC4zMTY5LDAuMTA0MyAtMS42MTgxLDAuNTI2MSAtMC4xNTUsMC4wNDcxIC0xLjgwMzcsMC41NDI4IC0wLjQ4NTMsMC4xMzgxIC0xLjc5NjksMC40ODkgLTAuMDM3LDAuMDEgLTEuODAzNCwwLjQ0MTYgLTAuNDcyLDAuMTExNCAtMS44NzA5LDAuNDA3OSAtMC4xMTQ4LDAuMDIzNSAtMS42OTIyLDAuMzI2OSAtMC41NDk0LDAuMTAxMiAtMS43OTY5LDAuMzAwMiAtMC4zNzQyLDAuMDU3MiAtMS45NjE4LDAuMjc2NCAtMC4wMiwwLjAwMyAtMS44MTM2LDAuMjA4OSAtMC42NDcyLDAuMDY3NSAtMS42NDQ5LDAuMTQ4MiAtMC4yNjMxLDAuMDIwNCAtMC4yMzU4LDAuMDEzNCAtMS42NTg5LDAuMTA4IC0wLjMyMzQsMC4wMjAxIC0wLjI4NjYsMC4wMTM2IC0xLjkzNDksMC4wNzA2IGggLTAuMDIzOCBjIC0wLjc0MTYsMC4wMjA0IC0xLjQ4MzEsMC4wMzAzIC0yLjIzMTQsMC4wMzAzIC00OC4wMzA5LDAgLTg3LjMyNzMsLTM5LjI5NjQgLTg3LjMyNzMsLTg3LjMyNzIgViAyODAuOTU4NyBsIC0wLjAyMDQsLTAuMDE3IDAuMDIwNCwtMS4xNTk2IGMgMCwtNzkuNzg5NiAtNjIuNjU4MSwtMTQ1LjYzOTkgLTE0MS4xOTY4LC0xNTAuODA0MyB2IDYwLjYzMTkgYyAtMC43Njg3LDE4LjI1MDkgMCwzOS40NDgxIDAsNTIuMjc0OSB2IDE3OS4yNjMgMTQuMzU3MiBsIDAuNDU4NCwtMC4wNzc0IGMgNy40Mzk4LDExOS44ODQ4IDEwNy44MDk4LDIxNS42NjM1IDIyOS40ODQ3LDIxNS42NjM1Ig0KICAgICAgICAgZmlsbD0iIzZjNDViYSINCiAgICAgICAgIGZpbGwtcnVsZT0iZXZlbm9kZCINCiAgICAgICAgIGlkPSJwYXRoMiIgLz4NCiAgICAgIDxwYXRoDQogICAgICAgICB0cmFuc2Zvcm09Im1hdHJpeCgxLDAsMCwtMSwwLDkzNS40MzMxKSINCiAgICAgICAgIGQ9Im0gMzAyLjEyODcsMjY1Ljk4NDQgYyAxLjQzMjcsLTAuMDc0MiAyLjg3MjQsLTAuMTA4IDQuMzE4MywtMC4xMDggLTEuNDQ1OSwwIC0yLjg4ODgsMC4wMzM4IC00LjMxODMsMC4xMDgiDQogICAgICAgICBmaWxsLXJ1bGU9ImV2ZW5vZGQiDQogICAgICAgICBpZD0icGF0aDMiIC8+DQogICAgICA8cGF0aA0KICAgICAgICAgdHJhbnNmb3JtPSJtYXRyaXgoMSwwLDAsLTEsMCw5MzUuNDMzMSkiDQogICAgICAgICBkPSJNIDI1OS40ODE1LDEzMS4wNTc5IEMgMTQ5LjgzOCwxNDcuMTY0NiA2NC45NzQ5LDI0Mi4yMTg1IDY0Ljk3NDksMzU2LjE0NjYgdiAxNC43Mzg0IDE5OS43ODU5IDE2NC4wMTg4IGMgMCwzOS42MDk5IDMyLjQwNiw3Mi4wMTU5IDcyLjAxNTksNzIuMDE1OSAzOS42MDk5LDAgNzIuMDE1OCwtMzIuNDA2IDcyLjAxNTgsLTcyLjAxNTkgViA3MTYuNjQ0MyAzNzAuODg1IDM1My4yMDM3IGMgMCwtNi40MTE3IDAuNzA3OSwtMTIuNjY4NCAyLjAzNjIsLTE4LjY5NiBsIC0wLjAwNywwLjAyMzkgLTAuMDAzLC0wLjAxMDIgYyAtMjkuMDIxNCwtODYuNTYyMiAtOC44MzIyLC0xNjMuOTg4NSA0NS43MTQ5LC0yMDMuMDQ1NyB6Ig0KICAgICAgICAgZmlsbD0iIzMxYmZmZiINCiAgICAgICAgIGZpbGwtcnVsZT0iZXZlbm9kZCINCiAgICAgICAgIGlkPSJwYXRoNCIgLz4NCiAgICAgIDxwYXRoDQogICAgICAgICB0cmFuc2Zvcm09Im1hdHJpeCgxLDAsMCwtMSwwLDkzNS40MzMxKSINCiAgICAgICAgIGQ9Ik0gNTMwLjEsNDc3LjQwNzEgViAzNzYuMTI2OSAzNTYuMTQ2NiBjIDAsLTEyNS4xMzAzIC0xMDIuMzcyNCwtMjI3LjUwNTggLTIyNy41MDYxLC0yMjcuNTA1OCAtMTIuMTQ5MywwIC0yNC4wODI5LDAuOTc3MyAtMzUuNzMzLDIuODM0OSAtNTQuNTQ3NCwzOS4wNTcyIC03NC43MzY2LDExNi40ODM1IC00NS43MTUyLDIwMy4wNDU3IGwgMC4wMDMsMC4wMTAyIGMgOC42MTMxLC0zOS4xMzggNDMuNjcyMywtNjguNjU1MiA4NS4yOTc5LC02OC42NTUyIDQ4LjAzMTEsMCA4Ny4zMjc1LDM5LjI5NjUgODcuMzI3NSw4Ny4zMjczIHYgMTA5LjQ1NSAxMy4xNTczIGMgMCw5Ni40MDU0IDc4Ljg2OTIsMTc1LjI3NDkgMTc1LjI3MTMsMTc1LjI3NDkgOTYuNDAyMywwIDE3NS4yNzE1LC03OC44Njk1IDE3NS4yNzE1LC0xNzUuMjc0OSBWIDQzNi4xMjg0IDEyOS4zNzIxIGMgLTc1LjU1NTUsNy40NDAxIC0xMzUuMjI2NSw3MS4xMTkzIC0xMzYuMjk4NiwxNDguMzA2NCBsIC0wLjAyNjksMC4wMTcgdiAyLjA4NjYgMTk3LjYyNSBjIDAsMjEuNDE5NyAtMTcuNTIyOSwzOC45NDIzIC0zOC45NDI2LDM4Ljk0MjMgaCAtMC4wMDcgYyAtMjEuNDE2NiwwIC0zOC45NDI2LC0xNy41MjYgLTM4Ljk0MjYsLTM4Ljk0MjMiDQogICAgICAgICBmaWxsPSIjNDY3N2QzIg0KICAgICAgICAgZmlsbC1ydWxlPSJldmVub2RkIg0KICAgICAgICAgaWQ9InBhdGg1IiAvPg0KICAgICAgPHBhdGgNCiAgICAgICAgIHRyYW5zZm9ybT0ibWF0cml4KDEsMCwwLC0xLDAsOTM1LjQzMzEpIg0KICAgICAgICAgZD0ibSAxMjc4LjYzNjEsNjQ1LjA4NiBjIDEwLjk0NjYsMCAyMC44NTc2LC00LjQzNzkgMjguMDMxMywtMTEuNjEyMSA3LjE3NDIsLTcuMTczNyAxMS42MTIyLC0xNy4wODQ3IDExLjYxMjIsLTI4LjAzMTMgMCwtMTAuOTQ2MyAtNC40Mzg2LC0yMC44NTc2IC0xMS42MTIyLC0yOC4wMzEyIC03LjE3MzcsLTcuMTc0NSAtMTcuMDg0NywtMTEuNjEyNCAtMjguMDMxMywtMTEuNjEyNCAtMTAuOTQ2MywwIC0yMC44NTc2LDQuNDM4NCAtMjguMDMxNSwxMS42MTI0IC03LjE3MzcsNy4xNzM2IC0xMS42MTIyLDE3LjA4NDkgLTExLjYxMjIsMjguMDMxMiAwLDEwLjk0NjYgNC40MzgsMjAuODU3NiAxMS42MTIyLDI4LjAzMTMgNy4xNzM5LDcuMTczNiAxNy4wODUyLDExLjYxMjEgMjguMDMxNSwxMS42MTIxIHogbSAyMy40ODg0LC0xNi4xNTQ5IGMgLTYuMDEsNi4wMTAzIC0xNC4zMTUyLDkuNzI4NyAtMjMuNDg4NCw5LjcyODcgLTkuMTczMiwwIC0xNy40NzgxLC0zLjcxODQgLTIzLjQ4ODQsLTkuNzI4NyAtNi4wMTA2LC02LjAwOTggLTkuNzI4NywtMTQuMzE1MyAtOS43Mjg3LC0yMy40ODg1IDAsLTkuMTczMiAzLjcxODEsLTE3LjQ3ODEgOS43Mjg3LC0yMy40ODg0IDYuMDEwMywtNi4wMTA2IDE0LjMxNTIsLTkuNzI4OCAyMy40ODg0LC05LjcyODggOS4xNzMyLDAgMTcuNDc4NCwzLjcxODIgMjMuNDg4NCw5LjcyODggNi4wMTAzLDYuMDEwMyA5LjcyODUsMTQuMzE1MiA5LjcyODUsMjMuNDg4NCAwLDkuMTczMiAtMy43MTgyLDE3LjQ3ODcgLTkuNzI4NSwyMy40ODg1Ig0KICAgICAgICAgZmlsbD0iI2FmMzY5ZiINCiAgICAgICAgIGlkPSJwYXRoNiIgLz4NCiAgICAgIDx0ZXh0DQogICAgICAgICBmaWxsPSIjYWYzNjlmIg0KICAgICAgICAgeG1sOnNwYWNlPSJwcmVzZXJ2ZSINCiAgICAgICAgIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAsOTM1LjQzMzEpIg0KICAgICAgICAgZm9udC1zaXplPSI1MS40MDZweCINCiAgICAgICAgIGZvbnQtZmFtaWx5PSJBcmlhbCINCiAgICAgICAgIGZvbnQtd2VpZ2h0PSJib2xkIg0KICAgICAgICAgaWQ9InRleHQ2Ij48dHNwYW4NCiAgICAgICAgICAgeT0iLTU4Ny4wMzg3Ig0KICAgICAgICAgICB4PSIxMjU4LjMzMDQiDQogICAgICAgICAgIGlkPSJ0c3BhbjYiPlI8L3RzcGFuPjwvdGV4dD4NCiAgICA8L2c+DQogIDwvZz4NCjwvc3ZnPg0K",
+        "ImageAlignment": "BottomCenter"
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+using Ardalis.Specification;
+using CliCloud.Domain.Entities.Organismos;
+
+namespace CliCloud.Application.Services.Organismos.OrganismoService.Specifications
+{
+    public class OrganismoSearchByName : Specification<Organismo>
+    {
+        public OrganismoSearchByName(string nome)
+        {
+            _ = Query.Where(x => x.Nome.Contains(nome));
+        }
+    }
+}
