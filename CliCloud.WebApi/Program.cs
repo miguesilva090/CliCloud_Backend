@@ -18,6 +18,9 @@ try
   // - Production: appsettings.Production.json (client-specific, excluded from build)
   StartupLogger.LogInfo("Loading configuration files...");
   builder.Configuration.Sources.Clear();
+  
+  builder.Services.AddHttpContextAccessor();
+
   _ = builder.Environment.IsDevelopment()
     ? builder.Configuration.AddJsonFile(
       "appsettings.Development.json",

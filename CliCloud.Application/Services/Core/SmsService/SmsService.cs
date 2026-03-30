@@ -6,6 +6,8 @@ using CliCloud.Application.Services.Core.SmsService.Helpers;
 using CliCloud.Application.Services.Core.SmsService.Specifications;
 using CliCloud.Application.Utility;
 using CliCloud.Domain.Entities.Core.Sms;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
@@ -14,9 +16,15 @@ using System.Text.Json;
 
 namespace CliCloud.Application.Services.Core.SmsService
 {
-    public class ServicoSms(IRepositoryAsync repository): IServicoSms
+    public class ServicoSms(
+        IRepositoryAsync repository,
+        IHttpContextAccessor httpContextAccessor,
+        IConfiguration configuration
+    ) : IServicoSms
     {
         private readonly IRepositoryAsync _repository = repository;
+        private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+        private readonly IConfiguration _configuration = configuration;
 
         public async Task<Response<ConfiguracaoSmsDTO>> ObterConfiguracaoAtualAsync(Guid clinicaId)
         {
@@ -380,7 +388,7 @@ namespace CliCloud.Application.Services.Core.SmsService
             }
         }
 
-        private static void AplicarConfiguracao(ConfiguracaoSms entidade, AtualizarConfiguracaoSmsRequest request)
+        private void AplicarConfiguracao(ConfiguracaoSms entidade, AtualizarConfiguracaoSmsRequest request)
         {
             entidade.Ativo = request.Ativo;
             entidade.UsenditArpoone = request.UsenditArpoone;
@@ -394,7 +402,36 @@ namespace CliCloud.Application.Services.Core.SmsService
             entidade.ArpooneUrl = request.ArpooneUrl;
             entidade.ArpooneSender = request.ArpooneSender;
             entidade.ArpooneApiKey = string.IsNullOrWhiteSpace(request.ArpooneApiKey) ? string.Empty : CriptografiaSmsHelper.Cifrar(request.ArpooneApiKey);
-            entidade.ArpooneOrganizationID = request.ArpooneOrganizationID;
+            entidade.ArpooneOrganizationID = request.ArpooneOrganizationID ?? entidade.ArpooneOrganizationID;
+
+            var baseUrl = ObterBaseUrl();
+            if(!string.IsNullOrWhiteSpace(baseUrl))
+            {
+                entidade.WebhookDeliveredUrl = $"{baseUrl}/webhooks/sms/entregue";
+                entidade.WebhookNotDeliveredUrl = $"{baseUrl}/webhooks/sms/nao-entregue";
+                entidade.WebhookPendingUrl = $"{baseUrl}/webhooks/sms/pendente";
+            }
+        }
+
+        private string? ObterBaseUrl()
+        {
+            var request = _httpContextAccessor.HttpContext?.Request;
+            if(request != null && request.Host.HasValue)
+                return $"{request.Scheme}://{request.Host}";
+
+            var configurado = _configuration["PublicBaseUrl"] ?? _configuration["App:BaseUrl"];
+            if(!string.IsNullOrWhiteSpace(configurado))
+                return configurado.TrimEnd('/');
+
+            var urls = Environment.GetEnvironmentVariable("ASPNETCORE_URLS");
+            if(!string.IsNullOrWhiteSpace(urls))
+            {
+                var primeira = urls.Split(';', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+                if(!string.IsNullOrWhiteSpace(primeira))
+                    return primeira.TrimEnd('/');
+            }
+
+            return null;
         }
 
         private static void AplicarConfiguracaoAutomatica(ConfiguracaoSmsAutomatica entidade, AtualizarConfiguracaoAutomaticaRequest request)
