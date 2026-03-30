@@ -383,3 +383,4 @@ Luma.API.WebApi/wwwroot/assets/reports/
 **/appsettings.Production.json
 # But keep the template file
 !**/appsettings.Production.Template.jsonCliCloud.WebApi/appsettings.Development.json
+CliCloud.WebApi/appsettings.Development.json
