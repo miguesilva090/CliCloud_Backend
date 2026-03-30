@@ -4,6 +4,6 @@ namespace CliCloud.Application.Services.Core.SmsService.Filters
 {
     public class HistoricoSmsTabelaFiltro : PaginationFilter
     {
-        public List<TableFilter> Filters { get; set; }
+        public List<TableFilter> Filters { get; set; } = [];
     }
 }

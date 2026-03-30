@@ -14,7 +14,7 @@ namespace CliCloud.Application.Services.Core.SmsService.Helpers
             if(string.IsNullOrWhiteSpace(textoPlano))
                 return string.Empty;
 
-            using var csp = new AesCryptoServiceProvider();
+            using var csp = Aes.Create();
             var transform = GetCryptoTransform(csp, true);
 
             var payload = Encoding.UTF8.GetBytes($"%{textoPlano}%");
@@ -27,25 +27,30 @@ namespace CliCloud.Application.Services.Core.SmsService.Helpers
             if(string.IsNullOrWhiteSpace(textoCifrado))
                 return string.Empty;
 
-            using var csp = new AesCryptoServiceProvider();
+            using var csp = Aes.Create();
             var transform = GetCryptoTransform(csp, false);
             
             var input = Convert.FromBase64String(textoCifrado);
             var output = transform.TransformFinalBlock(input, 0, input.Length);
             var texto = Encoding.UTF8.GetString(output);
 
-            if(texto.StartsWith("%") && texto.EndsWith("%") && texto.Length >= 2)
+            if(texto.StartsWith('%') && texto.EndsWith('%') && texto.Length >= 2)
                 texto = texto[1..^1];
             
             return texto;
         }
 
-        private static ICryptoTransform GetCryptoTransform(AesCryptoServiceProvider csp, bool encrypt)
+        private static ICryptoTransform GetCryptoTransform(Aes csp, bool encrypt)
         {
             csp.Mode = CipherMode.CBC;
             csp.Padding = PaddingMode.PKCS7;
 
-            var spec = new Rfc2898DeriveBytes(Encoding.UTF8.GetBytes(Password), Encoding.UTF8.GetBytes(Salt), 65536);
+            var spec = new Rfc2898DeriveBytes(
+                Encoding.UTF8.GetBytes(Password),
+                Encoding.UTF8.GetBytes(Salt),
+                65536,
+                HashAlgorithmName.SHA256
+            );
             var key = spec.GetBytes(16);
 
             csp.IV = Encoding.UTF8.GetBytes(Iv);

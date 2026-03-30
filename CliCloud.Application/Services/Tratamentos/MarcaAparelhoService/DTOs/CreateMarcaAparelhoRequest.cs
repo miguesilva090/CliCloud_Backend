@@ -1,11 +1,11 @@
-﻿using FluentValidation;
+using FluentValidation;
 using CliCloud.Application.Common.Marker;
 
 namespace CliCloud.Application.Services.Tratamentos.MarcaAparelhoService.DTOs
 {
     public class CreateMarcaAparelhoRequest : IDto
     {
-        public string Designacao { get; set; }
+        public string Designacao { get; set; } = string.Empty;
     }
 
     public class CreateMarcaAparelhoValidator : AbstractValidator<CreateMarcaAparelhoRequest>

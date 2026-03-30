@@ -30,6 +30,7 @@ using CliCloud.Domain.Entities.ProcessoClinico;
 using CliCloud.Domain.Entities.ProcessoClinico.SinaisVitais;
 using CliCloud.Domain.Entities.ProcessoClinico.RelatorioExames;
 using CliCloud.Application.Common;
+using System.Globalization;
 using DoencaDtos = CliCloud.Application.Services.Doencas.DoencaService.DTOs;
 using TipoConsultaDtos = CliCloud.Application.Services.TiposConsulta.TipoConsultaService.DTOs;
 
@@ -455,9 +456,9 @@ namespace CliCloud.Infrastructure.Mapper
                 ? s.ConsultaMarcacao.TipoAdmissao.Designacao
                 : null))
         .ForMember(d => d.HoraInic,
-          o => o.MapFrom(s => s.HoraInicio.HasValue ? s.HoraInicio.Value.ToString(@"hh\:mm") : null))
+          o => o.MapFrom(s => s.HoraInicio.HasValue ? s.HoraInicio.Value.ToString(@"hh\:mm", CultureInfo.InvariantCulture) : null))
         .ForMember(d => d.HoraFim,
-          o => o.MapFrom(s => s.HoraFim.HasValue ? s.HoraFim.Value.ToString(@"hh\:mm") : null));
+          o => o.MapFrom(s => s.HoraFim.HasValue ? s.HoraFim.Value.ToString(@"hh\:mm", CultureInfo.InvariantCulture) : null));
       _ = CreateMap<ConsultaDtos.CreateConsultaRequest, Consulta>();
       _ = CreateMap<ConsultaDtos.UpdateConsultaRequest, Consulta>();
 
@@ -472,8 +473,8 @@ namespace CliCloud.Infrastructure.Mapper
         .ForMember(d => d.UtenteNome, o => o.MapFrom(s => s.Utente != null ? s.Utente.Nome : null))
         .ForMember(d => d.OrganismoCodigo, o => o.MapFrom(s => s.Utente != null && s.Utente.Organismo != null ? s.Utente.Organismo.CodigoClinica : null))
         .ForMember(d => d.OrganismoNome, o => o.MapFrom(s => s.Utente != null && s.Utente.Organismo != null ? s.Utente.Organismo.Nome : null))
-        .ForMember(d => d.DataLabel, o => o.MapFrom(s => s.Data.HasValue ? s.Data.Value.ToString("yyyy-MM-dd") : null))
-        .ForMember(d => d.HoraMarcacaoLabel, o => o.MapFrom(s => s.HoraMarcacao.HasValue ? s.HoraMarcacao.Value.ToString(@"hh\:mm") : null))
+        .ForMember(d => d.DataLabel, o => o.MapFrom(s => s.Data.HasValue ? s.Data.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) : null))
+        .ForMember(d => d.HoraMarcacaoLabel, o => o.MapFrom(s => s.HoraMarcacao.HasValue ? s.HoraMarcacao.Value.ToString(@"hh\:mm", CultureInfo.InvariantCulture) : null))
         .ForMember(d => d.StatusConsultaLabel, o => o.MapFrom(s => s.StatusConsulta.HasValue ? EnumDisplayHelper.GetDisplayName(s.StatusConsulta.Value) : null));
       _ = CreateMap<MarcacaoConsultaDtos.CreateMarcacaoConsultaRequest, ConsultaMarcacao>()
         .ForMember(d => d.ConsultaId, o => o.MapFrom(s => ToNullableGuid(s.ConsultaId)))
@@ -484,7 +485,7 @@ namespace CliCloud.Infrastructure.Mapper
         .ForMember(d => d.TipoAdmissaoId, o => o.MapFrom(s => ToNullableGuid(s.TipoAdmissaoId)))
         .ForMember(d => d.TipoConsultaId, o => o.MapFrom(s => ToNullableGuid(s.TipoConsultaId)))
         .ForMember(d => d.Data, o => o.MapFrom(s => s.Data))
-        .ForMember(d => d.HoraMarcacao, o => o.MapFrom(s => TimeSpan.Parse(s.HoraInic)))
+        .ForMember(d => d.HoraMarcacao, o => o.MapFrom(s => TimeSpan.Parse(s.HoraInic, CultureInfo.InvariantCulture)))
         .ForMember(d => d.Obs, o => o.MapFrom(s => s.Obs))
         .ForMember(d => d.Consulta, o => o.Ignore())
         .ForMember(d => d.Utente, o => o.Ignore())
@@ -499,7 +500,7 @@ namespace CliCloud.Infrastructure.Mapper
         .ForMember(d => d.TipoAdmissaoId, o => o.MapFrom(s => ToNullableGuid(s.TipoAdmissaoId)))
         .ForMember(d => d.TipoConsultaId, o => o.MapFrom(s => ToNullableGuid(s.TipoConsultaId)))
         .ForMember(d => d.Data, o => o.MapFrom(s => s.Data))
-        .ForMember(d => d.HoraMarcacao, o => o.MapFrom(s => TimeSpan.Parse(s.HoraInic)))
+        .ForMember(d => d.HoraMarcacao, o => o.MapFrom(s => TimeSpan.Parse(s.HoraInic, CultureInfo.InvariantCulture)))
         .ForMember(d => d.Obs, o => o.MapFrom(s => s.Obs))
         .ForMember(d => d.Consulta, o => o.Ignore())
         .ForMember(d => d.Utente, o => o.Ignore())

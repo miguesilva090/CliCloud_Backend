@@ -1,4 +1,4 @@
-﻿using CliCloud.Application.Common.Marker;
+using CliCloud.Application.Common.Marker;
 using CliCloud.Application.Services.ProcessoClinico.Odontologia.EstadosDentariosService.DTOs;
 using CliCloud.Application.Services.ProcessoClinico.Odontologia.TiposTratamentoDentarioService.DTOs;
 
@@ -16,7 +16,7 @@ namespace CliCloud.Application.Services.ProcessoClinico.Odontologia.OdontogramaD
         public string? CodigoTratamentoPadrao { get; set; }
         public string? CodigoEstadoPersonalizado { get; set; }
         public string? CodigoTratamentoPersonalizado { get; set; }
-        public string Descricao { get; set; }
+        public string Descricao { get; set; } = string.Empty;
         public string? Observacoes { get; set; }
         public bool Faturar { get; set; }
         public int Quantidade { get; set; }

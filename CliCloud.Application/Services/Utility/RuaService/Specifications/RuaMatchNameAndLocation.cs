@@ -9,10 +9,10 @@ namespace CliCloud.Application.Services.Utility.RuaService.Specifications
     {
       if (!string.IsNullOrWhiteSpace(name))
       {
-        var nameNorm = (name ?? "").Trim().ToLowerInvariant();
+        var nameNorm = (name ?? "").Trim();
         _ = Query.Where(h =>
           h.Nome != null &&
-          h.Nome.ToLower() == nameNorm &&
+          string.Equals(h.Nome, nameNorm, StringComparison.OrdinalIgnoreCase) &&
           h.FreguesiaId == freguesiaId &&
           h.CodigoPostalId == codigoPostalId);
       }

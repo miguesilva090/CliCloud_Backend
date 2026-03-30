@@ -1,5 +1,6 @@
 using Ardalis.Specification;
 using UnidadesLocaisSaudeEntity = CliCloud.Domain.Entities.UnidadesLocaisSaude.UnidadesLocaisSaude;
+using System.Globalization;
 
 namespace CliCloud.Application.Services.UnidadesLocaisSaude.UnidadesLocaisSaudeService.Specifications
 {
@@ -12,7 +13,7 @@ namespace CliCloud.Application.Services.UnidadesLocaisSaude.UnidadesLocaisSaudeS
         _ = Query.Where(x =>
           x.Nome.Contains(keyword) ||
           (x.Nif != null && x.Nif.Contains(keyword)) ||
-          x.Codigo.ToString().Contains(keyword)
+          x.Codigo.ToString(CultureInfo.InvariantCulture).Contains(keyword)
         );
       }
 

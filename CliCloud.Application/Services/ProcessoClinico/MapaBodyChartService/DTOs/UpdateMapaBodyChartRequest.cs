@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using CliCloud.Application.Common.Marker;
 
 
@@ -6,8 +6,8 @@ namespace CliCloud.Application.Services.ProcessoClinico.MapaBodyChartService.DTO
 {
     public class UpdateMapaBodyChartRequest : IDto
     {
-        public string Nome { get; set; }
-        public string CaminhoImagem { get; set; }
+        public string Nome { get; set; } = string.Empty;
+        public string CaminhoImagem { get; set; } = string.Empty;
     }
 
     public class UpdateMapaBodyChartValidator : AbstractValidator<UpdateMapaBodyChartRequest>

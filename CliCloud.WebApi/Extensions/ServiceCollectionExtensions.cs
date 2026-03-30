@@ -88,7 +88,7 @@ namespace CliCloud.WebApi.Extensions
         .AddValidatorsFromAssemblyContaining<Infrastructure.Utility.IRequestValidator>();
 
       _ = services.AddEndpointsApiExplorer();
-      _ = services.AddAutoMapper(typeof(MappingProfiles));
+      _ = services.AddAutoMapper(_ => { }, typeof(MappingProfiles).Assembly);
       _ = services.AddSwaggerGen(c =>
         {
           c.OperationFilter<CliCloud.WebApi.Swagger.ApiKeyHeaderOperationFilter>();

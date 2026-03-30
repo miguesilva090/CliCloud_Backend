@@ -7,8 +7,8 @@ namespace CliCloud.Application.Services.ProcessoClinico.NotasBodyChartService.DT
     public class UpdateNotasBodyChartRequest : IDto
     {
         public Guid TratamentoId { get; set; }
-        public string Nome { get; set; }
-        public string Descricao { get; set; }
+        public string Nome { get; set; } = string.Empty;
+        public string Descricao { get; set; } = string.Empty;
         public decimal XPercent { get; set; }
         public decimal YPercent { get; set; }
         public Guid MapaBodyChartId { get; set; }

@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using CliCloud.Application.Common.Marker;
 
 
@@ -6,7 +6,7 @@ namespace CliCloud.Application.Services.Tratamentos.ModeloAparelhoService.DTOs
 {
     public class UpdateModeloAparelhoRequest : IDto
     {
-        public string Designacao { get; set; }
+        public string Designacao { get; set; } = string.Empty;
         public Guid MarcaAparelhoId { get; set; }
     }
 

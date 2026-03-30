@@ -9,6 +9,7 @@ using CliCloud.Application.Services.Medicos.MedicoService;
 using CliCloud.Application.Common.Filter;
 using CliCloud.Application.Common.Wrapper;
 using CliCloud.Domain.Enums;
+using System.Globalization;
 
 namespace CliCloud.WebApi.Controllers.Consultas
 {
@@ -75,7 +76,7 @@ namespace CliCloud.WebApi.Controllers.Consultas
         public async Task<IActionResult> GetConsultasDoDiaMedicoLogadoAsync([FromQuery] DateTime? data = null)
         {
             var dataConsulta = (data ?? DateTime.UtcNow.Date).Date;
-            var dataStr = dataConsulta.ToString("yyyy-MM-dd");
+            var dataStr = dataConsulta.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 
             var filters = new List<TableFilter>
             {
@@ -103,8 +104,7 @@ namespace CliCloud.WebApi.Controllers.Consultas
         [HttpGet("status-consulta-options")]
         public IActionResult GetStatusConsultaOptions()
         {
-            var options = Enum.GetValues(typeof(StatusConsulta))
-                .Cast<StatusConsulta>()
+            var options = Enum.GetValues<StatusConsulta>()
                 .Select(e => new { value = (int)e, label = EnumDisplayHelper.GetDisplayName(e) })
                 .ToList();
             return Ok(ResponseFactory.Success(options));

@@ -47,7 +47,7 @@ namespace CliCloud.Domain.Entities.ProcessoClinico.Odontologia
 
         public string? Observacoes {get;set;}
 
-        public bool Faturar {get;set;} = false;
+        public bool Faturar {get;set;}
         public int Quantidade {get;set;} = 1;
 
         public decimal? ValorServico {get;set;}

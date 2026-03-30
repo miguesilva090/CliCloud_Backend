@@ -482,10 +482,10 @@ namespace CliCloud.Application.Services.Core.SmsService
             if(string.IsNullOrWhiteSpace(apenasDigitos))
                 return string.Empty;
 
-            if(apenasDigitos.StartsWith("351") && apenasDigitos.Length == 12)
+            if(apenasDigitos.StartsWith("351", StringComparison.Ordinal) && apenasDigitos.Length == 12)
                 return apenasDigitos;
 
-            if(apenasDigitos.StartsWith("0") && apenasDigitos.Length == 10)
+            if(apenasDigitos.StartsWith('0') && apenasDigitos.Length == 10)
                 return $"351{apenasDigitos[1..]}";
 
             if(apenasDigitos.Length == 9)

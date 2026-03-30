@@ -10,7 +10,7 @@ namespace CliCloud.Domain.Entities.Core.Sms
     public class HistoricoSms : AuditableEntity
     {
         public Guid ClinicaId { get; set; }
-        public Clinica Clinica { get; set; }
+        public Clinica Clinica { get; set; } = null!;
 
         public Guid IdMensagem { get; set; }
 

@@ -1,3 +1,5 @@
+#nullable enable
+
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using CliCloud.Domain.Entities.Utility;
@@ -9,7 +11,7 @@ namespace CliCloud.Domain.Entities.Core.Sms
     public class ConfiguracaoSms : AuditableEntity 
     {
         public Guid ClinicaId { get; set; }
-        public Clinica Clinica { get; set; }
+        public Clinica Clinica { get; set; } = null!;
 
         public bool Ativo { get; set; }
 

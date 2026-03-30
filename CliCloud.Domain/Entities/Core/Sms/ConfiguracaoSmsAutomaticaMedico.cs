@@ -10,7 +10,7 @@ namespace CliCloud.Domain.Entities.Core.Sms
     public class ConfiguracaoSmsAutomaticaMedico : AuditableEntity
     {
         public Guid ClinicaId { get; set; }
-        public Clinica Clinica { get; set; }
+        public Clinica Clinica { get; set; } = null!;
 
         [StringLength(20)]
         public string CodigoConfiguracao { get; set; } = "1";

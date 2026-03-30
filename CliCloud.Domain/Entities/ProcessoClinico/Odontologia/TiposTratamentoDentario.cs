@@ -18,7 +18,7 @@ namespace CliCloud.Domain.Entities.ProcessoClinico.Odontologia
         [MaxLength(200)]
         public string Descricao {get;set;} = null!;
 
-        public bool Faturavel {get;set;} = false;
+        public bool Faturavel {get;set;}
 
         [MaxLength(50)]
         public string? CodigoServicoAssociado {get;set;}

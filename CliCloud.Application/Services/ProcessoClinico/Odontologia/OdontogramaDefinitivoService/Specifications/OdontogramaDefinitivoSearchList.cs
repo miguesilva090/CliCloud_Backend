@@ -1,5 +1,6 @@
 using Ardalis.Specification;
 using CliCloud.Domain.Entities.ProcessoClinico.Odontologia;
+using System.Globalization;
 
 namespace CliCloud.Application.Services.ProcessoClinico.Odontologia.OdontogramaDefinitivoService.Specifications
 {
@@ -12,7 +13,7 @@ namespace CliCloud.Application.Services.ProcessoClinico.Odontologia.OdontogramaD
                 _ = Query.Where(x =>
                     x.Descricao.Contains(keyword) ||
                     (x.CodigoSuperficie != null && x.CodigoSuperficie.Contains(keyword)) ||
-                    x.NumeroDente.ToString().Contains(keyword));
+                    x.NumeroDente.ToString(CultureInfo.InvariantCulture).Contains(keyword));
             }
 
             _ = Query

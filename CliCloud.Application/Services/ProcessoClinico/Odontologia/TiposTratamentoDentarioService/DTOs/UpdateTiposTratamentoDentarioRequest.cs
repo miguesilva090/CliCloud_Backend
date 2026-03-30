@@ -6,8 +6,8 @@ namespace CliCloud.Application.Services.ProcessoClinico.Odontologia.TiposTratame
 {
     public class UpdateTiposTratamentoDentarioRequest : IDto
     {
-        public string Codigo { get; set; }
-        public string Descricao { get; set; }
+        public string Codigo { get; set; } = string.Empty;
+        public string Descricao { get; set; } = string.Empty;
         public bool Faturavel { get; set; }
         public string? CodigoServicoAssociado { get; set; }
         public string? NomeServicoAssociado { get; set; }

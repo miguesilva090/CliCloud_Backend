@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using CliCloud.Application.Common.Marker;
 
 
@@ -6,7 +6,7 @@ namespace CliCloud.Application.Services.TemperaturaCorporalService.DTOs
 {
     public class UpdateTemperaturaCorporalRequest : IDto
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
     }
 
     public class UpdateTemperaturaCorporalValidator : AbstractValidator<UpdateTemperaturaCorporalRequest>

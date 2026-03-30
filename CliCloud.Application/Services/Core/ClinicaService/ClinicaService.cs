@@ -111,11 +111,10 @@ namespace CliCloud.Application.Services.Core.ClinicaService
       try
       {
         var dto = await _repository.GetByIdAsync<Clinica, ClinicaDTO, Guid>(id);
-        if (dto != null)
-        {
-          DecryptDtoSecrets(dto);
-          dto.ConfiguracaoTratamentos = await GetConfiguracaoTratamentosOrNullAsync(id);
-        }
+        if (dto == null) return ResponseFactory.Fail<ClinicaDTO>("Clínica não encontrada.");
+
+        DecryptDtoSecrets(dto);
+        dto.ConfiguracaoTratamentos = await GetConfiguracaoTratamentosOrNullAsync(id);
         return ResponseFactory.Success(dto);
       }
       catch (Exception ex) { return ResponseFactory.Fail<ClinicaDTO>(ex.Message); }
@@ -323,13 +322,13 @@ namespace CliCloud.Application.Services.Core.ClinicaService
 
         // Legacy behavior: limpar todos e, se ativo, marcar apenas a escolhida como pordefeito.
         await _repository.ExecuteSqlRawAsync(
-          "UPDATE [Core].[Clinica] SET PorDefeito = 0 WHERE DeletedOn IS NULL"
+          "UPDATE [Core].[Clinica] SET PorDefeito = 0"
         );
 
         if (porDefeito)
         {
           await _repository.ExecuteSqlRawAsync(
-            "UPDATE [Core].[Clinica] SET PorDefeito = 1 WHERE Id = {0} AND DeletedOn IS NULL",
+            "UPDATE [Core].[Clinica] SET PorDefeito = 1 WHERE Id = {0}",
             id
           );
         }

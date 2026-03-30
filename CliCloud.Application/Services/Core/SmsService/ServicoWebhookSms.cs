@@ -22,14 +22,17 @@ namespace CliCloud.Application.Services.Core.SmsService
         {
             foreach( var item in payload)
             {
-                var clinicaId = Guid.Empty;
-                if(!string.IsNullOrWhiteSpace(item.OrganizationId))
-                    Guid.TryParse(item.OrganizationId, out clinicaId);
+                Guid? organizationId = null;
+                if(!string.IsNullOrWhiteSpace(item.OrganizationId)
+                    && Guid.TryParse(item.OrganizationId, out var orgId))
+                {
+                    organizationId = orgId;
+                }
 
                 var entidade = new SmsRecebido
                 {
-                    ClinicaId = clinicaId,
-                    OrganizacaoId = Guid.TryParse(item.OrganizationId, out var org) ? org : null,
+                    ClinicaId = organizationId ?? Guid.Empty,
+                    OrganizacaoId = organizationId,
                     DataHoraRecebimento = item.ReceiveDateTime,
                     NumeroOrigem = item.From ?? string.Empty,
                     NumeroDestino = item.To ?? string.Empty,

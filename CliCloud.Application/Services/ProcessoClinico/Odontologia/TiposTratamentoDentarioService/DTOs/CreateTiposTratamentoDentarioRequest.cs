@@ -1,12 +1,12 @@
-﻿using FluentValidation;
+using FluentValidation;
 using CliCloud.Application.Common.Marker;
 
 namespace CliCloud.Application.Services.ProcessoClinico.Odontologia.TiposTratamentoDentarioService.DTOs
 {
     public class CreateTiposTratamentoDentarioRequest : IDto
     {
-        public string Codigo { get; set; }
-        public string Descricao { get; set; }
+        public string Codigo { get; set; } = string.Empty;
+        public string Descricao { get; set; } = string.Empty;
         public bool Faturavel { get; set; }
         public string? CodigoServicoAssociado { get; set; }
         public string? NomeServicoAssociado { get; set; }

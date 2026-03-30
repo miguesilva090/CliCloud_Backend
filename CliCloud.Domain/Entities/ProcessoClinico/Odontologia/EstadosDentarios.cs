@@ -19,7 +19,7 @@ namespace CliCloud.Domain.Entities.ProcessoClinico.Odontologia
         [MaxLength(200)]
         public string Descricao {get;set;} = null!;
 
-        public bool EstadoPadrao {get;set;} = false;
+        public bool EstadoPadrao {get;set;}
         public bool Ativo {get;set;} = true;
     }
 }

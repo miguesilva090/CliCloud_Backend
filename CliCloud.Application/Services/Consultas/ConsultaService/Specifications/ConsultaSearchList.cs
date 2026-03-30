@@ -1,5 +1,6 @@
 using Ardalis.Specification;
 using CliCloud.Domain.Entities.Consultas;
+using System.Globalization;
 
 
 namespace CliCloud.Application.Services.Consultas.ConsultaService.Specifications
@@ -37,8 +38,8 @@ namespace CliCloud.Application.Services.Consultas.ConsultaService.Specifications
           _ = Query.Where(x =>
             (x.Sala != null && x.Sala.Nome.Contains(keyword))
             || (x.Utente != null && x.Utente.Nome.Contains(keyword))
-            || (x.HoraInicio.HasValue && x.HoraInicio.Value.ToString(@"hh\:mm").Contains(keyword))
-            || (x.HoraFim.HasValue && x.HoraFim.Value.ToString(@"hh\:mm").Contains(keyword))
+            || (x.HoraInicio.HasValue && x.HoraInicio.Value.ToString(@"hh\:mm", CultureInfo.InvariantCulture).Contains(keyword))
+            || (x.HoraFim.HasValue && x.HoraFim.Value.ToString(@"hh\:mm", CultureInfo.InvariantCulture).Contains(keyword))
             || (x.Diagnostico != null && x.Diagnostico.Contains(keyword))
             || (x.Obs != null && x.Obs.Contains(keyword))
             || (x.Credencial != null && x.Credencial.Contains(keyword))

@@ -192,7 +192,7 @@ namespace CliCloud.Application.Services.Tratamentos.EvolucaoTratamentoService
                         EvolucaoTratamento? entity = await _repository.GetByIdAsync<EvolucaoTratamento, Guid>(id);
                         if(entity == null)
                         {
-                            return ResponseFactory.Fail<IEnumerable<Guid>>(string.Join("; ", failedDeletions));
+                            failedDeletions.Add($"EvolucaoTratamento com ID {id} não encontrado.");
                             continue;
                         }
 
@@ -209,8 +209,8 @@ namespace CliCloud.Application.Services.Tratamentos.EvolucaoTratamentoService
                     }
                     catch(Exception)
                     {
-                        return ResponseFactory.Fail<IEnumerable<Guid>>(string.Join("; ", failedDeletions));
                         _repository.ClearChangeTracker();
+                        failedDeletions.Add($"Falha ao eliminar EvolucaoTratamento com ID {id}.");
                     }
                 }
                 if(successfullyDeletedIds.Count == idsList.Count)

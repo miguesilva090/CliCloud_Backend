@@ -1,4 +1,4 @@
-﻿root = true
+root = true
 
 # All files
 [*]
@@ -47,3 +47,7 @@ csharp_space_between_method_call_empty_parameter_list_parentheses = false
 # Wrapping preferences
 csharp_preserve_single_line_statements = true
 csharp_preserve_single_line_blocks = true
+
+# EF Core migration class names are historical snapshots and may contain underscores
+[**/Migrations/*.cs]
+dotnet_diagnostic.CA1707.severity = none

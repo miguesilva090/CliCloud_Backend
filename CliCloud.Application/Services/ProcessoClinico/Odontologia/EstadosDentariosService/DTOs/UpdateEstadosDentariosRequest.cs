@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using CliCloud.Application.Common.Marker;
 
 
@@ -6,8 +6,8 @@ namespace CliCloud.Application.Services.ProcessoClinico.Odontologia.EstadosDenta
 {
     public class UpdateEstadosDentariosRequest : IDto
     {
-        public string Codigo { get; set; }
-        public string Descricao { get; set; }
+        public string Codigo { get; set; } = string.Empty;
+        public string Descricao { get; set; } = string.Empty;
         public bool EstadoPadrao { get; set; }
         public bool Ativo { get; set; }
     }
