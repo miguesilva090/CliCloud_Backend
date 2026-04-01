@@ -175,7 +175,14 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     // DbSets - Core
     public DbSet<Clinica> Clinicas { get; set; }
     public DbSet<ClinicaApiKey> ClinicasApiKeys { get; set; }
+    public DbSet<ChamadaUtente> ChamadasUtentes { get; set; }
+    public DbSet<ConfiguracaoChamadaVoz> ConfiguracoesChamadaVoz { get; set; }
+    public DbSet<ConfiguracaoChamadaVozOpcao> ConfiguracoesChamadaVozOpcoes { get; set; }
     public DbSet<ConfiguracaoTratamentos> ConfiguracoesTratamentos { get; set; }
+    public DbSet<ClinicaConfiguracaoIva> ClinicasConfiguracoesIva { get; set; }
+    public DbSet<ClinicaMotivoIsencaoDefault> ClinicasMotivosIsencaoDefault { get; set; }
+    public DbSet<ClinicaTipoConsultaDefault> ClinicasTiposConsultaDefault { get; set; }
+    public DbSet<ClinicaArmazemDefault> ClinicasArmazensDefault { get; set; }
 
     // DbSets - Seguradoras
     public DbSet<Seguradora> Seguradoras { get; set; }
@@ -450,6 +457,13 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
       // Core configurations
       _ = modelBuilder.ApplyConfiguration(new ClinicaConfiguration());
       _ = modelBuilder.ApplyConfiguration(new ClinicaApiKeyConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new ChamadaUtenteConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new ConfiguracaoChamadaVozConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new ConfiguracaoChamadaVozOpcaoConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new ClinicaConfiguracaoIvaConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new ClinicaMotivoIsencaoDefaultConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new ClinicaTipoConsultaDefaultConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new ClinicaArmazemDefaultConfiguration());
 
       // Seguradoras configurations
       _ = modelBuilder.ApplyConfiguration(new SeguradoraConfiguration());

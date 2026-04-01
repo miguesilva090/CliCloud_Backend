@@ -3,6 +3,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using CliCloud.Domain.Entities.Utility;
+using CliCloud.Domain.Enums;
 
 namespace CliCloud.Domain.Entities.Core
 {
@@ -29,7 +30,7 @@ namespace CliCloud.Domain.Entities.Core
     public string? Regcom { get; set; }
     public decimal? Capsocial { get; set; }
     public string? Cae { get; set; }
-    public string? ZonFisc { get; set; }
+    public ZonaFiscal? ZonFisc { get; set; }
     public string? Tipo { get; set; }
     public string? Portaria { get; set; }
     public string? DespachoUcc { get; set; }

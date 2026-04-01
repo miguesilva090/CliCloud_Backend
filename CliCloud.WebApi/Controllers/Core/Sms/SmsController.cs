@@ -134,6 +134,16 @@ namespace CliCloud.WebApi.Controllers.Core.Sms
             var result = await _servicoSms.EnviarSmsTesteAsync(clinicaId.Value, request);
             return Ok(result);
         }
+
+        [HttpPost("enviar-por-codigo")]
+        public async Task<IActionResult> EnviarSmsPorCodigoAsync([FromBody] EnviarSmsPorCodigoRequest request)
+        {
+            var clinicaId = await ObterClinicaIdAsync();
+            if(clinicaId is null) return BadRequest("Clínica atual inválida.");
+
+            var result = await _servicoSms.EnviarSmsPorCodigoAsync(clinicaId.Value, request);
+            return Ok(result);
+        }
     }
         
 }

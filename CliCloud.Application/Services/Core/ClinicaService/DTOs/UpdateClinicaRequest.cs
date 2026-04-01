@@ -1,5 +1,6 @@
 using FluentValidation;
 using CliCloud.Application.Common.Marker;
+using CliCloud.Domain.Enums;
 
 namespace CliCloud.Application.Services.Core.ClinicaService.DTOs
 {
@@ -32,7 +33,7 @@ namespace CliCloud.Application.Services.Core.ClinicaService.DTOs
     public string? Regcom { get; set; }
     public decimal? Capsocial { get; set; }
     public string? Cae { get; set; }
-    public string? ZonFisc { get; set; }
+    public ZonaFiscal? ZonFisc { get; set; }
     public string? Tipo { get; set; }
     public string? Portaria { get; set; }
     public string? DespachoUcc { get; set; }
@@ -174,7 +175,7 @@ namespace CliCloud.Application.Services.Core.ClinicaService.DTOs
       _ = RuleFor(x => x.NumeroContribuinte).MaximumLength(20);
       // (// retirar) campos antigos removidos: Idnum/Ano
 
-      _ = RuleFor(x => x.CMoeda).MaximumLength(50);
+      _ = RuleFor(x => x.CMoeda).NotEmpty().MaximumLength(50).WithMessage("Moeda é obrigatória");
 
       // Campos opcionais do legado (tab_1_1)
       _ = RuleFor(x => x.Abreviatura).MaximumLength(30);
@@ -191,11 +192,20 @@ namespace CliCloud.Application.Services.Core.ClinicaService.DTOs
       _ = RuleFor(x => x.NIB).MaximumLength(21);
       _ = RuleFor(x => x.Observacoes).MaximumLength(2000);
       _ = RuleFor(x => x.UrlFoto).MaximumLength(500);
+      _ = RuleFor(x => x.CtrlPlafond).InclusiveBetween(1, 3).When(x => x.CtrlPlafond.HasValue);
+      _ = RuleFor(x => x.Cid).InclusiveBetween(1, 2).When(x => x.Cid.HasValue);
+      _ = RuleFor(x => x.CalendarioMarcacoesRadio).InclusiveBetween(1,2).When(x => x.CalendarioMarcacoesRadio.HasValue);
+      _ = RuleFor(x => x.TipoAdmissPorDefeito).InclusiveBetween(1,2).When(x => x.TipoAdmissPorDefeito.HasValue);
+      _ = RuleFor(x => x.ExportPredUtenteFa).InclusiveBetween(0,2).When(x => x.ExportPredUtenteFa.HasValue);
+      _ = RuleFor(x => x.ExportPredUtenteFr).InclusiveBetween(0,2).When(x => x.ExportPredUtenteFr.HasValue);
+      _ = RuleFor(x => x.EnvioEmail).InclusiveBetween(0,2).When(x => x.EnvioEmail.HasValue);
 
       _ = RuleFor(x => x.Atividade).MaximumLength(50);
       _ = RuleFor(x => x.Regcom).MaximumLength(50);
       _ = RuleFor(x => x.Cae).MaximumLength(5);
-      _ = RuleFor(x => x.ZonFisc).MaximumLength(50);
+      
+      _ = RuleFor(x => x.ZonFisc).NotNull().IsInEnum().WithMessage("Zona fiscal é obrigatória e deve ser válida");
+
       _ = RuleFor(x => x.Tipo).MaximumLength(200);
       _ = RuleFor(x => x.Portaria).MaximumLength(254);
       _ = RuleFor(x => x.DespachoUcc).MaximumLength(250);
@@ -215,7 +225,10 @@ namespace CliCloud.Application.Services.Core.ClinicaService.DTOs
       _ = RuleFor(x => x.Linha5).MaximumLength(120);
       _ = RuleFor(x => x.Linha6).MaximumLength(120);
 
-      _ = RuleFor(x => x.Regrafaturacao).MaximumLength(10);
+      _ = RuleFor(x => x.Regrafaturacao)
+        .Must( v => string.IsNullOrWhiteSpace (v) || v.Trim() == "1" || v.Trim() == "2")
+        .WithMessage("Regra de faturação deve ser '1' (P.U) ou '2' (P.V.P)");
+
       _ = RuleFor(x => x.MotivoIsencaoDefeito).MaximumLength(50);
 
       // (// retirar) DiretoriaQRC removido

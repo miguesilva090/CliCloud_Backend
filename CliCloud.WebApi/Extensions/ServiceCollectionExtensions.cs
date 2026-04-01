@@ -4,6 +4,8 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using CliCloud.Application.Common.Logging;
 using CliCloud.Application.Common.Wrapper;
+using CliCloud.Application.Services.Core.ChamadaVozService;
+using CliCloud.Application.Services.Core.ChamadaUtentesService;
 using CliCloud.Application.Services.Core.SmsService;
 using CliCloud.Application.Utility;
 using CliCloud.Infrastructure.Auth.JWT;
@@ -22,6 +24,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using CliCloud.WebApi.HostedServices;
 
 namespace CliCloud.WebApi.Extensions
 {
@@ -96,6 +99,11 @@ namespace CliCloud.WebApi.Extensions
       _ = services.Configure<MailSettings>(configuration.GetSection("MailSettings"));
       _ = services.Configure<CloudinarySettings>(configuration.GetSection("Cloudinary"));
 
+      _ = services.Configure<SmsAutomaticoOptions>(configuration.GetSection("SmsAutomatico"));
+      _ = services.AddTransient<IServicoSmsAutomaticoDados, ServicoSmsAutomaticoDados>();
+      _ = services.AddTransient<IServicoSmsAutomatico, ServicoSmsAutomatico>();
+      _ = services.AddHostedService<SmsAutomaticoHostedService>();
+
       _ = services.AddServices(); // dynamic services registration
 
       //----------- Add Services (Dependency Injection) -------------------------------------------
@@ -112,6 +120,8 @@ namespace CliCloud.WebApi.Extensions
       //---------------------------------------------------------------------------
       _ = services.AddTransient<IServicoSms, ServicoSms>();
       _ = services.AddTransient<IServicoWebhookSms, ServicoWebhookSms>();
+      _ = services.AddTransient<IServicoChamadaVoz, ServicoChamadaVoz>();
+      _ = services.AddTransient<IChamadaUtentesService, ChamadaUtentesService>();
 
       #endregion
 

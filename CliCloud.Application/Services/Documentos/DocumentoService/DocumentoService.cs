@@ -7,6 +7,11 @@ using CliCloud.Domain.Entities.Documentos;
 using CliCloud.Application.Services.Documentos.DocumentoService.DTOs;
 using CliCloud.Application.Services.Documentos.DocumentoService.Filters;
 using CliCloud.Application.Services.Documentos.DocumentoService.Specifications;
+using CliCloud.Application.Services.Core.ClinicaService.Specifications;
+using CliCloud.Application.Services.Core.SmsService;
+using CliCloud.Application.Services.Core.SmsService.DTOs;
+using CliCloud.Domain.Entities.Core;
+using CliCloud.Domain.Entities.Utility;
 
 namespace CliCloud.Application.Services.Documentos.DocumentoService
 {
@@ -14,11 +19,13 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
     {
         private readonly IRepositoryAsync _repository;
         private readonly IMapper _mapper;
+        private readonly IServicoSms _servicoSms;
 
-        public DocumentoService(IRepositoryAsync repository, IMapper mapper)
+        public DocumentoService(IRepositoryAsync repository, IMapper mapper, IServicoSms servicoSms)
         {
             _repository = repository;
             _mapper = mapper;
+            _servicoSms = servicoSms;
         }
 
         // get full List
@@ -147,6 +154,7 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
             {
                 Documento response = await _repository.CreateAsync<Documento, Guid>(newDocumento);
                 _ = await _repository.SaveChangesAsync();
+                await TentarDispararSmsFaturacaoAsync(response);
                 return ResponseFactory.Success<Guid>(response.Id);
             }
             catch (Exception ex)
@@ -304,6 +312,45 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
           {
             return ResponseFactory.Fail<IEnumerable<Guid>>(ex.Message);
           }
+        }
+
+        private async Task TentarDispararSmsFaturacaoAsync(Documento documento)
+        {
+            try
+            {
+                var tipoDocumento = await _repository.GetByIdAsync<TipoDocumento, Guid>(documento.TipoDocumentoId);
+                if (tipoDocumento is null || !tipoDocumento.MostraFaturacao) return;
+
+                if (!documento.UtenteId.HasValue) return;
+                var utente = await _repository.GetByIdAsync<Domain.Entities.Utentes.Utente, Guid>(documento.UtenteId.Value);
+                if (utente is null) return;
+
+                var contactos = await _repository.GetListAsync<EntidadeContacto, Guid>();
+                var numero = contactos
+                    .Where(x => x.EntidadeId == utente.Id && !string.IsNullOrWhiteSpace(x.Valor))
+                    .OrderByDescending(x => x.Principal)
+                    .Select(x => x.Valor!)
+                    .FirstOrDefault();
+                if (string.IsNullOrWhiteSpace(numero)) return;
+
+                var clinica = (await _repository.GetListAsync<Clinica, Guid>(new ClinicaPorDefeitoSelected())).FirstOrDefault();
+                if (clinica is null) return;
+
+                var request = new EnviarSmsPorCodigoRequest
+                {
+                    CodigoConfiguracao = "8",
+                    NumeroDestinatario = numero,
+                    NomeUtente = utente.Nome ?? string.Empty,
+                    Data = documento.Data,
+                    Modulo = "Documento-Faturacao",
+                };
+
+                _ = await _servicoSms.EnviarSmsPorCodigoAsync(clinica.Id, request);
+            }
+            catch
+            {
+                // Não bloquear o fluxo de criação de documento por falha de SMS.
+            }
         }
     }
 }

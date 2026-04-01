@@ -11,6 +11,9 @@ using CliCloud.Application.Services.Core.ClinicaService.Filters;
 using CliCloud.Application.Services.Core.ClinicaService.Specifications;
 using CliCloud.Infrastructure.Encryption;
 using CliCloud.Domain.Entities.Core.Tratamentos;
+using CliCloud.Domain.Entities.Consultas;
+using CliCloud.Domain.Entities.TaxasIva;
+using Microsoft.AspNetCore.Hosting;
 
 namespace CliCloud.Application.Services.Core.ClinicaService
 {
@@ -19,16 +22,63 @@ namespace CliCloud.Application.Services.Core.ClinicaService
     private readonly IRepositoryAsync _repository;
     private readonly IMapper _mapper;
     private readonly IEncryptionService _encryptionService;
+    private readonly IWebHostEnvironment _environment;
 
     public ClinicaService(
       IRepositoryAsync repository,
       IMapper mapper,
-      IEncryptionService encryptionService
+      IEncryptionService encryptionService,
+      IWebHostEnvironment environment
     )
     {
       _repository = repository;
       _mapper = mapper;
       _encryptionService = encryptionService;
+      _environment = environment;
+    }
+
+    private static string? NormalizeClinicaLogoUrl(string? imageUrl)
+    {
+      if (string.IsNullOrWhiteSpace(imageUrl)) return null;
+      if (imageUrl.StartsWith('/')) return imageUrl;
+
+      if (
+        imageUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+        || imageUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+      )
+      {
+        try
+        {
+          var uri = new Uri(imageUrl);
+          return uri.AbsolutePath;
+        }
+        catch
+        {
+          return null;
+        }
+      }
+
+      return imageUrl;
+    }
+
+    private static bool IsValidClinicaLogoUrl(string? url)
+    {
+      if (string.IsNullOrWhiteSpace(url)) return true;
+      if (url.StartsWith('/')) return true;
+      return Uri.TryCreate(url, UriKind.Absolute, out _);
+    }
+
+    private Task DeleteOldClinicaLogoIfNeededAsync(string? oldUrl, string? newUrl)
+    {
+      if (string.IsNullOrWhiteSpace(oldUrl)) return Task.CompletedTask;
+      if (string.Equals(oldUrl, newUrl, StringComparison.OrdinalIgnoreCase)) return Task.CompletedTask;
+      if (!oldUrl.StartsWith("/assets/", StringComparison.OrdinalIgnoreCase)) return Task.CompletedTask;
+
+      var relative = oldUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
+      var fullPath = Path.Combine(_environment.WebRootPath, relative);
+      if (File.Exists(fullPath)) File.Delete(fullPath);
+
+      return Task.CompletedTask;
     }
 
     private string? EncryptIfPlain(string? value)
@@ -60,10 +110,158 @@ namespace CliCloud.Application.Services.Core.ClinicaService
       }
     }
 
+    private static void NormalizeFaturacaoFields(Clinica c)
+    {
+      c.Regrafaturacao = c.Regrafaturacao?.Trim() switch
+      {
+        "1" => "1",
+        "2" => "2",
+        _ => "1",
+      };
+
+      c.ValorMaxFaturaSimpli ??= 0;
+      c.FaturaRecibo ??= 1;
+      c.Cab ??= false;
+      c.ImprimeTicket ??=false;
+      c.TemSaft ??= false;
+      c.EmailLink ??= false;
+
+      if (string.IsNullOrWhiteSpace(c.FaturacaoDocumentosImpressao))
+        c.FaturacaoDocumentosImpressao = "A4";
+    }
+
     private void DecryptDtoSecrets(ClinicaDTO dto)
     {
       dto.AtUser = DecryptIfEncrypted(dto.AtUser);
       dto.AtPass = DecryptIfEncrypted(dto.AtPass);
+    }
+
+    private async Task RunCreateSideEffectsAsync(Clinica clinica)
+    {
+      await EnsureClinicaIvaConfigurationAsync(clinica.Id, clinica.ZonFisc);
+      await EnsureClinicaMotivosIsencaoDefaultsAsync(clinica.Id);
+      await EnsureClinicaTiposConsultaDefaultsAsync(clinica.Id);
+      await EnsureClinicaArmazemGeralDefaultAsync(clinica.Id, clinica.Nome);
+      _ = await _repository.SaveChangesAsync();
+    }
+
+    private async Task EnsureClinicaIvaConfigurationAsync(Guid clinicaId, ZonaFiscal? zonFisc)
+    {
+      var configs = await _repository.GetListAsync<ClinicaConfiguracaoIva, Guid>();
+      var config = configs.FirstOrDefault(x => x.ClinicaId == clinicaId && x.Ano == DateTime.UtcNow.Year);
+      if (config == null)
+      {
+        var taxas = (await _repository.GetListAsync<TaxaIva, Guid>())
+          .OrderBy(x => x.Taxa)
+          .ThenBy(x => x.Descricao)
+          .ToList();
+
+        var taxa0 = taxas.FirstOrDefault(x => x.Taxa == 0)?.Id;
+        var baseSet = taxas.Where(x => x.Taxa > 0).Select(x => x.Id).Take(3).ToList();
+        while (baseSet.Count < 3) baseSet.Add(Guid.Empty);
+
+        var novaConfig = new ClinicaConfiguracaoIva
+        {
+          ClinicaId = clinicaId,
+          Ano = DateTime.UtcNow.Year,
+          TaxaIva0Id = taxa0,
+          TaxaIva1Id = baseSet[0] == Guid.Empty ? null : baseSet[0],
+          TaxaIva2Id = baseSet[1] == Guid.Empty ? null : baseSet[1],
+          TaxaIva3Id = baseSet[2] == Guid.Empty ? null : baseSet[2],
+          TaxaIva4Id = baseSet[0] == Guid.Empty ? null : baseSet[0],
+          TaxaIva5Id = baseSet[1] == Guid.Empty ? null : baseSet[1],
+          TaxaIva6Id = baseSet[2] == Guid.Empty ? null : baseSet[2],
+          TaxaIva7Id = baseSet[0] == Guid.Empty ? null : baseSet[0],
+          TaxaIva8Id = baseSet[1] == Guid.Empty ? null : baseSet[1],
+          TaxaIva9Id = baseSet[2] == Guid.Empty ? null : baseSet[2],
+        };
+        config = await _repository.CreateAsync<ClinicaConfiguracaoIva, Guid>(novaConfig);
+      }
+
+      if (!zonFisc.HasValue) return;
+
+      // Paridade com legado: muda o grupo de IVA ativo consoante a zona fiscal.
+      if (zonFisc == ZonaFiscal.Continente)
+      {
+        var src = (config.TaxaIva4Id, config.TaxaIva5Id, config.TaxaIva6Id) != (null, null, null)
+          ? (config.TaxaIva4Id, config.TaxaIva5Id, config.TaxaIva6Id)
+          : (config.TaxaIva7Id, config.TaxaIva8Id, config.TaxaIva9Id) != (null, null, null)
+            ? (config.TaxaIva7Id, config.TaxaIva8Id, config.TaxaIva9Id)
+            : (config.TaxaIva1Id, config.TaxaIva2Id, config.TaxaIva3Id);
+        config.TaxaIva1Id = src.Item1;
+        config.TaxaIva2Id = src.Item2;
+        config.TaxaIva3Id = src.Item3;
+      }
+      else if (zonFisc == ZonaFiscal.Madeira)
+      {
+        var src = (config.TaxaIva1Id, config.TaxaIva2Id, config.TaxaIva3Id) != (null, null, null)
+          ? (config.TaxaIva1Id, config.TaxaIva2Id, config.TaxaIva3Id)
+          : (config.TaxaIva4Id, config.TaxaIva5Id, config.TaxaIva6Id) != (null, null, null)
+            ? (config.TaxaIva4Id, config.TaxaIva5Id, config.TaxaIva6Id)
+            : (config.TaxaIva7Id, config.TaxaIva8Id, config.TaxaIva9Id);
+        config.TaxaIva7Id = src.Item1;
+        config.TaxaIva8Id = src.Item2;
+        config.TaxaIva9Id = src.Item3;
+      }
+      else if (zonFisc == ZonaFiscal.Acores)
+      {
+        var src = (config.TaxaIva1Id, config.TaxaIva2Id, config.TaxaIva3Id) != (null, null, null)
+          ? (config.TaxaIva1Id, config.TaxaIva2Id, config.TaxaIva3Id)
+          : (config.TaxaIva7Id, config.TaxaIva8Id, config.TaxaIva9Id) != (null, null, null)
+            ? (config.TaxaIva7Id, config.TaxaIva8Id, config.TaxaIva9Id)
+            : (config.TaxaIva4Id, config.TaxaIva5Id, config.TaxaIva6Id);
+        config.TaxaIva4Id = src.Item1;
+        config.TaxaIva5Id = src.Item2;
+        config.TaxaIva6Id = src.Item3;
+      }
+
+      _ = await _repository.UpdateAsync<ClinicaConfiguracaoIva, Guid>(config);
+    }
+
+    private async Task EnsureClinicaMotivosIsencaoDefaultsAsync(Guid clinicaId)
+    {
+      var existing = await _repository.GetListAsync<ClinicaMotivoIsencaoDefault, Guid>();
+      if (existing.Any(x => x.ClinicaId == clinicaId)) return;
+
+      var globalMotivos = await _repository.GetListAsync<MotivoIsencao, Guid>();
+      if (!globalMotivos.Any()) return;
+
+      var novos = globalMotivos.Select(x => new ClinicaMotivoIsencaoDefault
+      {
+        ClinicaId = clinicaId,
+        Codigo = x.Codigo,
+        Descricao = x.Descricao
+      });
+      _ = await _repository.CreateRangeAsync<ClinicaMotivoIsencaoDefault, Guid>(novos);
+    }
+
+    private async Task EnsureClinicaTiposConsultaDefaultsAsync(Guid clinicaId)
+    {
+      var existing = await _repository.GetListAsync<ClinicaTipoConsultaDefault, Guid>();
+      if (existing.Any(x => x.ClinicaId == clinicaId)) return;
+
+      var tipos = await _repository.GetListAsync<TipoConsultaItem, Guid>();
+      if (!tipos.Any()) return;
+
+      var novos = tipos.Select(x => new ClinicaTipoConsultaDefault
+      {
+        ClinicaId = clinicaId,
+        Designacao = x.Designacao
+      });
+      _ = await _repository.CreateRangeAsync<ClinicaTipoConsultaDefault, Guid>(novos);
+    }
+
+    private async Task EnsureClinicaArmazemGeralDefaultAsync(Guid clinicaId, string clinicaNome)
+    {
+      var existing = await _repository.GetListAsync<ClinicaArmazemDefault, Guid>();
+      if (existing.Any(x => x.ClinicaId == clinicaId)) return;
+
+      _ = await _repository.CreateAsync<ClinicaArmazemDefault, Guid>(new ClinicaArmazemDefault
+      {
+        ClinicaId = clinicaId,
+        ArmazemGeral = true,
+        Nome = $"Armazem Geral ({clinicaNome})"
+      });
     }
 
     public async Task<Response<IEnumerable<ClinicaDTO>>> GetClinicaAsync(string keyword = "")
@@ -127,15 +325,21 @@ namespace CliCloud.Application.Services.Core.ClinicaService
         return ResponseFactory.Fail<Guid>("Clínica com este nome já existe.");
       var entity = _mapper.Map<Clinica>(request);
       entity.TipoEntidade = EntidadeTipo.Clinica;
+      entity.UrlFoto = NormalizeClinicaLogoUrl(entity.UrlFoto);
+      if (!IsValidClinicaLogoUrl(entity.UrlFoto))
+        return ResponseFactory.Fail<Guid>("URL de foto inválida.");
 
       // Legacy: ATCUDUser/ATCUDPass são persistidos encriptados.
       entity.AtUser = EncryptIfPlain(entity.AtUser);
       entity.AtPass = EncryptIfPlain(entity.AtPass);
 
+      NormalizeFaturacaoFields(entity);
+
       try
       {
         var created = await _repository.CreateAsync<Clinica, Guid>(entity);
         _ = await _repository.SaveChangesAsync();
+        await RunCreateSideEffectsAsync(created);
         return ResponseFactory.Success(created.Id);
       }
       catch (Exception ex) { return ResponseFactory.Fail<Guid>(ex.Message); }
@@ -145,6 +349,8 @@ namespace CliCloud.Application.Services.Core.ClinicaService
     {
       var existing = await _repository.GetByIdAsync<Clinica, Guid>(id);
       if (existing == null) return ResponseFactory.Fail<Guid>("Clínica não encontrada.");
+      var oldZonaFiscal = existing.ZonFisc;
+      var oldUrlFoto = existing.UrlFoto;
       if (existing.Nome != request.Nome)
       {
         var spec = new ClinicaMatchNome(request.Nome);
@@ -152,16 +358,39 @@ namespace CliCloud.Application.Services.Core.ClinicaService
           return ResponseFactory.Fail<Guid>("Já existe uma clínica com este nome.");
       }
       _mapper.Map(request, existing);
+
+      existing.Atividade = request.Atividade;
+      existing.Regcom = request.Regcom;
+      existing.Capsocial = request.Capsocial;
+      existing.Cae = request.Cae;
+      existing.ZonFisc = request.ZonFisc;
+      existing.Tipo = request.Tipo;
+      existing.Portaria = request.Portaria;
+      existing.DespachoUcc = request.DespachoUcc;
+      existing.ObsNotaCredito = request.ObsNotaCredito;
+      existing.CMoeda = request.CMoeda;
       existing.TipoEntidade = EntidadeTipo.Clinica;
+      existing.UrlFoto = NormalizeClinicaLogoUrl(existing.UrlFoto);
+      if (!IsValidClinicaLogoUrl(existing.UrlFoto))
+        return ResponseFactory.Fail<Guid>("URL de foto inválida.");
 
       // Legacy: ATCUDUser/ATCUDPass são persistidos encriptados.
       existing.AtUser = EncryptIfPlain(existing.AtUser);
       existing.AtPass = EncryptIfPlain(existing.AtPass);
+      
+      NormalizeFaturacaoFields(existing);
 
       try
       {
         var updated = await _repository.UpdateAsync<Clinica, Guid>(existing);
         _ = await _repository.SaveChangesAsync();
+        await DeleteOldClinicaLogoIfNeededAsync(oldUrlFoto, existing.UrlFoto);
+
+        if (oldZonaFiscal != request.ZonFisc)
+        {
+          await EnsureClinicaIvaConfigurationAsync(id, request.ZonFisc);
+          _ = await _repository.SaveChangesAsync();
+        }
 
         if (request.GravarConfiguracaoTratamentos == true)
         {
@@ -365,13 +594,14 @@ namespace CliCloud.Application.Services.Core.ClinicaService
         if (clinica == null) return ResponseFactory.Fail<int[]>("Clínica não encontrada.");
 
         var folgas = new List<int>(7);
-        if (clinica.FolgaSeg == true) folgas.Add(1);
-        if (clinica.FolgaTer == true) folgas.Add(2);
-        if (clinica.FolgaQua == true) folgas.Add(3);
-        if (clinica.FolgaQui == true) folgas.Add(4);
-        if (clinica.FolgaSex == true) folgas.Add(5);
-        if (clinica.FolgaSab == true) folgas.Add(6);
-        if (clinica.FolgaDom == true) folgas.Add(7);
+        // Compatibilidade com legado (Dom=1, Seg=2, ..., Sab=7)
+        if (clinica.FolgaSeg == true) folgas.Add(2);
+        if (clinica.FolgaTer == true) folgas.Add(3);
+        if (clinica.FolgaQua == true) folgas.Add(4);
+        if (clinica.FolgaQui == true) folgas.Add(5);
+        if (clinica.FolgaSex == true) folgas.Add(6);
+        if (clinica.FolgaSab == true) folgas.Add(7);
+        if (clinica.FolgaDom == true) folgas.Add(1);
 
         return ResponseFactory.Success(folgas.ToArray());
       }

@@ -20,5 +20,7 @@ namespace CliCloud.Application.Services.Core.SmsService
     
     Task<PaginatedResponse<HistoricoSmsTabelaDTO>> ObterHistoricoPaginadoAsync(Guid clinicaId, HistoricoSmsTabelaFiltro filtro);
     Task<Response<Guid>> EnviarSmsTesteAsync(Guid clinicaId, EnviarSmsTesteRequest request);
+
+    Task<Response<Guid>> EnviarSmsPorCodigoAsync(Guid clinicaId, EnviarSmsPorCodigoRequest request);
   }
 }

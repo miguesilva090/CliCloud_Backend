@@ -4,6 +4,7 @@ using CliCloud.Infrastructure.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CliCloud.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260401145004_Add_Configuracao_ChamadaVoz_OpcoesCatalog")]
+    partial class Add_Configuracao_ChamadaVoz_OpcoesCatalog
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1277,78 +1280,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("TiposConsulta", "Consultas");
-                });
-
-            modelBuilder.Entity("CliCloud.Domain.Entities.Core.ChamadaUtente", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("ClinicaId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("DataHoraChamada")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("DeletedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("DeletedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Estado")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
-
-                    b.Property<Guid?>("LastModifiedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("LastModifiedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("NomeProfissional")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("NomeUtente")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<Guid>("ReferenciaId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Sala")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Senha")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Tipo")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<Guid?>("UtenteId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClinicaId", "DataHoraChamada");
-
-                    b.HasIndex("ClinicaId", "Tipo", "ReferenciaId", "Estado");
-
-                    b.ToTable("ChamadaUtente", "Core");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.Core.ClinicaApiKey", b =>
@@ -9986,17 +9917,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Navigation("Exame");
 
                     b.Navigation("Servico");
-                });
-
-            modelBuilder.Entity("CliCloud.Domain.Entities.Core.ChamadaUtente", b =>
-                {
-                    b.HasOne("CliCloud.Domain.Entities.Core.Clinica", "Clinica")
-                        .WithMany()
-                        .HasForeignKey("ClinicaId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Clinica");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.Core.ClinicaApiKey", b =>

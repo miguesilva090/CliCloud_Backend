@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using CliCloud.Domain.Entities.Core;
 using CliCloud.Domain.Entities.ProcessoClinico.BodyChart;
 
 namespace CliCloud.Infrastructure.Persistence.Extensions
@@ -7,6 +8,30 @@ namespace CliCloud.Infrastructure.Persistence.Extensions
   {
     public static void SeedStaticData(this ModelBuilder builder) // create methods here for model seed data (static data) -- this data will be managed by EF migrations
     {
+      builder.Entity<ConfiguracaoChamadaVozOpcao>().HasData(
+        // Language options (paridade com legado)
+        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000001"), Tipo = "Language", Codigo = "pt", Descricao = "Português", Ordem = 1, Ativo = true },
+        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000002"), Tipo = "Language", Codigo = "en", Descricao = "Inglês", Ordem = 2, Ativo = true },
+        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000003"), Tipo = "Language", Codigo = "fr", Descricao = "Francês", Ordem = 3, Ativo = true },
+        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000004"), Tipo = "Language", Codigo = "es", Descricao = "Espanhol", Ordem = 4, Ativo = true },
+        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000005"), Tipo = "Language", Codigo = "zh-CN", Descricao = "Mandarim (China)", Ordem = 5, Ativo = true },
+        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000006"), Tipo = "Language", Codigo = "zh-TW", Descricao = "Mandarim (Taiwan)", Ordem = 6, Ativo = true },
+
+        // TLD / variation options (paridade com legado)
+        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000101"), Tipo = "Tld", Codigo = "pt", Descricao = "Português (PT)", Ordem = 1, Ativo = true },
+        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000102"), Tipo = "Tld", Codigo = "com.br", Descricao = "Português (BR)", Ordem = 2, Ativo = true },
+        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000103"), Tipo = "Tld", Codigo = "com.au", Descricao = "Inglês (AU)", Ordem = 3, Ativo = true },
+        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000104"), Tipo = "Tld", Codigo = "co.uk", Descricao = "Inglês (UK)", Ordem = 4, Ativo = true },
+        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000105"), Tipo = "Tld", Codigo = "com", Descricao = "Inglês (US)", Ordem = 5, Ativo = true },
+        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000106"), Tipo = "Tld", Codigo = "ca", Descricao = "Inglês/Francês (CA)", Ordem = 6, Ativo = true },
+        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000107"), Tipo = "Tld", Codigo = "co.in", Descricao = "Inglês (IN)", Ordem = 7, Ativo = true },
+        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000108"), Tipo = "Tld", Codigo = "ie", Descricao = "Inglês (IE)", Ordem = 8, Ativo = true },
+        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000109"), Tipo = "Tld", Codigo = "co.za", Descricao = "Inglês (ZA)", Ordem = 9, Ativo = true },
+        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000110"), Tipo = "Tld", Codigo = "fr", Descricao = "Francês (FR)", Ordem = 10, Ativo = true },
+        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000111"), Tipo = "Tld", Codigo = "es", Descricao = "Espanhol (ES)", Ordem = 11, Ativo = true },
+        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000112"), Tipo = "Tld", Codigo = "com.mx", Descricao = "Espanhol (MX)", Ordem = 12, Ativo = true }
+      );
+
 
       builder.Entity<MapaBodyChart>().HasData(
         new MapaBodyChart

@@ -42,5 +42,6 @@ namespace CliCloud.Application.Services.Medicos.MedicoService.DTOs
         public bool Director { get; set; }
         public Guid? EspecialidadeId { get; set; }
         public string? EspecialidadeNome { get; set; }
+        public string? Letra { get; set; }
     }
 }

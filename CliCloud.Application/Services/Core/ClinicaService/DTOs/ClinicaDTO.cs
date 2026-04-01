@@ -1,4 +1,5 @@
 using CliCloud.Application.Common.Marker;
+using CliCloud.Domain.Enums;
 
 namespace CliCloud.Application.Services.Core.ClinicaService.DTOs
 {
@@ -32,7 +33,7 @@ namespace CliCloud.Application.Services.Core.ClinicaService.DTOs
     public string? Regcom { get; set; }
     public decimal? Capsocial { get; set; }
     public string? Cae { get; set; }
-    public string? ZonFisc { get; set; }
+    public ZonaFiscal? ZonFisc { get; set; }
     public string? Tipo { get; set; }
     public string? Portaria { get; set; }
     public string? DespachoUcc { get; set; }

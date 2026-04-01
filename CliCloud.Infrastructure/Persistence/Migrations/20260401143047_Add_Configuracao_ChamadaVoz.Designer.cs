@@ -4,6 +4,7 @@ using CliCloud.Infrastructure.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CliCloud.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260401143047_Add_Configuracao_ChamadaVoz")]
+    partial class Add_Configuracao_ChamadaVoz
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1279,78 +1282,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.ToTable("TiposConsulta", "Consultas");
                 });
 
-            modelBuilder.Entity("CliCloud.Domain.Entities.Core.ChamadaUtente", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("ClinicaId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("DataHoraChamada")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("DeletedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("DeletedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Estado")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
-
-                    b.Property<Guid?>("LastModifiedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("LastModifiedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("NomeProfissional")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("NomeUtente")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<Guid>("ReferenciaId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Sala")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Senha")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Tipo")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<Guid?>("UtenteId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClinicaId", "DataHoraChamada");
-
-                    b.HasIndex("ClinicaId", "Tipo", "ReferenciaId", "Estado");
-
-                    b.ToTable("ChamadaUtente", "Core");
-                });
-
             modelBuilder.Entity("CliCloud.Domain.Entities.Core.ClinicaApiKey", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1647,263 +1578,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.HasIndex("ClinicaId", "Ativo");
 
                     b.ToTable("ConfiguracaoChamadaVoz", "Core");
-                });
-
-            modelBuilder.Entity("CliCloud.Domain.Entities.Core.ConfiguracaoChamadaVozOpcao", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("Ativo")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<string>("Codigo")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("DeletedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("DeletedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Descricao")
-                        .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("nvarchar(120)");
-
-                    b.Property<Guid?>("LastModifiedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("LastModifiedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Ordem")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Tipo")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Tipo", "Codigo")
-                        .IsUnique();
-
-                    b.HasIndex("Tipo", "Ativo", "Ordem");
-
-                    b.ToTable("ConfiguracaoChamadaVozOpcao", "Core");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("f1a10000-0000-0000-0000-000000000001"),
-                            Ativo = true,
-                            Codigo = "pt",
-                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Português",
-                            Ordem = 1,
-                            Tipo = "Language"
-                        },
-                        new
-                        {
-                            Id = new Guid("f1a10000-0000-0000-0000-000000000002"),
-                            Ativo = true,
-                            Codigo = "en",
-                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Inglês",
-                            Ordem = 2,
-                            Tipo = "Language"
-                        },
-                        new
-                        {
-                            Id = new Guid("f1a10000-0000-0000-0000-000000000003"),
-                            Ativo = true,
-                            Codigo = "fr",
-                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Francês",
-                            Ordem = 3,
-                            Tipo = "Language"
-                        },
-                        new
-                        {
-                            Id = new Guid("f1a10000-0000-0000-0000-000000000004"),
-                            Ativo = true,
-                            Codigo = "es",
-                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Espanhol",
-                            Ordem = 4,
-                            Tipo = "Language"
-                        },
-                        new
-                        {
-                            Id = new Guid("f1a10000-0000-0000-0000-000000000005"),
-                            Ativo = true,
-                            Codigo = "zh-CN",
-                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Mandarim (China)",
-                            Ordem = 5,
-                            Tipo = "Language"
-                        },
-                        new
-                        {
-                            Id = new Guid("f1a10000-0000-0000-0000-000000000006"),
-                            Ativo = true,
-                            Codigo = "zh-TW",
-                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Mandarim (Taiwan)",
-                            Ordem = 6,
-                            Tipo = "Language"
-                        },
-                        new
-                        {
-                            Id = new Guid("f1a10000-0000-0000-0000-000000000101"),
-                            Ativo = true,
-                            Codigo = "pt",
-                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Português (PT)",
-                            Ordem = 1,
-                            Tipo = "Tld"
-                        },
-                        new
-                        {
-                            Id = new Guid("f1a10000-0000-0000-0000-000000000102"),
-                            Ativo = true,
-                            Codigo = "com.br",
-                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Português (BR)",
-                            Ordem = 2,
-                            Tipo = "Tld"
-                        },
-                        new
-                        {
-                            Id = new Guid("f1a10000-0000-0000-0000-000000000103"),
-                            Ativo = true,
-                            Codigo = "com.au",
-                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Inglês (AU)",
-                            Ordem = 3,
-                            Tipo = "Tld"
-                        },
-                        new
-                        {
-                            Id = new Guid("f1a10000-0000-0000-0000-000000000104"),
-                            Ativo = true,
-                            Codigo = "co.uk",
-                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Inglês (UK)",
-                            Ordem = 4,
-                            Tipo = "Tld"
-                        },
-                        new
-                        {
-                            Id = new Guid("f1a10000-0000-0000-0000-000000000105"),
-                            Ativo = true,
-                            Codigo = "com",
-                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Inglês (US)",
-                            Ordem = 5,
-                            Tipo = "Tld"
-                        },
-                        new
-                        {
-                            Id = new Guid("f1a10000-0000-0000-0000-000000000106"),
-                            Ativo = true,
-                            Codigo = "ca",
-                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Inglês/Francês (CA)",
-                            Ordem = 6,
-                            Tipo = "Tld"
-                        },
-                        new
-                        {
-                            Id = new Guid("f1a10000-0000-0000-0000-000000000107"),
-                            Ativo = true,
-                            Codigo = "co.in",
-                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Inglês (IN)",
-                            Ordem = 7,
-                            Tipo = "Tld"
-                        },
-                        new
-                        {
-                            Id = new Guid("f1a10000-0000-0000-0000-000000000108"),
-                            Ativo = true,
-                            Codigo = "ie",
-                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Inglês (IE)",
-                            Ordem = 8,
-                            Tipo = "Tld"
-                        },
-                        new
-                        {
-                            Id = new Guid("f1a10000-0000-0000-0000-000000000109"),
-                            Ativo = true,
-                            Codigo = "co.za",
-                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Inglês (ZA)",
-                            Ordem = 9,
-                            Tipo = "Tld"
-                        },
-                        new
-                        {
-                            Id = new Guid("f1a10000-0000-0000-0000-000000000110"),
-                            Ativo = true,
-                            Codigo = "fr",
-                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Francês (FR)",
-                            Ordem = 10,
-                            Tipo = "Tld"
-                        },
-                        new
-                        {
-                            Id = new Guid("f1a10000-0000-0000-0000-000000000111"),
-                            Ativo = true,
-                            Codigo = "es",
-                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Espanhol (ES)",
-                            Ordem = 11,
-                            Tipo = "Tld"
-                        },
-                        new
-                        {
-                            Id = new Guid("f1a10000-0000-0000-0000-000000000112"),
-                            Ativo = true,
-                            Codigo = "com.mx",
-                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Espanhol (MX)",
-                            Ordem = 12,
-                            Tipo = "Tld"
-                        });
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.Core.Sms.ConfiguracaoSms", b =>
@@ -9986,17 +9660,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Navigation("Exame");
 
                     b.Navigation("Servico");
-                });
-
-            modelBuilder.Entity("CliCloud.Domain.Entities.Core.ChamadaUtente", b =>
-                {
-                    b.HasOne("CliCloud.Domain.Entities.Core.Clinica", "Clinica")
-                        .WithMany()
-                        .HasForeignKey("ClinicaId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Clinica");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.Core.ClinicaApiKey", b =>

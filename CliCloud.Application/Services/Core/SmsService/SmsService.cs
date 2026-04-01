@@ -12,6 +12,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Globalization;
 
 
 namespace CliCloud.Application.Services.Core.SmsService
@@ -492,6 +493,95 @@ namespace CliCloud.Application.Services.Core.SmsService
                 return $"351{apenasDigitos}";
 
             return apenasDigitos;
+        }
+
+        public async Task<Response<Guid>> EnviarSmsPorCodigoAsync(Guid clinicaId, EnviarSmsPorCodigoRequest request)
+        {
+            try
+            {
+                if(string.IsNullOrWhiteSpace(request.CodigoConfiguracao))
+                    return ResponseFactory.Fail<Guid>("Código de configuração é obrigatório.");
+
+                if(string.IsNullOrWhiteSpace(request.NumeroDestinatario))
+                    return ResponseFactory.Fail<Guid>("Número de destinatário é obrigatório.");
+
+                var cfgSpec = new ConfiguracaoSmsPorClinicaSpec(clinicaId);
+                var cfg = (await _repository.GetListAsync<ConfiguracaoSms, Guid>(cfgSpec)).FirstOrDefault();
+                if(cfg == null)
+                    return ResponseFactory.Fail<Guid>("Configuração de SMS não encontrada.");
+
+                if(!cfg.Ativo)
+                    return ResponseFactory.Fail<Guid>("O serviço de SMS está inativo para a clínica.");
+
+                if(cfg.UsenditArpoone != 2)
+                    return ResponseFactory.Fail<Guid>("Envio manual está disponível apenas para Arpoone nesta versão.");
+
+                if(string.IsNullOrWhiteSpace(cfg.ArpooneUrl) || 
+                   string.IsNullOrWhiteSpace(cfg.ArpooneSender) ||
+                   string.IsNullOrWhiteSpace(cfg.ArpooneApiKey) ||
+                   !cfg.ArpooneOrganizationID.HasValue)
+                {
+                    return ResponseFactory.Fail<Guid>("Configuração Arpoone incompleta. Verifica URL, Sender, ApiKey e OrganizationID.");
+                }
+
+                var regSpec = new ConfiguracaoSmsAutomaticaPorClinicaSpec(clinicaId, request.CodigoConfiguracao);
+                var reg = (await _repository.GetListAsync<ConfiguracaoSmsAutomatica, Guid>(regSpec)).FirstOrDefault();
+
+                if(reg == null)
+                    return ResponseFactory.Fail<Guid>("Configuração de SMS automática não encontrada para o código indicado.");
+                
+                if(reg.Ativo != 1)
+                    return ResponseFactory.Fail<Guid>("A configuração de SMS automática está desativada.");
+
+                var template = (reg.Textomensagem ?? string.Empty).Trim();
+                if(string.IsNullOrWhiteSpace(template))
+                    return ResponseFactory.Fail<Guid>($"Template de SMS vazio para o codigo {request.CodigoConfiguracao}");
+
+                var placeholders = ConstruirPlaceholdersEnvioPorCodigo(request);
+                var textoMensagem = template;
+
+                foreach(var kv in placeholders)
+                    textoMensagem = textoMensagem.Replace($"@{kv.Key}", kv.Value ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+
+                if(string.IsNullOrWhiteSpace(textoMensagem))
+                    return ResponseFactory.Fail<Guid>("Mensagem final vazia após substituir placeholders.");
+
+                return await EnviarSmsTesteAsync(clinicaId, new EnviarSmsTesteRequest
+                {
+                    NumeroDestinatario = request.NumeroDestinatario, 
+                    TextoMensagem = textoMensagem,
+                    Modulo = string.IsNullOrWhiteSpace(request.Modulo) ? $"SMSCodigo-{request.CodigoConfiguracao}" : request.Modulo,
+                    CodigoUtente = request.CodigoUtente,
+                    CodigoMedico = request.CodigoMedico,
+                    CodigoFisioterapeuta = request.CodigoFisioterapeuta,
+                    CodigoConsulta = request.CodigoConsulta,
+                    CodigoTratamento = request.CodigoTratamento, 
+                    CodigoAula = request.CodigoAula,
+                });
+            }
+            catch(Exception ex)
+            {
+                return ResponseFactory.Fail<Guid>(ex.Message);
+            }
+        }
+
+        private static Dictionary<string, string> ConstruirPlaceholdersEnvioPorCodigo(EnviarSmsPorCodigoRequest request)
+        {
+            var data = request.Data?.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) ?? string.Empty;
+            var hora = request.Hora ?? string.Empty;
+
+            return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["Utente"] = request.NomeUtente ?? string.Empty,
+                ["Data"] = data,
+                ["Hora"] = hora,
+                ["Medico"] = request.NomeMedicoOuProfissional ?? string.Empty,
+                ["Especialidade"] = request.NomeEspecialidade ?? string.Empty,
+                ["Nsessao"] = request.NumeroSessao ?? string.Empty,
+                ["NSessao"] = request.NumeroSessao ?? string.Empty,
+                ["Profissional"] = request.NomeMedicoOuProfissional ?? string.Empty,
+                ["Modalidade"] = request.NomeEspecialidade ?? string.Empty,
+            };
         }
     }
  

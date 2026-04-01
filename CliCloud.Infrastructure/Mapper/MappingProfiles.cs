@@ -847,6 +847,38 @@ namespace CliCloud.Infrastructure.Mapper
       updateClinicaMap.ForAllMembers(
         opts => opts.Condition((src, dest, srcMember) => srcMember != null)
       );
+      _ = updateClinicaMap
+        .ForMember(d => d.NomeComercial, o => o.MapFrom(s => s.NomeComercial))
+        .ForMember(d => d.Morada, o => o.MapFrom(s => s.Morada))
+        .ForMember(d => d.CCPostal, o => o.MapFrom(s => s.CCPostal))
+        .ForMember(d => d.Localidade, o => o.MapFrom(s => s.Localidade))
+        .ForMember(d => d.IndicativoTelefone, o => o.MapFrom(s => s.IndicativoTelefone))
+        .ForMember(d => d.Telefone, o => o.MapFrom(s => s.Telefone))
+        .ForMember(d => d.Telemovel, o => o.MapFrom(s => s.Telemovel))
+        .ForMember(d => d.Fax, o => o.MapFrom(s => s.Fax))
+        .ForMember(d => d.Email, o => o.MapFrom(s => s.Email))
+        .ForMember(d => d.Web, o => o.MapFrom(s => s.Web))
+        .ForMember(d => d.Sucursal, o => o.MapFrom(s => s.Sucursal))
+        .ForMember(d => d.NumeroContribuinte, o => o.MapFrom(s => s.NumeroContribuinte))
+        .ForMember(d => d.NIB, o => o.MapFrom(s => s.NIB))
+        .ForMember(d => d.Observacoes, o => o.MapFrom(s => s.Observacoes))
+        .ForMember(d => d.UrlFoto, o => o.MapFrom(s => s.UrlFoto))
+        .ForMember(d => d.EntidadeUtilizadora, o => o.MapFrom(s => s.EntidadeUtilizadora))
+        .ForMember(d => d.LocalPrescricao, o => o.MapFrom(s => s.LocalPrescricao))
+        .ForMember(d => d.NomeEtiqueta, o => o.MapFrom(s => s.NomeEtiqueta))
+        .ForMember(d => d.CodSb, o => o.MapFrom(s => s.CodSb))
+        .ForMember(d => d.CccDescLocalEmissao, o => o.MapFrom(s => s.CccDescLocalEmissao))
+        .ForMember(d => d.Regiao, o => o.MapFrom(s => s.Regiao))
+        .ForMember(d => d.DiretoriaDocumentos, o => o.MapFrom(s => s.DiretoriaDocumentos))
+        .ForMember(d => d.CaminhoSaft, o => o.MapFrom(s => s.CaminhoSaft))
+        .ForMember(d => d.ExportContabilidadeFa, o => o.MapFrom(s => s.ExportContabilidadeFa))
+        .ForMember(d => d.ExportTipoContaFa, o => o.MapFrom(s => s.ExportTipoContaFa))
+        .ForMember(d => d.ExportContabilidadeFr, o => o.MapFrom(s => s.ExportContabilidadeFr))
+        .ForMember(d => d.ExportTipoContaFr, o => o.MapFrom(s => s.ExportTipoContaFr))
+        .ForMember(d => d.LabelAuxiliares, o => o.MapFrom(s => s.LabelAuxiliares))
+        .ForMember(d => d.MsgFaltaPagamento, o => o.MapFrom(s => s.MsgFaltaPagamento))
+        .ForMember(d => d.MsgCredenciais, o => o.MapFrom(s => s.MsgCredenciais))
+        .ForMember(d => d.KqueueMensagemAvisoAtraso, o => o.MapFrom(s => s.KqueueMensagemAvisoAtraso));
 
       // ---- Seguradora ----
       _ = CreateMap<Seguradora, SeguradoraDtos.SeguradoraDTO>();
