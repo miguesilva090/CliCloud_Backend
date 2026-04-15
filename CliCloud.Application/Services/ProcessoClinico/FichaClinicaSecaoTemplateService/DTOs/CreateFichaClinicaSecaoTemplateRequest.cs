@@ -20,7 +20,7 @@ namespace CliCloud.Application.Services.ProcessoClinico.FichaClinicaSecaoTemplat
     {
         public CreateFichaClinicaSecaoTemplateValidator()
         {
-            _ = RuleFor(x => x.Codigo).NotEmpty().MaximumLength(100);
+            _ = RuleFor(x => x.Codigo).MaximumLength(100);
             _ = RuleFor(x => x.Nome).NotEmpty().MaximumLength(200);
             _ = RuleFor(x => x.Descricao).MaximumLength(500);
         }

@@ -16,6 +16,9 @@ namespace CliCloud.Infrastructure.Persistence.Configurations
               .HasMaxLength(100)
               .IsRequired();
 
+            builder.Property(t => t.UtilizadorId)
+              .IsRequired();
+
             builder.Property(t => t.Nome)
               .HasMaxLength(200)
               .IsRequired();
@@ -28,6 +31,8 @@ namespace CliCloud.Infrastructure.Persistence.Configurations
 
             builder.Property(t => t.Ativo)
               .IsRequired();
+
+            builder.HasIndex(t => new { t.UtilizadorId, t.Codigo }).IsUnique();
         }
     }
 }

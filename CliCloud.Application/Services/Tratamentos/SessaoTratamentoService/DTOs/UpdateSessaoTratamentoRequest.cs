@@ -49,6 +49,7 @@ namespace CliCloud.Application.Services.Tratamentos.SessaoTratamentoService.DTOs
     public string? TipoDocumentoId { get; set; }
     public string? DocumentoId { get; set; }
     public DateTime? DataApagar { get; set; }
+    public bool SendEmail { get; set; }
   }
 
   public class UpdateSessaoTratamentoValidator : AbstractValidator<UpdateSessaoTratamentoRequest>

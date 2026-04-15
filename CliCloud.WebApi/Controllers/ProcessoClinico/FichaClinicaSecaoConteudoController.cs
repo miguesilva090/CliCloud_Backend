@@ -46,6 +46,27 @@ namespace CliCloudWebApi.Controllers.ProcessoClinico
       return Ok(result);
     }
 
+    // Runtime: conteúdos por utente + separador/template
+    [Authorize(Roles = "client")]
+    [HttpGet("utente/{utenteId:guid}/separador/{separadorId:guid}")]
+    public async Task<IActionResult> GetByUtenteAndSeparadorAsync(Guid utenteId, Guid separadorId)
+    {
+      Response<IEnumerable<FichaClinicaSecaoConteudoDTO>> result =
+        await _service.GetByUtenteAndSeparadorAsync(utenteId, separadorId);
+      return Ok(result);
+    }
+
+    // Runtime: guardar em lote (upsert)
+    [Authorize(Roles = "client")]
+    [HttpPost("upsert-lote")]
+    public async Task<IActionResult> UpsertLoteAsync(
+      [FromBody] UpsertFichaClinicaSecaoConteudoLoteRequest request
+    )
+    {
+      Response<IEnumerable<Guid>> result = await _service.UpsertLoteAsync(request);
+      return Ok(result);
+    }
+
     // Criar
     [Authorize(Roles = "client")]
     [HttpPost]

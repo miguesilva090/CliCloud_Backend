@@ -13,11 +13,36 @@ namespace CliCloud.Application.Services.ProcessoClinico.FichaClinicaSecaoCampoSe
     {
         private readonly IRepositoryAsync _repository;
         private readonly IMapper _mapper;
+        private readonly ICurrentTenantUserService _currentTenantUserService;
 
-        public FichaClinicaSecaoCampoService(IRepositoryAsync repository, IMapper mapper)
+        public FichaClinicaSecaoCampoService(
+            IRepositoryAsync repository,
+            IMapper mapper,
+            ICurrentTenantUserService currentTenantUserService
+        )
         {
             _repository = repository;
             _mapper = mapper;
+            _currentTenantUserService = currentTenantUserService;
+        }
+
+        private Guid GetCurrentUserId()
+        {
+            _currentTenantUserService.SetUser();
+            if (Guid.TryParse(_currentTenantUserService.UserId, out Guid userId))
+            {
+                return userId;
+            }
+
+            throw new InvalidOperationException("Utilizador atual inválido.");
+        }
+
+        private async Task<bool> UserOwnsTemplateAsync(Guid separadorId, Guid userId)
+        {
+            FichaClinicaSecaoTemplate? template =
+                await _repository.GetByIdAsync<FichaClinicaSecaoTemplate, Guid>(separadorId);
+
+            return template != null && template.UtilizadorId == userId;
         }
 
         // get full list by separador
@@ -26,6 +51,15 @@ namespace CliCloud.Application.Services.ProcessoClinico.FichaClinicaSecaoCampoSe
             string keyword = ""
         )
         {
+            Guid userId = GetCurrentUserId();
+            bool ownsTemplate = await UserOwnsTemplateAsync(separadorId, userId);
+            if (!ownsTemplate)
+            {
+                return ResponseFactory.Fail<IEnumerable<FichaClinicaSecaoCampoDTO>>(
+                    "Separador não encontrado."
+                );
+            }
+
             FichaClinicaSecaoCampoSearchList specification = new(separadorId, keyword);
             IEnumerable<FichaClinicaSecaoCampoDTO> list =
                 await _repository.GetListAsync<FichaClinicaSecaoCampo, FichaClinicaSecaoCampoDTO, Guid>(
@@ -65,6 +99,14 @@ namespace CliCloud.Application.Services.ProcessoClinico.FichaClinicaSecaoCampoSe
         {
             try
             {
+                Guid userId = GetCurrentUserId();
+                FichaClinicaSecaoCampo? entity =
+                    await _repository.GetByIdAsync<FichaClinicaSecaoCampo, Guid>(id);
+                if (entity == null || !await UserOwnsTemplateAsync(entity.SeparadorId, userId))
+                {
+                    return ResponseFactory.Fail<FichaClinicaSecaoCampoDTO>("Campo de separador não encontrado.");
+                }
+
                 FichaClinicaSecaoCampoDTO dto =
                     await _repository.GetByIdAsync<FichaClinicaSecaoCampo, FichaClinicaSecaoCampoDTO, Guid>(
                         id
@@ -82,6 +124,13 @@ namespace CliCloud.Application.Services.ProcessoClinico.FichaClinicaSecaoCampoSe
             CreateFichaClinicaSecaoCampoRequest request
         )
         {
+            Guid userId = GetCurrentUserId();
+            bool ownsTemplate = await UserOwnsTemplateAsync(request.SeparadorId, userId);
+            if (!ownsTemplate)
+            {
+                return ResponseFactory.Fail<Guid>("Separador não encontrado.");
+            }
+
             FichaClinicaSecaoCampoMatchName specification =
                 new(request.SeparadorId, request.Nome);
 
@@ -114,9 +163,14 @@ namespace CliCloud.Application.Services.ProcessoClinico.FichaClinicaSecaoCampoSe
             Guid id
         )
         {
+            Guid userId = GetCurrentUserId();
             FichaClinicaSecaoCampo entityInDb =
                 await _repository.GetByIdAsync<FichaClinicaSecaoCampo, Guid>(id);
             if (entityInDb == null)
+            {
+                return ResponseFactory.Fail<Guid>("Campo de separador não encontrado.");
+            }
+            if (!await UserOwnsTemplateAsync(entityInDb.SeparadorId, userId))
             {
                 return ResponseFactory.Fail<Guid>("Campo de separador não encontrado.");
             }
@@ -141,8 +195,15 @@ namespace CliCloud.Application.Services.ProcessoClinico.FichaClinicaSecaoCampoSe
         {
             try
             {
+                Guid userId = GetCurrentUserId();
                 FichaClinicaSecaoCampo? entity =
-                    await _repository.RemoveByIdAsync<FichaClinicaSecaoCampo, Guid>(id);
+                    await _repository.GetByIdAsync<FichaClinicaSecaoCampo, Guid>(id);
+                if (entity == null || !await UserOwnsTemplateAsync(entity.SeparadorId, userId))
+                {
+                    return ResponseFactory.Fail<Guid>("Campo de separador não encontrado.");
+                }
+
+                _ = await _repository.RemoveByIdAsync<FichaClinicaSecaoCampo, Guid>(id);
                 _ = await _repository.SaveChangesAsync();
 
                 return ResponseFactory.Success(entity.Id);
@@ -160,6 +221,7 @@ namespace CliCloud.Application.Services.ProcessoClinico.FichaClinicaSecaoCampoSe
         {
             try
             {
+                Guid userId = GetCurrentUserId();
                 List<Guid> idsList = ids.ToList();
                 List<Guid> successfullyDeletedIds = new();
                 List<string> failedDeletions = new();
@@ -171,6 +233,13 @@ namespace CliCloud.Application.Services.ProcessoClinico.FichaClinicaSecaoCampoSe
                         FichaClinicaSecaoCampo? entity =
                             await _repository.GetByIdAsync<FichaClinicaSecaoCampo, Guid>(id);
                         if (entity == null)
+                        {
+                            failedDeletions.Add(
+                                $"Campo de separador com ID {id} não encontrado."
+                            );
+                            continue;
+                        }
+                        if (!await UserOwnsTemplateAsync(entity.SeparadorId, userId))
                         {
                             failedDeletions.Add(
                                 $"Campo de separador com ID {id} não encontrado."

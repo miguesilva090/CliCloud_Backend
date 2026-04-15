@@ -1,0 +1,11 @@
+EVIDENCIA_ASSINATURA_CONSENTIMENTO
+PedidoId=924d25f1-fe51-40d5-984f-4ce579e93c57
+InstanciaDocumentoId=8e5ee59a-1535-4530-a81b-1899e428f3d0
+TipoConsentimento=RGPD
+Estado=Assinado
+AssinadoPor=Operador
+AssinadoEm=2026-04-14T13:47:05.4745256Z
+Canal=presencial
+UtenteId=9bdd1141-d287-482f-87ca-0cec2a223147
+AssinaturaBase64SHA256=61CE3B4D4EE079CB758F8F21A5194A7B2AF7F1839B58D0CA6DB8C1A7666CCEC4
+UserAgent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36

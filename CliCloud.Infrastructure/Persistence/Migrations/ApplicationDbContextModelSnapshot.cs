@@ -497,6 +497,9 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("MedicoId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("MensagemErro")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("NumeroSNS")
                         .HasColumnType("nvarchar(max)");
 
@@ -733,6 +736,274 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("CartaConducaoRestricoes", "CartaConducao");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Common.Configurations.ConfigCartaConducao", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("AutoridadeSaudePublica")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ClinicaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Password")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("UrlOffline")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("UrlOnline")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Utilizador")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClinicaId")
+                        .IsUnique();
+
+                    b.ToTable("ConfigCartaConducao", "Core");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Common.Configurations.ConfigExamesSemPapel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Agendamento")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Anulacao")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("AreaPrestacao")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<Guid>("ClinicaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("CodigoEntidade")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ConsultaCancelados")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Efetivacao")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("EfetuadosNaoPrescritos")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Password")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("PasswordPartilhaResultados")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("PasswordPartilhaResultadosSemRequisicao")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("PesquisaPrestacao")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("RelatorioResultados")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("RelatorioResultadosSemRequisicao")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("TaxasModeradoras")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Username")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("UsernamePartilhaResultados")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("UsernamePartilhaResultadosSemRequisicao")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClinicaId")
+                        .IsUnique();
+
+                    b.ToTable("ConfigExamesSemPapel", "Core");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Common.Configurations.ConfigWebService", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ClinicaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DominioProxy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("DominioProxyRsp")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LoginAcss")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("LoginAcssRsp")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("LoginAutenticacao")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("PasswordAcss")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("PasswordAcssRsp")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("PasswordAutenticacao")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("PasswordProxy")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("PasswordProxyRsp")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("ProxyAutenticacao")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("TokenAutenticacao")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("UrlAcss")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("UrlAcssRsp")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("UrlRnu")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("UsarProxy")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("UsarProxyRsp")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UserProxy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("UserProxyRsp")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("VersaoPrescricao")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClinicaId")
+                        .IsUnique();
+
+                    b.ToTable("ConfigWebService", "Core");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.Consultas.Consulta", b =>
@@ -1211,6 +1482,174 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.ToTable("ServicoConsulta", "Consultas");
                 });
 
+            modelBuilder.Entity("CliCloud.Domain.Entities.Consultas.TeleconsultaAcessoLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Acao")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<Guid>("ClinicaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ConsultaMarcacaoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Ip")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Mensagem")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Papel")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<bool>("Sucesso")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("TeleconsultaSessaoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("UserId")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClinicaId", "CreatedOn");
+
+                    b.HasIndex("TeleconsultaSessaoId", "CreatedOn");
+
+                    b.ToTable("TeleconsultaAcessoLog", "Consultas");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Consultas.TeleconsultaSessao", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("ClinicaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ConsultaMarcacaoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("FimEfetivoUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("FimPrevistoUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("InicioEfetivoUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("InicioPrevistoUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("LinksAtivos")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("LinksRevogadosEmUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("MeetingId")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("MeetingUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("jitsi");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Criada");
+
+                    b.Property<string>("TokenMedico")
+                        .HasMaxLength(1024)
+                        .HasColumnType("nvarchar(1024)");
+
+                    b.Property<string>("TokenUtente")
+                        .HasMaxLength(1024)
+                        .HasColumnType("nvarchar(1024)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConsultaMarcacaoId");
+
+                    b.HasIndex("MeetingId")
+                        .IsUnique();
+
+                    b.HasIndex("ClinicaId", "ConsultaMarcacaoId", "Ativo");
+
+                    b.ToTable("TeleconsultaSessao", "Consultas");
+                });
+
             modelBuilder.Entity("CliCloud.Domain.Entities.Consultas.TipoAdmissao", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1593,7 +2032,100 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.ToTable("ClinicaTipoConsultaDefault", "Core");
                 });
 
-            modelBuilder.Entity("CliCloud.Domain.Entities.Core.ConfiguracaoChamadaVoz", b =>
+            modelBuilder.Entity("CliCloud.Domain.Entities.Core.ConfiguracaoTeleconsulta", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("BaseMeetingUrl")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)")
+                        .HasDefaultValue("https://meet.jit.si");
+
+                    b.Property<Guid>("ClinicaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DuracaoPadraoMinutos")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(30);
+
+                    b.Property<int>("JanelaEntradaMinutosAntes")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(15);
+
+                    b.Property<string>("JwtApiKey")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("JwtAppId")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<bool>("JwtAtivo")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("JwtKid")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("JwtPrivateKey")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("LobbyAtivo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("PermitirEntradaAntesDoInicio")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("jitsi");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClinicaId")
+                        .IsUnique();
+
+                    b.HasIndex("ClinicaId", "Ativo");
+
+                    b.ToTable("ConfiguracaoTeleconsulta", "Core");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Core.ConfiguracaoVoz", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -1617,11 +2149,12 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("DeletedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Language")
+                    b.Property<string>("IdiomaPadrao")
+                        .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)")
-                        .HasDefaultValue("pt");
+                        .HasDefaultValue("pt-PT");
 
                     b.Property<Guid?>("LastModifiedBy")
                         .HasColumnType("uniqueidentifier");
@@ -1629,15 +2162,87 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("LastModifiedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Tld")
+                    b.Property<int>("MaxDuracaoCapturaSegundos")
                         .ValueGeneratedOnAdd()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)")
-                        .HasDefaultValue("pt");
+                        .HasColumnType("int")
+                        .HasDefaultValue(90);
 
-                    b.Property<string>("Url")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("web-speech");
+
+                    b.Property<bool>("SttAtivo")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("SttAutoPontuacao")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("SttConfidenceMin")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(5, 4)
+                        .HasColumnType("decimal(5,4)")
+                        .HasDefaultValue(0.5000m);
+
+                    b.Property<bool>("SttContinuous")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SttIdioma")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)")
+                        .HasDefaultValue("pt-PT");
+
+                    b.Property<bool>("SttInterimResults")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("SttMaxAlternatives")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<bool>("SttProfanityFilter")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("SttSilenceTimeoutMs")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(2500);
+
+                    b.Property<int>("TimeoutMs")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(15000);
+
+                    b.Property<bool>("TtsAtivo")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("TtsPitch")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)")
+                        .HasDefaultValue(1.00m);
+
+                    b.Property<decimal>("TtsRate")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)")
+                        .HasDefaultValue(1.00m);
+
+                    b.Property<string>("TtsVoice")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("TtsVolume")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)")
+                        .HasDefaultValue(1.00m);
 
                     b.HasKey("Id");
 
@@ -1646,10 +2251,10 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ClinicaId", "Ativo");
 
-                    b.ToTable("ConfiguracaoChamadaVoz", "Core");
+                    b.ToTable("ConfiguracaoVoz", "Core");
                 });
 
-            modelBuilder.Entity("CliCloud.Domain.Entities.Core.ConfiguracaoChamadaVozOpcao", b =>
+            modelBuilder.Entity("CliCloud.Domain.Entities.Core.ConfiguracaoVozOpcao", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -1703,17 +2308,17 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("Tipo", "Ativo", "Ordem");
 
-                    b.ToTable("ConfiguracaoChamadaVozOpcao", "Core");
+                    b.ToTable("ConfiguracaoVozOpcao", "Core");
 
                     b.HasData(
                         new
                         {
                             Id = new Guid("f1a10000-0000-0000-0000-000000000001"),
                             Ativo = true,
-                            Codigo = "pt",
+                            Codigo = "pt-PT",
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Português",
+                            Descricao = "Português (PT)",
                             Ordem = 1,
                             Tipo = "Language"
                         },
@@ -1721,10 +2326,10 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         {
                             Id = new Guid("f1a10000-0000-0000-0000-000000000002"),
                             Ativo = true,
-                            Codigo = "en",
+                            Codigo = "pt-BR",
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Inglês",
+                            Descricao = "Português (BR)",
                             Ordem = 2,
                             Tipo = "Language"
                         },
@@ -1732,10 +2337,10 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         {
                             Id = new Guid("f1a10000-0000-0000-0000-000000000003"),
                             Ativo = true,
-                            Codigo = "fr",
+                            Codigo = "en-US",
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Francês",
+                            Descricao = "Inglês (US)",
                             Ordem = 3,
                             Tipo = "Language"
                         },
@@ -1743,10 +2348,10 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         {
                             Id = new Guid("f1a10000-0000-0000-0000-000000000004"),
                             Ativo = true,
-                            Codigo = "es",
+                            Codigo = "es-ES",
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Espanhol",
+                            Descricao = "Espanhol (ES)",
                             Ordem = 4,
                             Tipo = "Language"
                         },
@@ -1757,153 +2362,431 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                             Codigo = "zh-CN",
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Mandarim (China)",
+                            Descricao = "Mandarim",
                             Ordem = 5,
                             Tipo = "Language"
                         },
                         new
                         {
-                            Id = new Guid("f1a10000-0000-0000-0000-000000000006"),
+                            Id = new Guid("f1a10000-0000-0000-0000-000000000007"),
                             Ativo = true,
-                            Codigo = "zh-TW",
+                            Codigo = "fr-FR",
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Mandarim (Taiwan)",
-                            Ordem = 6,
+                            Descricao = "Francês (FR)",
+                            Ordem = 7,
+                            Tipo = "Language"
+                        },
+                        new
+                        {
+                            Id = new Guid("f1a10000-0000-0000-0000-000000000008"),
+                            Ativo = true,
+                            Codigo = "it-IT",
+                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Descricao = "Italiano (IT)",
+                            Ordem = 8,
+                            Tipo = "Language"
+                        },
+                        new
+                        {
+                            Id = new Guid("f1a10000-0000-0000-0000-000000000009"),
+                            Ativo = true,
+                            Codigo = "de-DE",
+                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Descricao = "Alemão (DE)",
+                            Ordem = 9,
                             Tipo = "Language"
                         },
                         new
                         {
                             Id = new Guid("f1a10000-0000-0000-0000-000000000101"),
                             Ativo = true,
-                            Codigo = "pt",
+                            Codigo = "pt-PT-Female",
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Português (PT)",
+                            Descricao = "Português (PT) - Feminina",
                             Ordem = 1,
-                            Tipo = "Tld"
+                            Tipo = "Voice"
                         },
                         new
                         {
                             Id = new Guid("f1a10000-0000-0000-0000-000000000102"),
                             Ativo = true,
-                            Codigo = "com.br",
+                            Codigo = "pt-PT-Male",
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Português (BR)",
+                            Descricao = "Português (PT) - Masculina",
                             Ordem = 2,
-                            Tipo = "Tld"
+                            Tipo = "Voice"
                         },
                         new
                         {
                             Id = new Guid("f1a10000-0000-0000-0000-000000000103"),
                             Ativo = true,
-                            Codigo = "com.au",
+                            Codigo = "pt-BR-Female",
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Inglês (AU)",
+                            Descricao = "Português (BR) - Feminina",
                             Ordem = 3,
-                            Tipo = "Tld"
+                            Tipo = "Voice"
                         },
                         new
                         {
                             Id = new Guid("f1a10000-0000-0000-0000-000000000104"),
                             Ativo = true,
-                            Codigo = "co.uk",
+                            Codigo = "pt-BR-Male",
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Inglês (UK)",
+                            Descricao = "Português (BR) - Masculina",
                             Ordem = 4,
-                            Tipo = "Tld"
+                            Tipo = "Voice"
                         },
                         new
                         {
                             Id = new Guid("f1a10000-0000-0000-0000-000000000105"),
                             Ativo = true,
-                            Codigo = "com",
+                            Codigo = "en-US-Female",
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Inglês (US)",
+                            Descricao = "Inglês (US) - Feminina",
                             Ordem = 5,
-                            Tipo = "Tld"
+                            Tipo = "Voice"
                         },
                         new
                         {
                             Id = new Guid("f1a10000-0000-0000-0000-000000000106"),
                             Ativo = true,
-                            Codigo = "ca",
+                            Codigo = "en-US-Male",
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Inglês/Francês (CA)",
+                            Descricao = "Inglês (US) - Masculina",
                             Ordem = 6,
-                            Tipo = "Tld"
+                            Tipo = "Voice"
                         },
                         new
                         {
                             Id = new Guid("f1a10000-0000-0000-0000-000000000107"),
                             Ativo = true,
-                            Codigo = "co.in",
+                            Codigo = "es-ES-Female",
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Inglês (IN)",
+                            Descricao = "Espanhol (ES) - Feminina",
                             Ordem = 7,
-                            Tipo = "Tld"
+                            Tipo = "Voice"
                         },
                         new
                         {
                             Id = new Guid("f1a10000-0000-0000-0000-000000000108"),
                             Ativo = true,
-                            Codigo = "ie",
+                            Codigo = "es-ES-Male",
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Inglês (IE)",
+                            Descricao = "Espanhol (ES) - Masculina",
                             Ordem = 8,
-                            Tipo = "Tld"
+                            Tipo = "Voice"
                         },
                         new
                         {
                             Id = new Guid("f1a10000-0000-0000-0000-000000000109"),
                             Ativo = true,
-                            Codigo = "co.za",
+                            Codigo = "fr-FR-Female",
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Inglês (ZA)",
+                            Descricao = "Francês (FR) - Feminina",
                             Ordem = 9,
-                            Tipo = "Tld"
+                            Tipo = "Voice"
                         },
                         new
                         {
                             Id = new Guid("f1a10000-0000-0000-0000-000000000110"),
                             Ativo = true,
-                            Codigo = "fr",
+                            Codigo = "fr-FR-Male",
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Francês (FR)",
+                            Descricao = "Francês (FR) - Masculina",
                             Ordem = 10,
-                            Tipo = "Tld"
+                            Tipo = "Voice"
                         },
                         new
                         {
                             Id = new Guid("f1a10000-0000-0000-0000-000000000111"),
                             Ativo = true,
-                            Codigo = "es",
+                            Codigo = "zh-CN-Female",
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Espanhol (ES)",
+                            Descricao = "Mandarim (CN) - Feminina",
                             Ordem = 11,
-                            Tipo = "Tld"
+                            Tipo = "Voice"
                         },
                         new
                         {
                             Id = new Guid("f1a10000-0000-0000-0000-000000000112"),
                             Ativo = true,
-                            Codigo = "com.mx",
+                            Codigo = "zh-CN-Male",
                             CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                             CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Descricao = "Espanhol (MX)",
+                            Descricao = "Mandarim (CN) - Masculina",
                             Ordem = 12,
-                            Tipo = "Tld"
+                            Tipo = "Voice"
+                        },
+                        new
+                        {
+                            Id = new Guid("f1a10000-0000-0000-0000-000000000113"),
+                            Ativo = true,
+                            Codigo = "it-IT-Female",
+                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Descricao = "Italiano (IT) - Feminina",
+                            Ordem = 13,
+                            Tipo = "Voice"
+                        },
+                        new
+                        {
+                            Id = new Guid("f1a10000-0000-0000-0000-000000000114"),
+                            Ativo = true,
+                            Codigo = "it-IT-Male",
+                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Descricao = "Italiano (IT) - Masculina",
+                            Ordem = 14,
+                            Tipo = "Voice"
+                        },
+                        new
+                        {
+                            Id = new Guid("f1a10000-0000-0000-0000-000000000115"),
+                            Ativo = true,
+                            Codigo = "de-DE-Female",
+                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Descricao = "Alemão (DE) - Feminina",
+                            Ordem = 15,
+                            Tipo = "Voice"
+                        },
+                        new
+                        {
+                            Id = new Guid("f1a10000-0000-0000-0000-000000000116"),
+                            Ativo = true,
+                            Codigo = "de-DE-Male",
+                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Descricao = "Alemão (DE) - Masculina",
+                            Ordem = 16,
+                            Tipo = "Voice"
                         });
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Core.Email.ConfiguracaoEmail", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ClinicaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DisplayName")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("Inbox")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Outbox")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("PermitirEliminarEmail")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Porta")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Server")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("TipoServico")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("UseSSL")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClinicaId")
+                        .IsUnique();
+
+                    b.ToTable("ConfiguracaoEmail", "Core");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Core.Email.ConfiguracaoEmailAutomatica", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Ativo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<Guid>("ClinicaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Descricao")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("Diasantecedencia")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Textomensagem")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClinicaId", "Ativo");
+
+                    b.HasIndex("ClinicaId", "Codigo")
+                        .IsUnique();
+
+                    b.ToTable("ConfiguracaoEmailAutomatico", "Core");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Core.Email.HistoricoEmail", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AssuntoEmail")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<Guid>("ClinicaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Contacto")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("CorpoEmail")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DataHoraCriacao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DataHoraEnvio")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EmailDestino")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("MensagemErro")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Modulo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("NomeUtente")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClinicaId", "DataHoraCriacao");
+
+                    b.HasIndex("ClinicaId", "Status");
+
+                    b.ToTable("HistoricoEmail", "Core");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.Core.Sms.ConfiguracaoSms", b =>
@@ -2493,6 +3376,276 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.ToTable("Documento", "Documentos");
 
                     b.UseTptMappingStrategy();
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Documentos.FicheiroDocumento", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CaminhoRelativo")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("ChecksumSha256")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<Guid>("ClinicaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("InstanciaDocumentoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NomeArmazenamento")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("NomeOriginal")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<long>("TamanhoBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("TipoMime")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InstanciaDocumentoId");
+
+                    b.HasIndex("ClinicaId", "InstanciaDocumentoId");
+
+                    b.ToTable("FicheiroDocumento", "Documentos");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Documentos.InstanciaDocumento", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Assinado")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("AssinadoEm")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AssinadoPor")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<Guid>("ClinicaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ConteudoHtml")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("ModeloDocumentoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Titulo")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<Guid?>("UtenteId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("VersaoModelo")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ModeloDocumentoId");
+
+                    b.HasIndex("ClinicaId", "ModeloDocumentoId", "CreatedOn");
+
+                    b.ToTable("InstanciaDocumento", "Documentos");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Documentos.ModeloDocumento", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("ClinicaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("ConteudoHtml")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Estado")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("Tipo")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Versao")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClinicaId", "Codigo", "Versao")
+                        .IsUnique();
+
+                    b.ToTable("ModeloDocumento", "Documentos");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Documentos.PedidoConsentimento", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("AssinadoEm")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AssinadoPor")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("Canal")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<Guid>("ClinicaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Estado")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ExpiraEm")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("InstanciaDocumentoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Observacoes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("TipoConsentimento")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<Guid?>("UtenteId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InstanciaDocumentoId");
+
+                    b.HasIndex("ClinicaId", "Estado", "CreatedOn");
+
+                    b.HasIndex("ClinicaId", "UtenteId", "TipoConsentimento");
+
+                    b.ToTable("PedidoConsentimento", "Documentos");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.Documentos.TipoDocumento", b =>
@@ -5239,9 +6392,207 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Property<int>("Ordem")
                         .HasColumnType("int");
 
+                    b.Property<Guid>("UtilizadorId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("UtilizadorId", "Codigo")
+                        .IsUnique();
+
                     b.ToTable("FichaClinicaSecaoTemplate", "ProcessoClinico");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.ProcessoClinico.SeparadoresPersonalizados.Separador", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Ativo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int>("Ordem")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique()
+                        .HasFilter("[Codigo] <> ''");
+
+                    b.ToTable("Separador", "ProcessoClinico");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.ProcessoClinico.SeparadoresPersonalizados.SeparadorPersonalizado", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Ativo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<Guid>("ClinicaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("FormularioId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NomeSeparador")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int>("Ordem")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("UtilizadorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FormularioId");
+
+                    b.HasIndex("ClinicaId", "UtilizadorId", "NomeSeparador");
+
+                    b.HasIndex("ClinicaId", "UtilizadorId", "Ordem");
+
+                    b.ToTable("SeparadorPersonalizado", "ProcessoClinico");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.ProcessoClinico.SeparadoresPersonalizados.SeparadorPersonalizadoVinculo", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("EntidadeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("SeparadorPersonalizadoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Tipo")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SeparadorPersonalizadoId", "Tipo", "EntidadeId")
+                        .IsUnique();
+
+                    b.ToTable("SeparadorPersonalizadoVinculo", "ProcessoClinico");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.ProcessoClinico.SeparadoresPersonalizados.SeparadorVinculo", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("EntidadeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("SeparadorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Tipo")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SeparadorId", "Tipo", "EntidadeId")
+                        .IsUnique();
+
+                    b.ToTable("SeparadorVinculo", "ProcessoClinico");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.ProcessoClinico.SinaisVitais.AvaliacaoAntropometrica", b =>
@@ -8354,6 +9705,55 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.ToTable("EntidadeContacto", "Utility");
                 });
 
+            modelBuilder.Entity("CliCloud.Domain.Entities.Utility.Feriado", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("ClinicaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("Data")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Designacao")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasMaxLength(50)
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClinicaId", "Data")
+                        .IsUnique();
+
+                    b.ToTable("Feriado", "Utility");
+                });
+
             modelBuilder.Entity("CliCloud.Domain.Entities.Utility.Freguesia", b =>
                 {
                     b.Property<Guid>("Id")
@@ -9753,6 +11153,15 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Navigation("CartaConducaoRestricao");
                 });
 
+            modelBuilder.Entity("CliCloud.Domain.Entities.Common.Configurations.ConfigCartaConducao", b =>
+                {
+                    b.HasOne("CliCloud.Domain.Entities.Core.Clinica", null)
+                        .WithMany()
+                        .HasForeignKey("ClinicaId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("CliCloud.Domain.Entities.Consultas.Consulta", b =>
                 {
                     b.HasOne("CliCloud.Domain.Entities.Consultas.ConsultaMarcacao", "ConsultaMarcacao")
@@ -9988,6 +11397,36 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Navigation("Servico");
                 });
 
+            modelBuilder.Entity("CliCloud.Domain.Entities.Consultas.TeleconsultaAcessoLog", b =>
+                {
+                    b.HasOne("CliCloud.Domain.Entities.Consultas.TeleconsultaSessao", "TeleconsultaSessao")
+                        .WithMany()
+                        .HasForeignKey("TeleconsultaSessaoId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("TeleconsultaSessao");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Consultas.TeleconsultaSessao", b =>
+                {
+                    b.HasOne("CliCloud.Domain.Entities.Core.Clinica", "Clinica")
+                        .WithMany()
+                        .HasForeignKey("ClinicaId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("CliCloud.Domain.Entities.Consultas.ConsultaMarcacao", "ConsultaMarcacao")
+                        .WithMany()
+                        .HasForeignKey("ConsultaMarcacaoId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Clinica");
+
+                    b.Navigation("ConsultaMarcacao");
+                });
+
             modelBuilder.Entity("CliCloud.Domain.Entities.Core.ChamadaUtente", b =>
                 {
                     b.HasOne("CliCloud.Domain.Entities.Core.Clinica", "Clinica")
@@ -10010,7 +11449,51 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Navigation("Clinica");
                 });
 
-            modelBuilder.Entity("CliCloud.Domain.Entities.Core.ConfiguracaoChamadaVoz", b =>
+            modelBuilder.Entity("CliCloud.Domain.Entities.Core.ConfiguracaoTeleconsulta", b =>
+                {
+                    b.HasOne("CliCloud.Domain.Entities.Core.Clinica", "Clinica")
+                        .WithMany()
+                        .HasForeignKey("ClinicaId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Clinica");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Core.ConfiguracaoVoz", b =>
+                {
+                    b.HasOne("CliCloud.Domain.Entities.Core.Clinica", "Clinica")
+                        .WithMany()
+                        .HasForeignKey("ClinicaId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Clinica");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Core.Email.ConfiguracaoEmail", b =>
+                {
+                    b.HasOne("CliCloud.Domain.Entities.Core.Clinica", "Clinica")
+                        .WithMany()
+                        .HasForeignKey("ClinicaId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Clinica");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Core.Email.ConfiguracaoEmailAutomatica", b =>
+                {
+                    b.HasOne("CliCloud.Domain.Entities.Core.Clinica", "Clinica")
+                        .WithMany()
+                        .HasForeignKey("ClinicaId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Clinica");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Core.Email.HistoricoEmail", b =>
                 {
                     b.HasOne("CliCloud.Domain.Entities.Core.Clinica", "Clinica")
                         .WithMany()
@@ -10124,6 +11607,39 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Navigation("TipoDocumento");
 
                     b.Navigation("Utente");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Documentos.FicheiroDocumento", b =>
+                {
+                    b.HasOne("CliCloud.Domain.Entities.Documentos.InstanciaDocumento", "InstanciaDocumento")
+                        .WithMany()
+                        .HasForeignKey("InstanciaDocumentoId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("InstanciaDocumento");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Documentos.InstanciaDocumento", b =>
+                {
+                    b.HasOne("CliCloud.Domain.Entities.Documentos.ModeloDocumento", "ModeloDocumento")
+                        .WithMany()
+                        .HasForeignKey("ModeloDocumentoId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("ModeloDocumento");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Documentos.PedidoConsentimento", b =>
+                {
+                    b.HasOne("CliCloud.Domain.Entities.Documentos.InstanciaDocumento", "InstanciaDocumento")
+                        .WithMany()
+                        .HasForeignKey("InstanciaDocumentoId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("InstanciaDocumento");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.Doencas.Doenca", b =>
@@ -10587,6 +12103,39 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Navigation("Campo");
 
                     b.Navigation("Utente");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.ProcessoClinico.SeparadoresPersonalizados.SeparadorPersonalizado", b =>
+                {
+                    b.HasOne("CliCloud.Domain.Entities.ProcessoClinico.SeparadoresPersonalizados.FichaClinicaSecaoTemplate", "Formulario")
+                        .WithMany()
+                        .HasForeignKey("FormularioId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Formulario");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.ProcessoClinico.SeparadoresPersonalizados.SeparadorPersonalizadoVinculo", b =>
+                {
+                    b.HasOne("CliCloud.Domain.Entities.ProcessoClinico.SeparadoresPersonalizados.SeparadorPersonalizado", "SeparadorPersonalizado")
+                        .WithMany()
+                        .HasForeignKey("SeparadorPersonalizadoId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("SeparadorPersonalizado");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.ProcessoClinico.SeparadoresPersonalizados.SeparadorVinculo", b =>
+                {
+                    b.HasOne("CliCloud.Domain.Entities.ProcessoClinico.SeparadoresPersonalizados.Separador", "Separador")
+                        .WithMany()
+                        .HasForeignKey("SeparadorId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Separador");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.ProcessoClinico.SinaisVitais.AvaliacaoAntropometrica", b =>

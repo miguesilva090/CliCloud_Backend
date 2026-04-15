@@ -4,7 +4,7 @@ using CliCloud.Domain.Entities.Common;
 
 namespace CliCloud.Domain.Entities.Common.Configurations;
 
-[Table("ConfigCartaConducao", Schema = "Configurations")]
+[Table("ConfigCartaConducao", Schema = "Core")]
 public class ConfigCartaConducao : AuditableEntity
 {
     [Required]

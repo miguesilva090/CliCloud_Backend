@@ -12,7 +12,7 @@ namespace CliCloud.Application.Services.Utility.RuaService.Specifications
         var nameNorm = (name ?? "").Trim();
         _ = Query.Where(h =>
           h.Nome != null &&
-          string.Equals(h.Nome, nameNorm, StringComparison.OrdinalIgnoreCase) &&
+          h.Nome.ToUpper() == nameNorm.ToUpper() &&
           h.FreguesiaId == freguesiaId &&
           h.CodigoPostalId == codigoPostalId);
       }

@@ -50,6 +50,8 @@ using CliCloud.Domain.Entities.ProcessoClinico.Estomatologia;
 using CliCloud.Domain.Entities.ProcessoClinico.Odontologia;
 using CliCloud.Domain.Entities.Core.Sms;
 using CliCloud.Domain.Entities.Core.Tratamentos;
+using CliCloud.Domain.Entities.Common.Configurations;
+using CliCloud.Domain.Entities.Core.Email;
 using Microsoft.EntityFrameworkCore;
 
 //---------------------------------- CLI COMMANDS --------------------------------------------------
@@ -86,6 +88,7 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     public DbSet<Entidade> Entidades { get; set; }
     public DbSet<EntidadePessoa> EntidadePessoas { get; set; }
     public DbSet<EntidadeContacto> EntidadeContactos { get; set; }
+    public DbSet<Feriado> Feriados { get; set; }
     
     // DbSets - Utentes
     public DbSet<Utente> Utentes { get; set; }
@@ -176,8 +179,9 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     public DbSet<Clinica> Clinicas { get; set; }
     public DbSet<ClinicaApiKey> ClinicasApiKeys { get; set; }
     public DbSet<ChamadaUtente> ChamadasUtentes { get; set; }
-    public DbSet<ConfiguracaoChamadaVoz> ConfiguracoesChamadaVoz { get; set; }
-    public DbSet<ConfiguracaoChamadaVozOpcao> ConfiguracoesChamadaVozOpcoes { get; set; }
+    public DbSet<ConfiguracaoVoz> ConfiguracoesVoz { get; set; }
+    public DbSet<ConfiguracaoTeleconsulta> ConfiguracoesTeleconsulta { get; set; }
+    public DbSet<ConfiguracaoVozOpcao> ConfiguracoesVozOpcoes { get; set; }
     public DbSet<ConfiguracaoTratamentos> ConfiguracoesTratamentos { get; set; }
     public DbSet<ClinicaConfiguracaoIva> ClinicasConfiguracoesIva { get; set; }
     public DbSet<ClinicaMotivoIsencaoDefault> ClinicasMotivosIsencaoDefault { get; set; }
@@ -199,6 +203,8 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     // DbSets - Consultas
     public DbSet<Consulta> Consultas { get; set; }
     public DbSet<ConsultaMarcacao> MarcacoesConsultas { get; set; }
+    public DbSet<TeleconsultaSessao> TeleconsultasSessoes { get; set; }
+    public DbSet<TeleconsultaAcessoLog> TeleconsultasAcessosLogs { get; set; }
     public DbSet<ServicoConsulta> ServicosConsultas { get; set; }
     public DbSet<ConsultaFaturacao> ConsultasFaturacao { get; set; }
     public DbSet<TipoConsultaItem> TiposConsulta { get; set; }
@@ -327,6 +333,18 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     // DbSets - FichaClinicaSecaoConteudo (Conteúdo por utente/campo)
     public DbSet<FichaClinicaSecaoConteudo> FichaClinicaSecaoConteudos { get; set; }
 
+    // DbSets - Separadores (Legado: gestão de separadores)
+    public DbSet<Separador> Separadores { get; set; }
+
+    // DbSets - Separadores Personalizados (Legado: liga formulário ao separador visível)
+    public DbSet<SeparadorPersonalizado> SeparadoresPersonalizados { get; set; }
+
+    // DbSets - Vinculos de visibilidade (médico/especialidade)
+    public DbSet<SeparadorPersonalizadoVinculo> SeparadoresPersonalizadosVinculos { get; set; }
+
+    // DbSets - Vinculos de separadores base (médico/especialidade)
+    public DbSet<SeparadorVinculo> SeparadoresVinculos { get; set; }
+
     // DbSets - AnamneseOdontopediatria
     public DbSet<AnamneseOdontopediatria> AnamneseOdontopediatria { get; set; }
 
@@ -361,6 +379,28 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     public DbSet<HistoricoSms> HistoricosSms { get; set; }
     public DbSet<SmsRecebido> SmsRecebidos { get; set; }
 
+    // DbSets - ConfigCartaConducao
+    public DbSet<ConfigCartaConducao> ConfigCartasConducao { get; set; }
+
+    // DbSets - ConfiguracaoEmail
+    public DbSet<ConfiguracaoEmail> ConfiguracoesEmail { get; set; }
+    public DbSet<ConfiguracaoEmailAutomatica> ConfiguracoesEmailAutomaticas { get; set; }
+    public DbSet<HistoricoEmail> HistoricosEmail { get; set; }
+
+    // DbSets - ConfigWebService
+    public DbSet<ConfigWebService> ConfigWebservices { get; set; }
+
+    // DbSets - ConfigExamesSemPapel
+    public DbSet<ConfigExamesSemPapel> ConfigExamesSemPapel { get; set; }
+
+    // DbSets - Modelos Documentos
+    public DbSet<ModeloDocumento> ModelosDocumentos { get; set; }
+    public DbSet<InstanciaDocumento> InstanciasDocumentos { get; set; }
+    public DbSet<FicheiroDocumento> FicheirosDocumentos { get; set; }
+
+    // DbSets - Pedidos de Consentimento
+    public DbSet<PedidoConsentimento> PedidosConsentimento { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
       base.OnModelCreating(modelBuilder);
@@ -379,6 +419,7 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
       // Apply configurations
       _ = modelBuilder.ApplyConfiguration(new EntidadeConfiguration());
       _ = modelBuilder.ApplyConfiguration(new EntidadePessoaConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new FeriadoConfiguration());
       _ = modelBuilder.ApplyConfiguration(new UtenteConfiguration());
       _ = modelBuilder.ApplyConfiguration(new FuncionarioConfiguration());
       
@@ -458,8 +499,9 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
       _ = modelBuilder.ApplyConfiguration(new ClinicaConfiguration());
       _ = modelBuilder.ApplyConfiguration(new ClinicaApiKeyConfiguration());
       _ = modelBuilder.ApplyConfiguration(new ChamadaUtenteConfiguration());
-      _ = modelBuilder.ApplyConfiguration(new ConfiguracaoChamadaVozConfiguration());
-      _ = modelBuilder.ApplyConfiguration(new ConfiguracaoChamadaVozOpcaoConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new ConfiguracaoVozConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new ConfiguracaoTeleconsultaConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new ConfiguracaoVozOpcaoConfiguration());
       _ = modelBuilder.ApplyConfiguration(new ClinicaConfiguracaoIvaConfiguration());
       _ = modelBuilder.ApplyConfiguration(new ClinicaMotivoIsencaoDefaultConfiguration());
       _ = modelBuilder.ApplyConfiguration(new ClinicaTipoConsultaDefaultConfiguration());
@@ -480,6 +522,8 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
       // Consultas configurations
       _ = modelBuilder.ApplyConfiguration(new ConsultaConfiguration());
       _ = modelBuilder.ApplyConfiguration(new MarcacaoConsultaConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new TeleconsultaSessaoConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new TeleconsultaAcessoLogConfiguration());
       _ = modelBuilder.ApplyConfiguration(new ServicoConsultaConfiguration());
       
       // Tratamentos configurations
@@ -604,6 +648,34 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
       _ = modelBuilder.ApplyConfiguration(new ConfiguracaoSmsAutomaticaMedicoConfiguration());
       _ = modelBuilder.ApplyConfiguration(new HistoricoSmsConfiguration());
       _ = modelBuilder.ApplyConfiguration(new SmsRecebidoConfiguration());
+
+      // ConfigCartaConducao configurations
+      _ = modelBuilder.ApplyConfiguration(new ConfigCartaConducaoConfiguration());
+
+      // ConfiguracaoEmail configurations
+      _ = modelBuilder.ApplyConfiguration(new ConfiguracaoEmailConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new ConfiguracaoEmailAutomaticoConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new HistoricoEmailConfiguration());
+
+      // ConfigWebService configurations
+      _ = modelBuilder.ApplyConfiguration(new ConfigWebServiceConfiguration());
+
+      // ConfigExamesSemPapel configurations
+      _ = modelBuilder.ApplyConfiguration(new ConfigExamesSemPapelConfiguration());
+
+      // Separadores and Formularios Personalizados configurations
+      _ = modelBuilder.ApplyConfiguration(new SeparadorConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new SeparadorVinculoConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new SeparadorPersonalizadoConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new SeparadorPersonalizadoVinculoConfiguration());
+
+      // Modelos Documentos configurations
+      _ = modelBuilder.ApplyConfiguration(new ModeloDocumentoConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new InstanciaDocumentoConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new FicheiroDocumentoConfiguration());
+
+      // Pedidos de Consentimento configurations
+      _ = modelBuilder.ApplyConfiguration(new PedidoConsentimentoConfiguration());
 
       // Odontologia - chaves alternativas e FKs por código
       modelBuilder.Entity<EstadosDentarios>(b =>

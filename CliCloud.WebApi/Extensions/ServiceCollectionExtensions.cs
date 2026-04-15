@@ -4,7 +4,7 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using CliCloud.Application.Common.Logging;
 using CliCloud.Application.Common.Wrapper;
-using CliCloud.Application.Services.Core.ChamadaVozService;
+using CliCloud.Application.Services.Core.VozService;
 using CliCloud.Application.Services.Core.ChamadaUtentesService;
 using CliCloud.Application.Services.Core.SmsService;
 using CliCloud.Application.Utility;
@@ -25,6 +25,15 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using CliCloud.WebApi.HostedServices;
+using CliCloud.Application.Services.Core.ConfigCartaConducaoService;
+using CliCloud.Application.Services.Core.ConfigExamesSemPapelService;
+using CliCloud.Application.Services.Core.ConfigWebServiceService;
+using CliCloud.Application.Services.Atestados.SpmsCartaConducaoService;
+using CliCloud.Application.Services.Core.EmailService;
+using CliCloud.Application.Services.Prescricao.SpmsPrescricaoSoapService;
+using CliCloud.Application.Services.ProcessoClinico.SeparadorVinculoService;
+using CliCloud.Application.Services.Consultas.TeleconsultaService;
+using CliCloud.Application.Services.Core.TeleconsultaService;
 
 namespace CliCloud.WebApi.Extensions
 {
@@ -103,6 +112,18 @@ namespace CliCloud.WebApi.Extensions
       _ = services.AddTransient<IServicoSmsAutomaticoDados, ServicoSmsAutomaticoDados>();
       _ = services.AddTransient<IServicoSmsAutomatico, ServicoSmsAutomatico>();
       _ = services.AddHostedService<SmsAutomaticoHostedService>();
+      _ = services.Configure<CliCloud.WebApi.HostedServices.EmailAutomaticoOptions>(configuration.GetSection("EmailAutomatico"));
+      _ = services.AddTransient<IServicoEmailAutomaticoDados, ServicoEmailAutomaticoDados>();
+      _ = services.AddTransient<IConfiguracaoEmailAutomaticoService, ConfiguracaoEmailAutomaticoService>();
+      _ = services.AddHostedService<CliCloud.WebApi.HostedServices.EmailAutomaticoHostedService>();
+
+      _ = services.AddTransient<IConfigCartaConducaoService, ConfigCartaConducaoService>();
+      _ = services.AddTransient<IConfigExamesSemPapelService, ConfigExamesSemPapelService>();
+      _ = services.AddTransient<IConfigWebServiceService, ConfigWebServiceService>();
+      _ = services.AddTransient<ISpmsPrescricaoSoapService, SpmsPrescricaoSoapService>();
+      _ = services.AddTransient<ISeparadorVinculoService, SeparadorVinculoService>();
+
+      _ = services.AddTransient<IConfiguracaoEmailService, ConfiguracaoEmailService>();
 
       _ = services.AddServices(); // dynamic services registration
 
@@ -120,8 +141,11 @@ namespace CliCloud.WebApi.Extensions
       //---------------------------------------------------------------------------
       _ = services.AddTransient<IServicoSms, ServicoSms>();
       _ = services.AddTransient<IServicoWebhookSms, ServicoWebhookSms>();
-      _ = services.AddTransient<IServicoChamadaVoz, ServicoChamadaVoz>();
+      _ = services.AddTransient<IServicoVoz, ServicoVoz>();
+      _ = services.AddTransient<IConfiguracaoTeleconsultaService, ConfiguracaoTeleconsultaService>();
+      _ = services.AddTransient<IServicoTeleconsulta, ServicoTeleconsulta>();
       _ = services.AddTransient<IChamadaUtentesService, ChamadaUtentesService>();
+      _ = services.AddTransient<ISpmsCartaConducaoService, SpmsCartaConducaoService>();
 
       #endregion
 

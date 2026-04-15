@@ -8,6 +8,8 @@ using CliCloud.Application.Services.Consultas.MarcacaoConsultaService.Specificat
 using CliCloud.Application.Services.Core.ClinicaService.Specifications;
 using CliCloud.Application.Services.Core.SmsService;
 using CliCloud.Application.Services.Core.SmsService.DTOs;
+using CliCloud.Application.Services.Core.EmailService;
+using CliCloud.Application.Services.Core.EmailService.DTOs;
 using CliCloud.Application.Utility;
 using CliCloud.Domain.Entities.Core;
 using CliCloud.Domain.Entities.Consultas;
@@ -23,12 +25,18 @@ namespace CliCloud.Application.Services.Consultas.MarcacaoConsultaService
     private readonly IRepositoryAsync _repository;
     private readonly IMapper _mapper;
     private readonly IServicoSms _servicoSms;
+    private readonly IConfiguracaoEmailService _configuracaoEmailService;
 
-    public MarcacaoConsultaService(IRepositoryAsync repository, IMapper mapper, IServicoSms servicoSms)
+    public MarcacaoConsultaService(
+      IRepositoryAsync repository,
+      IMapper mapper,
+      IServicoSms servicoSms,
+      IConfiguracaoEmailService configuracaoEmailService)
     {
       _repository = repository;
       _mapper = mapper;
       _servicoSms = servicoSms;
+      _configuracaoEmailService = configuracaoEmailService;
     }
 
     public async Task<Response<IEnumerable<MarcacaoConsultaDTO>>> GetMarcacaoConsultaAsync(string keyword = "")
@@ -91,6 +99,8 @@ namespace CliCloud.Application.Services.Consultas.MarcacaoConsultaService
         var created = await _repository.CreateAsync<ConsultaMarcacao, Guid>(entity);
         _ = await _repository.SaveChangesAsync();
         await TentarDispararSmsFluxoAsync(created, "6.1");
+        if (request.SendEmail)
+          await TentarDispararEmailFluxoAsync(created, "8.1");
         return ResponseFactory.Success(created.Id);
       }
       catch (Exception ex)
@@ -110,6 +120,8 @@ namespace CliCloud.Application.Services.Consultas.MarcacaoConsultaService
         var updated = await _repository.UpdateAsync<ConsultaMarcacao, Guid>(existing);
         _ = await _repository.SaveChangesAsync();
         await TentarDispararSmsFluxoAsync(updated, "6.2");
+        if (request.SendEmail)
+          await TentarDispararEmailFluxoAsync(updated, "8.1");
         return ResponseFactory.Success(updated.Id);
       }
       catch (Exception ex)
@@ -209,6 +221,51 @@ namespace CliCloud.Application.Services.Consultas.MarcacaoConsultaService
       catch
       {
         // Não bloquear o fluxo principal por falha de SMS.
+      }
+    }
+
+    private async Task TentarDispararEmailFluxoAsync(ConsultaMarcacao marcacao, string codigoConfiguracao)
+    {
+      try
+      {
+        var clinica = (await _repository.GetListAsync<Clinica, Guid>(new ClinicaPorDefeitoSelected())).FirstOrDefault();
+        if (clinica is null) return;
+
+        var utente = await _repository.GetByIdAsync<Utente, Guid>(marcacao.UtenteId);
+        if (utente is null || string.IsNullOrWhiteSpace(utente.Email)) return;
+
+        string medicoNome = string.Empty;
+        if (marcacao.MedicoId.HasValue)
+        {
+          var medico = await _repository.GetByIdAsync<Medico, Guid>(marcacao.MedicoId.Value);
+          if (medico is not null) medicoNome = medico.Nome ?? string.Empty;
+        }
+
+        string especialidadeNome = string.Empty;
+        if (marcacao.EspecialidadeId.HasValue)
+        {
+          var especialidade = await _repository.GetByIdAsync<Especialidade, Guid>(marcacao.EspecialidadeId.Value);
+          if (especialidade is not null) especialidadeNome = especialidade.Nome ?? string.Empty;
+        }
+
+        var emailRequest = new EnviarEmailPorCodigoRequest
+        {
+          CodigoConfiguracao = codigoConfiguracao,
+          EmailDestino = utente.Email.Trim(),
+          NomeUtente = utente.Nome ?? string.Empty,
+          NomeMedicoOuProfissional = medicoNome,
+          NomeEspecialidade = especialidadeNome,
+          Data = marcacao.Data,
+          Hora = marcacao.HoraMarcacao?.ToString(@"hh\:mm"),
+          HoraNova = marcacao.HoraMarcacao?.ToString(@"hh\:mm"),
+          Modulo = "MarcacaoConsulta",
+        };
+
+        _ = await _configuracaoEmailService.EnviarEmailPorCodigoAsync(clinica.Id, emailRequest);
+      }
+      catch
+      {
+        // Não bloquear o fluxo principal por falha de Email.
       }
     }
   }

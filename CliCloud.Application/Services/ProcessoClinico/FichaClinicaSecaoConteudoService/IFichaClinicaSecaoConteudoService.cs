@@ -7,7 +7,9 @@ namespace CliCloud.Application.Services.ProcessoClinico.FichaClinicaSecaoConteud
 {
     public interface IFichaClinicaSecaoConteudoService : ITransientService
     {
-        Task<Response<IEnumerable<FichaClinicaSecaoConteudoDTO>>> GetFichaClinicaSecaoConteudoAsync(string keyword = "");
+        Task<Response<IEnumerable<FichaClinicaSecaoConteudoDTO>>> GetFichaClinicaSecaoConteudoAsync(
+            string keyword = ""
+        );
 
         Task<PaginatedResponse<FichaClinicaSecaoConteudoDTO>> GetFichaClinicaSecaoConteudoPaginatedAsync(
             FichaClinicaSecaoConteudoTableFilter filter
@@ -15,12 +17,28 @@ namespace CliCloud.Application.Services.ProcessoClinico.FichaClinicaSecaoConteud
 
         Task<Response<FichaClinicaSecaoConteudoDTO>> GetFichaClinicaSecaoConteudoAsync(Guid id);
 
-        Task<Response<Guid>> CreateFichaClinicaSecaoConteudoAsync(CreateFichaClinicaSecaoConteudoRequest request);
+        Task<Response<Guid>> CreateFichaClinicaSecaoConteudoAsync(
+            CreateFichaClinicaSecaoConteudoRequest request
+        );
 
-        Task<Response<Guid>> UpdateFichaClinicaSecaoConteudoAsync(UpdateFichaClinicaSecaoConteudoRequest request, Guid id);
+        Task<Response<Guid>> UpdateFichaClinicaSecaoConteudoAsync(
+            UpdateFichaClinicaSecaoConteudoRequest request,
+            Guid id
+        );
 
         Task<Response<Guid>> DeleteFichaClinicaSecaoConteudoAsync(Guid id);
 
-        Task<Response<IEnumerable<Guid>>> DeleteMultipleFichaClinicaSecaoConteudoAsync(IEnumerable<Guid> ids);
+        Task<Response<IEnumerable<Guid>>> DeleteMultipleFichaClinicaSecaoConteudoAsync(
+            IEnumerable<Guid> ids
+        );
+
+        Task<Response<IEnumerable<FichaClinicaSecaoConteudoDTO>>> GetByUtenteAndSeparadorAsync(
+            Guid utenteId,
+            Guid separadorId
+        );
+
+        Task<Response<IEnumerable<Guid>>> UpsertLoteAsync(
+            UpsertFichaClinicaSecaoConteudoLoteRequest request
+        );
     }
 }

@@ -14,6 +14,7 @@ namespace CliCloud.Application.Services.Atestados.AtestadoService.DTOs
     public string? NumeroSPMS { get; set; }
     public int EstadoEnvio { get; set; }
     public DateTime? DataEnvio { get; set; }
+    public string? MensagemErro { get; set; }
     public string? Observacoes { get; set; }
     public string? NumeroSNS { get; set; }
     public DateTime CreatedOn { get; set; }

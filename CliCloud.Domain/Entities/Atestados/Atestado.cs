@@ -30,6 +30,7 @@ namespace CliCloud.Domain.Entities.Atestados
         public string? NumeroSPMS { get; set; }
         public int EstadoEnvio { get; set; }
         public DateTime? DataEnvio { get; set; }
+        public string? MensagemErro { get; set; }
         public string? Observacoes { get; set; }
         public string? NumeroSNS { get; set; }
 

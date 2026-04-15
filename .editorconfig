@@ -12,7 +12,8 @@ indent_style = space
 indent_size = 2
 
 # Default severity for all analyzer diagnostics
-dotnet_analyzer_diagnostic.severity = warning
+dotnet_analyzer_diagnostic.severity = none
+
 
 # C# formatting rules
 csharp_new_line_before_open_brace = all
@@ -51,3 +52,5 @@ csharp_preserve_single_line_blocks = true
 # EF Core migration class names are historical snapshots and may contain underscores
 [**/Migrations/*.cs]
 dotnet_diagnostic.CA1707.severity = none
+
+

@@ -8,6 +8,10 @@ using CliCloud.Domain.Entities.Atestados;
 using CliCloud.Application.Services.Atestados.AtestadoService.DTOs;
 using CliCloud.Application.Services.Atestados.AtestadoService.Filters;
 using CliCloud.Application.Services.Atestados.AtestadoService.Specifications;
+using CliCloud.Application.Services.Atestados.SpmsCartaConducaoService;
+using CliCloud.Application.Services.Core.ConfigCartaConducaoService.Specifications;
+using CliCloud.Domain.Entities.Common.Configurations;
+
 
 namespace CliCloud.Application.Services.Atestados.AtestadoService
 {
@@ -15,11 +19,17 @@ namespace CliCloud.Application.Services.Atestados.AtestadoService
   {
     private readonly IRepositoryAsync _repository;
     private readonly IMapper _mapper;
+    private readonly ISpmsCartaConducaoService _spmsCartaConducaoService;
 
-    public AtestadoService(IRepositoryAsync repository, IMapper mapper)
+    public AtestadoService(
+      IRepositoryAsync repository,
+      IMapper mapper,
+      ISpmsCartaConducaoService spmsCartaConducaoService
+    )
     {
       _repository = repository;
       _mapper = mapper;
+      _spmsCartaConducaoService = spmsCartaConducaoService;
     }
 
     public async Task<PaginatedResponse<AtestadoTableDTO>> GetAtestadoPaginatedAsync(AtestadoTableFilter filter)
@@ -60,6 +70,24 @@ namespace CliCloud.Application.Services.Atestados.AtestadoService
       catch (Exception ex)
       {
         return ResponseFactory.Fail<AtestadoDTO>(ex.Message);
+      }
+    }
+
+    public async Task<Response<string?>> ObterErroComunicacaoAsync(Guid id, Guid clinicaId)
+    {
+      try
+      {
+        var atestado = await _repository.GetByIdAsync<Atestado, Guid>(id);
+        if (atestado == null)
+          return ResponseFactory.Fail<string?>("Atestado não encontrado.");
+        if (atestado.ClinicaId != clinicaId)
+          return ResponseFactory.Fail<string?>("Atestado não pertence à clínica atual.");
+
+        return ResponseFactory.Success(atestado.MensagemErro);
+      }
+      catch (Exception ex)
+      {
+        return ResponseFactory.Fail<string?>(ex.Message);
       }
     }
 
@@ -112,11 +140,91 @@ namespace CliCloud.Application.Services.Atestados.AtestadoService
         }
 
         _ = await _repository.SaveChangesAsync();
-        return ResponseFactory.Success<Guid>(atestado.Id);
+
+        var atestadoCriado = (await _repository.GetListAsync<Atestado, Guid>(
+          new AtestadoByIdForSpmsSpec(atestado.Id)
+        )).FirstOrDefault();
+
+        if (atestadoCriado == null)
+          return ResponseFactory.Fail<Guid>("Atestado criado mas não foi possível recarregar para comunicação SPMS.");
+
+        var cfgSpec = new ConfigCartaConducaoPorClinicaSpec(atestadoCriado.ClinicaId);
+        var cfg = (await _repository.GetListAsync<ConfigCartaConducao, Guid>(cfgSpec)).FirstOrDefault();
+
+        if (cfg == null)
+        {
+          atestadoCriado.EstadoEnvio = 2;
+          atestadoCriado.MensagemErro = "Configuração de carta de condução não encontrada para a clínica.";
+          _ = await _repository.UpdateAsync<Atestado, Guid>(atestadoCriado);
+          await _repository.SaveChangesAsync();
+          return ResponseFactory.Fail<Guid>("Configuração de carta de condução não encontrada para a clínica.");
+        }
+
+        var resultadoComunicacao = await ComunicarAtestadoAsync(atestadoCriado, cfg, useOfflineEndpoint: false);
+        if (!resultadoComunicacao.Status)
+          return ResponseFactory.Fail<Guid>(resultadoComunicacao.Mensagem ?? "Falha na comunicação SPMS.");
+
+        return ResponseFactory.Success<Guid>(atestadoCriado.Id);
       }
       catch (Exception ex)
       {
         return ResponseFactory.Fail<Guid>(ex.Message);
+      }
+    }
+
+    public async Task<Response<Guid>> ReenviarAtestadoOfflineAsync(Guid id, Guid clinicaId)
+    {
+      try
+      {
+        var atestado = (await _repository.GetListAsync<Atestado, Guid>(new AtestadoByIdForSpmsSpec(id))).FirstOrDefault();
+        if (atestado == null)
+          return ResponseFactory.Fail<Guid>("Atestado não encontrado.");
+        if (atestado.ClinicaId != clinicaId)
+          return ResponseFactory.Fail<Guid>("Atestado não pertence à clínica atual.");
+
+        var cfgSpec = new ConfigCartaConducaoPorClinicaSpec(atestado.ClinicaId);
+        var cfg = (await _repository.GetListAsync<ConfigCartaConducao, Guid>(cfgSpec)).FirstOrDefault();
+        if (cfg == null)
+          return ResponseFactory.Fail<Guid>("Configuração de carta de condução não encontrada para a clínica.");
+
+        var resultadoComunicacao = await ComunicarAtestadoAsync(atestado, cfg, useOfflineEndpoint: true);
+        if (!resultadoComunicacao.Status)
+          return ResponseFactory.Fail<Guid>(resultadoComunicacao.Mensagem ?? "Falha no reenvio offline SPMS.");
+
+        return ResponseFactory.Success(id);
+      }
+      catch (Exception ex)
+      {
+        return ResponseFactory.Fail<Guid>(ex.Message);
+      }
+    }
+
+    public async Task<Response<int>> ReenviarPendentesOfflineAsync(Guid clinicaId)
+    {
+      try
+      {
+        var pendentes = (await _repository.GetListAsync<Atestado, Guid>(new AtestadoPendentesForSpmsSpec(clinicaId))).ToList();
+        if (pendentes.Count == 0)
+          return ResponseFactory.Success(0);
+        var cfgSpec = new ConfigCartaConducaoPorClinicaSpec(clinicaId);
+        var cfg = (await _repository.GetListAsync<ConfigCartaConducao, Guid>(cfgSpec)).FirstOrDefault();
+        if (cfg == null)
+          return ResponseFactory.Fail<int>("Configuração de carta de condução não encontrada para a clínica.");
+
+        var sucesso = 0;
+        foreach (var atestado in pendentes)
+        {
+          var resultadoComunicacao = await ComunicarAtestadoAsync(atestado, cfg, useOfflineEndpoint: true);
+          if (resultadoComunicacao.Status)
+            sucesso++;
+        }
+
+        await _repository.SaveChangesAsync();
+        return ResponseFactory.Success(sucesso);
+      }
+      catch (Exception ex)
+      {
+        return ResponseFactory.Fail<int>(ex.Message);
       }
     }
 
@@ -146,6 +254,54 @@ namespace CliCloud.Application.Services.Atestados.AtestadoService
       {
         return ResponseFactory.Fail<Guid>(ex.Message);
       }
+    }
+
+    private async Task<(bool Status, string? Mensagem)> ComunicarAtestadoAsync(
+      Atestado atestado,
+      ConfigCartaConducao cfg,
+      bool useOfflineEndpoint
+    )
+    {
+      if (atestado.Utente == null || atestado.Medico == null || atestado.Clinica == null)
+        return (false, "Atestado sem dados obrigatórios para comunicação SPMS.");
+
+      var spms = useOfflineEndpoint
+        ? await _spmsCartaConducaoService.RegistarOfflineAsync(
+          atestado,
+          atestado.Utente,
+          atestado.Medico,
+          atestado.Clinica,
+          cfg,
+          atestado.Categorias.ToList(),
+          atestado.Restricoes.ToList(),
+          atestado.RestricoesAnteriores.ToList())
+        : await _spmsCartaConducaoService.RegistarOnlineAsync(
+          atestado,
+          atestado.Utente,
+          atestado.Medico,
+          atestado.Clinica,
+          cfg,
+          atestado.Categorias.ToList(),
+          atestado.Restricoes.ToList(),
+          atestado.RestricoesAnteriores.ToList());
+
+      if (!spms.Success)
+      {
+        atestado.EstadoEnvio = 2;
+        atestado.MensagemErro = spms.Message;
+        _ = await _repository.UpdateAsync<Atestado, Guid>(atestado);
+        await _repository.SaveChangesAsync();
+        return (false, $"Falha na comunicação SPMS: {spms.Message}");
+      }
+
+      atestado.EstadoEnvio = 1;
+      atestado.DataEnvio = DateTime.Now;
+      atestado.NumeroSPMS = spms.NumeroAtestadoMedico;
+      atestado.MensagemErro = null;
+      _ = await _repository.UpdateAsync<Atestado, Guid>(atestado);
+      await _repository.SaveChangesAsync();
+
+      return (true, null);
     }
   }
 }

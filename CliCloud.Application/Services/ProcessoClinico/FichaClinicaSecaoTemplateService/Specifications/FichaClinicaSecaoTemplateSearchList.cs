@@ -6,8 +6,9 @@ namespace CliCloud.Application.Services.ProcessoClinico.FichaClinicaSecaoTemplat
 {
     public class FichaClinicaSecaoTemplateSearchList : Specification<FichaClinicaSecaoTemplate>
     {
-        public FichaClinicaSecaoTemplateSearchList(string? keyword = "")
+        public FichaClinicaSecaoTemplateSearchList(Guid utilizadorId, string? keyword = "")
         {
+            _ = Query.Where(x => x.UtilizadorId == utilizadorId);
 
             // filters
             if (!string.IsNullOrWhiteSpace(keyword))

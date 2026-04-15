@@ -75,6 +75,7 @@ namespace CliCloud.Application.Services.Tratamentos.TratamentoService.DTOs
     public bool? Frespons { get; set; }
     public bool? Arespons { get; set; }
     public int Lotes { get; set; }
+    public bool SendEmail { get; set; }
   }
 
   public class CreateTratamentoValidator : AbstractValidator<CreateTratamentoRequest>

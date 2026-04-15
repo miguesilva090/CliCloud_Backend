@@ -17,6 +17,9 @@ namespace CliCloud.Domain.Entities.ProcessoClinico.SeparadoresPersonalizados
         public string Codigo { get; set; } = string.Empty;
 
         [Required]
+        public Guid UtilizadorId { get; set; }
+
+        [Required]
         [MaxLength(200)]
         public string Nome { get; set; } = string.Empty;
 

@@ -20,6 +20,7 @@ namespace CliCloud.Application.Services.Consultas.MarcacaoConsultaService.DTOs
     public string? MotivoConsultaId { get; set; }
     public string? TipoAdmissaoId { get; set; }
     public string? TipoConsultaId { get; set; }
+    public bool SendEmail { get; set; }
   }
 
   public class UpdateMarcacaoConsultaValidator : AbstractValidator<UpdateMarcacaoConsultaRequest>

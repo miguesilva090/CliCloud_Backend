@@ -1,0 +1,11 @@
+EVIDENCIA_ASSINATURA_CONSENTIMENTO
+PedidoId=5160452d-a7fc-46d1-84b2-9f33b9dbc41e
+InstanciaDocumentoId=f42e5bfa-f87b-421b-88f4-005dcb40277c
+TipoConsentimento=ASSINATURA_DOCUMENTO
+Estado=Assinado
+AssinadoPor=Operador
+AssinadoEm=2026-04-14T15:31:09.8398737Z
+Canal=presencial
+UtenteId=9bdd1141-d287-482f-87ca-0cec2a223147
+AssinaturaBase64SHA256=4391179B4D13BA9974A400AD0A5C86B422C8A2A4ECC1CF041B9A028E5C808ABD
+UserAgent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36

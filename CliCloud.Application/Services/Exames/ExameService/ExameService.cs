@@ -3,8 +3,14 @@ using AutoMapper;
 using CliCloud.Application.Common;
 using CliCloud.Application.Common.Filter;
 using CliCloud.Application.Common.Wrapper;
+using CliCloud.Application.Services.Core.ClinicaService.Specifications;
+using CliCloud.Application.Services.Core.EmailService;
+using CliCloud.Application.Services.Core.EmailService.DTOs;
 using CliCloud.Application.Utility;
+using CliCloud.Domain.Entities.Core;
 using CliCloud.Domain.Entities.Exames;
+using CliCloud.Domain.Entities.Medicos;
+using CliCloud.Domain.Entities.Utentes;
 using CliCloud.Application.Services.Exames.ExameService.DTOs;
 using CliCloud.Application.Services.Exames.ExameService.Filters;
 using CliCloud.Application.Services.Exames.ExameService.Specifications;
@@ -15,11 +21,13 @@ namespace CliCloud.Application.Services.Exames.ExameService
   {
     private readonly IRepositoryAsync _repository;
     private readonly IMapper _mapper;
+    private readonly IConfiguracaoEmailService _configuracaoEmailService;
 
-    public ExameService(IRepositoryAsync repository, IMapper mapper)
+    public ExameService(IRepositoryAsync repository, IMapper mapper, IConfiguracaoEmailService configuracaoEmailService)
     {
       _repository = repository;
       _mapper = mapper;
+      _configuracaoEmailService = configuracaoEmailService;
     }
 
     public async Task<Response<IEnumerable<ExameDTO>>> GetExameAsync(string keyword = "")
@@ -84,6 +92,7 @@ namespace CliCloud.Application.Services.Exames.ExameService
       {
         var created = await _repository.CreateAsync<Exame, Guid>(entity);
         _ = await _repository.SaveChangesAsync();
+        await TentarDispararEmailFluxoAsync(created);
         return ResponseFactory.Success(created.Id);
       }
       catch (Exception ex) { return ResponseFactory.Fail<Guid>(ex.Message); }
@@ -115,6 +124,7 @@ namespace CliCloud.Application.Services.Exames.ExameService
       {
         var updated = await _repository.UpdateAsync<Exame, Guid>(existing);
         _ = await _repository.SaveChangesAsync();
+        await TentarDispararEmailFluxoAsync(updated);
         return ResponseFactory.Success(updated.Id);
       }
       catch (Exception ex) { return ResponseFactory.Fail<Guid>(ex.Message); }
@@ -261,6 +271,39 @@ namespace CliCloud.Application.Services.Exames.ExameService
       catch (Exception ex)
       {
         return ResponseFactory.Fail<Guid>(ex.Message);
+      }
+    }
+
+    private async Task TentarDispararEmailFluxoAsync(Exame exame)
+    {
+      try
+      {
+        var clinica = (await _repository.GetListAsync<Clinica, Guid>(new ClinicaPorDefeitoSelected())).FirstOrDefault();
+        if (clinica is null) return;
+
+        var utente = await _repository.GetByIdAsync<Utente, Guid>(exame.UtenteId);
+        if (utente is null || string.IsNullOrWhiteSpace(utente.Email)) return;
+
+        string medicoNome = string.Empty;
+        var medico = await _repository.GetByIdAsync<Medico, Guid>(exame.MedicoId);
+        if (medico is not null) medicoNome = medico.Nome ?? string.Empty;
+
+        var emailRequest = new EnviarEmailPorCodigoRequest
+        {
+          CodigoConfiguracao = "8.3",
+          EmailDestino = utente.Email.Trim(),
+          NomeUtente = utente.Nome ?? string.Empty,
+          NomeMedicoOuProfissional = medicoNome,
+          NomeEspecialidade = "Exames",
+          Data = exame.DataPrescricao,
+          Modulo = "Exame",
+        };
+
+        _ = await _configuracaoEmailService.EnviarEmailPorCodigoAsync(clinica.Id, emailRequest);
+      }
+      catch
+      {
+        // Não bloquear o fluxo principal por falha de Email.
       }
     }
   }

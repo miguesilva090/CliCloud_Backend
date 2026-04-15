@@ -8,28 +8,34 @@ namespace CliCloud.Infrastructure.Persistence.Extensions
   {
     public static void SeedStaticData(this ModelBuilder builder) // create methods here for model seed data (static data) -- this data will be managed by EF migrations
     {
-      builder.Entity<ConfiguracaoChamadaVozOpcao>().HasData(
+      builder.Entity<ConfiguracaoVozOpcao>().HasData(
         // Language options (paridade com legado)
-        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000001"), Tipo = "Language", Codigo = "pt", Descricao = "Português", Ordem = 1, Ativo = true },
-        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000002"), Tipo = "Language", Codigo = "en", Descricao = "Inglês", Ordem = 2, Ativo = true },
-        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000003"), Tipo = "Language", Codigo = "fr", Descricao = "Francês", Ordem = 3, Ativo = true },
-        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000004"), Tipo = "Language", Codigo = "es", Descricao = "Espanhol", Ordem = 4, Ativo = true },
-        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000005"), Tipo = "Language", Codigo = "zh-CN", Descricao = "Mandarim (China)", Ordem = 5, Ativo = true },
-        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000006"), Tipo = "Language", Codigo = "zh-TW", Descricao = "Mandarim (Taiwan)", Ordem = 6, Ativo = true },
+        new ConfiguracaoVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000001"), Tipo = "Language", Codigo = "pt-PT", Descricao = "Português (PT)", Ordem = 1, Ativo = true },
+        new ConfiguracaoVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000002"), Tipo = "Language", Codigo = "pt-BR", Descricao = "Português (BR)", Ordem = 2, Ativo = true },
+        new ConfiguracaoVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000003"), Tipo = "Language", Codigo = "en-US", Descricao = "Inglês (US)", Ordem = 3, Ativo = true },
+        new ConfiguracaoVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000004"), Tipo = "Language", Codigo = "es-ES", Descricao = "Espanhol (ES)", Ordem = 4, Ativo = true },
+        new ConfiguracaoVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000005"), Tipo = "Language", Codigo = "zh-CN", Descricao = "Mandarim", Ordem = 5, Ativo = true },
+        new ConfiguracaoVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000007"), Tipo = "Language", Codigo = "fr-FR", Descricao = "Francês (FR)", Ordem = 7, Ativo = true },
+        new ConfiguracaoVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000008"), Tipo = "Language", Codigo = "it-IT", Descricao = "Italiano (IT)", Ordem = 8, Ativo = true },
+        new ConfiguracaoVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000009"), Tipo = "Language", Codigo = "de-DE", Descricao = "Alemão (DE)", Ordem = 9, Ativo = true },
 
-        // TLD / variation options (paridade com legado)
-        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000101"), Tipo = "Tld", Codigo = "pt", Descricao = "Português (PT)", Ordem = 1, Ativo = true },
-        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000102"), Tipo = "Tld", Codigo = "com.br", Descricao = "Português (BR)", Ordem = 2, Ativo = true },
-        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000103"), Tipo = "Tld", Codigo = "com.au", Descricao = "Inglês (AU)", Ordem = 3, Ativo = true },
-        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000104"), Tipo = "Tld", Codigo = "co.uk", Descricao = "Inglês (UK)", Ordem = 4, Ativo = true },
-        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000105"), Tipo = "Tld", Codigo = "com", Descricao = "Inglês (US)", Ordem = 5, Ativo = true },
-        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000106"), Tipo = "Tld", Codigo = "ca", Descricao = "Inglês/Francês (CA)", Ordem = 6, Ativo = true },
-        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000107"), Tipo = "Tld", Codigo = "co.in", Descricao = "Inglês (IN)", Ordem = 7, Ativo = true },
-        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000108"), Tipo = "Tld", Codigo = "ie", Descricao = "Inglês (IE)", Ordem = 8, Ativo = true },
-        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000109"), Tipo = "Tld", Codigo = "co.za", Descricao = "Inglês (ZA)", Ordem = 9, Ativo = true },
-        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000110"), Tipo = "Tld", Codigo = "fr", Descricao = "Francês (FR)", Ordem = 10, Ativo = true },
-        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000111"), Tipo = "Tld", Codigo = "es", Descricao = "Espanhol (ES)", Ordem = 11, Ativo = true },
-        new ConfiguracaoChamadaVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000112"), Tipo = "Tld", Codigo = "com.mx", Descricao = "Espanhol (MX)", Ordem = 12, Ativo = true }
+        // Voice options (seleção de voz TTS)
+        new ConfiguracaoVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000101"), Tipo = "Voice", Codigo = "pt-PT-Female", Descricao = "Português (PT) - Feminina", Ordem = 1, Ativo = true },
+        new ConfiguracaoVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000102"), Tipo = "Voice", Codigo = "pt-PT-Male", Descricao = "Português (PT) - Masculina", Ordem = 2, Ativo = true },
+        new ConfiguracaoVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000103"), Tipo = "Voice", Codigo = "pt-BR-Female", Descricao = "Português (BR) - Feminina", Ordem = 3, Ativo = true },
+        new ConfiguracaoVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000104"), Tipo = "Voice", Codigo = "pt-BR-Male", Descricao = "Português (BR) - Masculina", Ordem = 4, Ativo = true },
+        new ConfiguracaoVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000105"), Tipo = "Voice", Codigo = "en-US-Female", Descricao = "Inglês (US) - Feminina", Ordem = 5, Ativo = true },
+        new ConfiguracaoVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000106"), Tipo = "Voice", Codigo = "en-US-Male", Descricao = "Inglês (US) - Masculina", Ordem = 6, Ativo = true },
+        new ConfiguracaoVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000107"), Tipo = "Voice", Codigo = "es-ES-Female", Descricao = "Espanhol (ES) - Feminina", Ordem = 7, Ativo = true },
+        new ConfiguracaoVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000108"), Tipo = "Voice", Codigo = "es-ES-Male", Descricao = "Espanhol (ES) - Masculina", Ordem = 8, Ativo = true },
+        new ConfiguracaoVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000109"), Tipo = "Voice", Codigo = "fr-FR-Female", Descricao = "Francês (FR) - Feminina", Ordem = 9, Ativo = true },
+        new ConfiguracaoVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000110"), Tipo = "Voice", Codigo = "fr-FR-Male", Descricao = "Francês (FR) - Masculina", Ordem = 10, Ativo = true },
+        new ConfiguracaoVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000111"), Tipo = "Voice", Codigo = "zh-CN-Female", Descricao = "Mandarim (CN) - Feminina", Ordem = 11, Ativo = true },
+        new ConfiguracaoVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000112"), Tipo = "Voice", Codigo = "zh-CN-Male", Descricao = "Mandarim (CN) - Masculina", Ordem = 12, Ativo = true },
+        new ConfiguracaoVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000113"), Tipo = "Voice", Codigo = "it-IT-Female", Descricao = "Italiano (IT) - Feminina", Ordem = 13, Ativo = true },
+        new ConfiguracaoVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000114"), Tipo = "Voice", Codigo = "it-IT-Male", Descricao = "Italiano (IT) - Masculina", Ordem = 14, Ativo = true },
+        new ConfiguracaoVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000115"), Tipo = "Voice", Codigo = "de-DE-Female", Descricao = "Alemão (DE) - Feminina", Ordem = 15, Ativo = true },
+        new ConfiguracaoVozOpcao { Id = new Guid("f1a10000-0000-0000-0000-000000000116"), Tipo = "Voice", Codigo = "de-DE-Male", Descricao = "Alemão (DE) - Masculina", Ordem = 16, Ativo = true }
       );
 
 

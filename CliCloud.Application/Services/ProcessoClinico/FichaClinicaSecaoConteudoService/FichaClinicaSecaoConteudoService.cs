@@ -14,10 +14,32 @@ namespace CliCloud.Application.Services.ProcessoClinico.FichaClinicaSecaoConteud
         private readonly IRepositoryAsync _repository;
         private readonly IMapper _mapper;
 
-        public FichaClinicaSecaoConteudoService(IRepositoryAsync repository, IMapper mapper)
+        private readonly ICurrentTenantUserService _currentTenantUserService;
+
+        public FichaClinicaSecaoConteudoService(IRepositoryAsync repository, IMapper mapper, ICurrentTenantUserService currentTenantUserService)
         {
             _repository = repository;
             _mapper = mapper; 
+            _currentTenantUserService = currentTenantUserService;
+        }
+
+        private Guid GetCurrentUserId()
+        {
+            _currentTenantUserService.SetUser();
+            if (Guid.TryParse(_currentTenantUserService.UserId, out Guid userId))
+            {
+                return userId;
+            }
+
+            throw new InvalidOperationException("Utilizador atual inválido.");
+        }
+
+        private async Task<bool> UserOwnsTemplateAsync(Guid separadorId, Guid userId)
+        {
+            FichaClinicaSecaoTemplate? template = 
+                await _repository.GetByIdAsync<FichaClinicaSecaoTemplate, Guid>(separadorId);
+
+            return template != null && template.UtilizadorId == userId;
         }
 
         // get full List
@@ -176,6 +198,106 @@ namespace CliCloud.Application.Services.ProcessoClinico.FichaClinicaSecaoConteud
                 }
             }
             catch (Exception ex)
+            {
+                return ResponseFactory.Fail<IEnumerable<Guid>>(ex.Message);
+            }
+        }
+
+        public async Task<Response<IEnumerable<FichaClinicaSecaoConteudoDTO>>> GetByUtenteAndSeparadorAsync(Guid utenteId, Guid separadorId)
+        {
+            try
+            {
+                Guid userId = GetCurrentUserId();
+
+                bool OwnsTemplate = await UserOwnsTemplateAsync(separadorId, userId);
+                if(!OwnsTemplate)
+                {
+                    return ResponseFactory.Fail<IEnumerable<FichaClinicaSecaoConteudoDTO>>("Separador não encontrado");
+                }
+
+                FichaClinicaSecaoConteudoByUtenteAndSeparadorSpec spec = 
+                    new(utenteId, separadorId);
+
+                IEnumerable<FichaClinicaSecaoConteudoDTO> list = 
+                    await _repository.GetListAsync<FichaClinicaSecaoConteudo, FichaClinicaSecaoConteudoDTO, Guid>(spec);
+
+                return ResponseFactory.Success<IEnumerable<FichaClinicaSecaoConteudoDTO>>(list);
+            }
+            catch (Exception ex)
+            {
+                return ResponseFactory.Fail<IEnumerable<FichaClinicaSecaoConteudoDTO>>(ex.Message);
+
+            }
+        }
+
+        public async Task<Response<IEnumerable<Guid>>> UpsertLoteAsync(
+            UpsertFichaClinicaSecaoConteudoLoteRequest request
+        )
+        {
+            try
+            {
+                Guid userId = GetCurrentUserId();
+
+                bool ownsTemplate = await UserOwnsTemplateAsync(request.SeparadorId, userId);
+                if(!ownsTemplate)
+                {
+                    return ResponseFactory.Fail<IEnumerable<Guid>>("Separador não encontrado");
+                }
+
+                IEnumerable<FichaClinicaSecaoCampo> camposDoSeparador = 
+                    await _repository.GetListAsync<FichaClinicaSecaoCampo, Guid>();
+
+                HashSet<Guid> campoIdsPermitidos = camposDoSeparador
+                    .Where(c => c.SeparadorId == request.SeparadorId)
+                    .Select(c => c.Id)
+                    .ToHashSet();
+
+                List<Guid> idsAfetados = new();
+
+                foreach ( UpsertFichaClinicaSecaoConteudoLoteItemRequest item in request.Itens)
+                {
+                    if(!campoIdsPermitidos.Contains(item.CampoId))
+                    {
+                        return ResponseFactory.Fail<IEnumerable<Guid>>(
+                            $"Campo {item.CampoId} não pertence ao separador informado."
+                        );
+                    }
+
+                    FichaClinicaSecaoConteudoMatchName matchSpec = 
+                        new(request.UtenteId, item.CampoId);
+
+                    FichaClinicaSecaoConteudo? existente = 
+                        (await _repository.GetListAsync<FichaClinicaSecaoConteudo, Guid>(matchSpec)).FirstOrDefault();
+
+                    if(existente == null)
+                    {
+                        FichaClinicaSecaoConteudo novo = new()
+                        {
+                            UtenteId = request.UtenteId,
+                            CampoId = item.CampoId,
+                            Texto = item.Texto ?? string.Empty
+                        };
+
+                        FichaClinicaSecaoConteudo created = 
+                            await _repository.CreateAsync<FichaClinicaSecaoConteudo, Guid>(novo);
+
+                        idsAfetados.Add(created.Id);
+                    }
+                    else 
+                    {
+                        existente.Texto = item.Texto ?? string.Empty;
+
+                        FichaClinicaSecaoConteudo updated = 
+                            await _repository.UpdateAsync<FichaClinicaSecaoConteudo, Guid>(existente);
+
+                        idsAfetados.Add(updated.Id);
+                    }
+                }
+
+                _ = await _repository.SaveChangesAsync();
+                return ResponseFactory.Success<IEnumerable<Guid>>(idsAfetados);
+            }
+            catch ( Exception ex)
             {
                 return ResponseFactory.Fail<IEnumerable<Guid>>(ex.Message);
             }

@@ -5,17 +5,25 @@ namespace CliCloud.Application.Services.ProcessoClinico.FichaClinicaSecaoTemplat
 {
     public class FichaClinicaSecaoTemplateMatchCodigo : Specification<FichaClinicaSecaoTemplate>
     {
-        public FichaClinicaSecaoTemplateMatchCodigo(string codigo, Guid? excludeId = null)
+        public FichaClinicaSecaoTemplateMatchCodigo(
+            Guid utilizadorId,
+            string codigo,
+            Guid? excludeId = null
+        )
         {
             if (!string.IsNullOrWhiteSpace(codigo))
             {
                 if (excludeId.HasValue)
                 {
-                    _ = Query.Where(t => t.Codigo == codigo && t.Id != excludeId.Value);
+                    _ = Query.Where(t =>
+                        t.UtilizadorId == utilizadorId
+                        && t.Codigo == codigo
+                        && t.Id != excludeId.Value
+                    );
                 }
                 else
                 {
-                    _ = Query.Where(t => t.Codigo == codigo);
+                    _ = Query.Where(t => t.UtilizadorId == utilizadorId && t.Codigo == codigo);
                 }
             }
 

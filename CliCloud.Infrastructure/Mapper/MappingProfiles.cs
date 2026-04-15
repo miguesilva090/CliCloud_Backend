@@ -84,6 +84,7 @@ using FreguesiaDtos = CliCloud.Application.Services.Utility.FreguesiaService.DTO
 using CodigoPostalDtos = CliCloud.Application.Services.Utility.CodigoPostalService.DTOs;
 using DistritoDtos = CliCloud.Application.Services.Utility.DistritoService.DTOs;
 using PaisDtos = CliCloud.Application.Services.Utility.PaisService.DTOs;
+using FeriadoDtos = CliCloud.Application.Services.Utility.FeriadoService.DTOs;
 using ConcelhoDtos = CliCloud.Application.Services.Utility.ConcelhoService.DTOs;
 using EntidadeContactoDtos = CliCloud.Application.Services.Utility.EntidadeContactoService.DTOs;
 using EntidadeDtos = CliCloud.Application.Services.Utility.EntidadeService.DTOs;
@@ -146,9 +147,17 @@ using DocumentosFichaClinica = CliCloud.Domain.Entities.ProcessoClinico.Document
 using FichaClinicaSecaoConteudo = CliCloud.Domain.Entities.ProcessoClinico.SeparadoresPersonalizados.FichaClinicaSecaoConteudo;
 using FichaClinicaSecaoTemplate = CliCloud.Domain.Entities.ProcessoClinico.SeparadoresPersonalizados.FichaClinicaSecaoTemplate;
 using FichaClinicaSecaoCampo = CliCloud.Domain.Entities.ProcessoClinico.SeparadoresPersonalizados.FichaClinicaSecaoCampo;
+using Separador = CliCloud.Domain.Entities.ProcessoClinico.SeparadoresPersonalizados.Separador;
+using SeparadorVinculo = CliCloud.Domain.Entities.ProcessoClinico.SeparadoresPersonalizados.SeparadorVinculo;
+using SeparadorPersonalizado = CliCloud.Domain.Entities.ProcessoClinico.SeparadoresPersonalizados.SeparadorPersonalizado;
+using SeparadorPersonalizadoVinculo = CliCloud.Domain.Entities.ProcessoClinico.SeparadoresPersonalizados.SeparadorPersonalizadoVinculo;
 using FichaClinicaSecaoConteudoDtos = CliCloud.Application.Services.ProcessoClinico.FichaClinicaSecaoConteudoService.DTOs;
 using FichaClinicaSecaoTemplateDtos = CliCloud.Application.Services.ProcessoClinico.FichaClinicaSecaoTemplateService.DTOs;
 using FichaClinicaSecaoCampoDtos = CliCloud.Application.Services.ProcessoClinico.FichaClinicaSecaoCampoService.DTOs;
+using SeparadorDtos = CliCloud.Application.Services.ProcessoClinico.SeparadorService.DTOs;
+using SeparadorVinculoDtos = CliCloud.Application.Services.ProcessoClinico.SeparadorVinculoService.DTOs;
+using SeparadorPersonalizadoDtos = CliCloud.Application.Services.ProcessoClinico.SeparadorPersonalizadoService.DTOs;
+using SeparadorPersonalizadoVinculoDtos = CliCloud.Application.Services.ProcessoClinico.SeparadorPersonalizadoVinculoService.DTOs;
 using AnamneseOdontopediatriaDtos = CliCloud.Application.Services.ProcessoClinico.Estomatologia.AnamneseOdontopediatriaService.DTOs;
 using AnamneseOrtodonticaAnaliseGeralDtos = CliCloud.Application.Services.ProcessoClinico.Estomatologia.AnamneseOrtodonticaAnaliseGeralService.DTOs;
 using AnamneseOrtodonticaAnaliseDentariaDtos = CliCloud.Application.Services.ProcessoClinico.Estomatologia.AnamneseOrtodonticaAnaliseDentariaService.DTOs;
@@ -214,6 +223,11 @@ namespace CliCloud.Infrastructure.Mapper
       _ = CreateMap<PaisDtos.CreatePaisRequest, Pais>();
       _ = CreateMap<PaisDtos.UpdatePaisRequest, Pais>();
       _ = CreateMap<Pais, EntidadeDtos.EntidadeTablePaisDTO>();
+
+      // ---- Feriado ----
+      _ = CreateMap<Feriado, FeriadoDtos.FeriadoDTO>();
+      _ = CreateMap<FeriadoDtos.CreateFeriadoRequest, Feriado>();
+      _ = CreateMap<FeriadoDtos.UpdateFeriadoRequest, Feriado>();
 
       // ---- Concelho ----
       _ = CreateMap<Concelho, ConcelhoDtos.ConcelhoDTO>();
@@ -368,6 +382,32 @@ namespace CliCloud.Infrastructure.Mapper
         .ForMember(d => d.Campo, o => o.Ignore())
         .ForMember(d => d.UtenteId, o => o.Ignore())
         .ForMember(d => d.Utente, o => o.Ignore());
+
+      // ---- Separador ----
+      _ = CreateMap<Separador, SeparadorDtos.SeparadorDTO>();
+      _ = CreateMap<SeparadorDtos.CreateSeparadorRequest, Separador>()
+        .ForMember(d => d.Id, o => o.Ignore())
+        .ForMember(d => d.Codigo, o => o.Ignore());
+      _ = CreateMap<SeparadorDtos.UpdateSeparadorRequest, Separador>()
+        .ForMember(d => d.Id, o => o.Ignore())
+        .ForMember(d => d.Codigo, o => o.Ignore());
+
+      // ---- SeparadorVinculo ----
+      _ = CreateMap<SeparadorVinculo, SeparadorVinculoDtos.SeparadorVinculoDTO>();
+
+      // ---- SeparadorPersonalizado ----
+      _ = CreateMap<SeparadorPersonalizado, SeparadorPersonalizadoDtos.SeparadorPersonalizadoDTO>();
+      _ = CreateMap<SeparadorPersonalizadoDtos.CreateSeparadorPersonalizadoRequest, SeparadorPersonalizado>()
+        .ForMember(d => d.Id, o => o.Ignore())
+        .ForMember(d => d.ClinicaId, o => o.Ignore())
+        .ForMember(d => d.Formulario, o => o.Ignore());
+      _ = CreateMap<SeparadorPersonalizadoDtos.UpdateSeparadorPersonalizadoRequest, SeparadorPersonalizado>()
+        .ForMember(d => d.Id, o => o.Ignore())
+        .ForMember(d => d.ClinicaId, o => o.Ignore())
+        .ForMember(d => d.Formulario, o => o.Ignore());
+
+      // ---- SeparadorPersonalizadoVinculo ----
+      _ = CreateMap<SeparadorPersonalizadoVinculo, SeparadorPersonalizadoVinculoDtos.SeparadorPersonalizadoVinculoDTO>();
 
 
       // ---- RelatorioExames ----
