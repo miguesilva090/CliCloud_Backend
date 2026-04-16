@@ -239,5 +239,17 @@ namespace CliCloud.WebApi.Controllers.Core
               await _ClinicaService.GetClinicasSelectedAutocompleteAsync(q, clinicaId);
             return Ok(result);
         }
+
+        [Authorize(Roles = "client")]
+        [HttpGet("current/configuracao-ano-ativa")]
+        public async Task<IActionResult> GetConfiguracaoAnoAtivaCurrentAsync()
+        {
+            await _currentClinica.SetClinicaAsync();
+            if(string.IsNullOrWhiteSpace(_currentClinica.ClinicaId) || !Guid.TryParse(_currentClinica.ClinicaId, out Guid clinicaId))
+            return BadRequest("Clínica atual inválida");
+
+            var result = await _ClinicaService.GetConfiguracaoAnoAtivaAsync(clinicaId);
+            return Ok(result);
+        }
     }
 }
