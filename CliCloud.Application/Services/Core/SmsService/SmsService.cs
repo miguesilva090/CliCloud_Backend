@@ -537,11 +537,8 @@ namespace CliCloud.Application.Services.Core.SmsService
                 if(string.IsNullOrWhiteSpace(template))
                     return ResponseFactory.Fail<Guid>($"Template de SMS vazio para o codigo {request.CodigoConfiguracao}");
 
-                var placeholders = ConstruirPlaceholdersEnvioPorCodigo(request);
-                var textoMensagem = template;
-
-                foreach(var kv in placeholders)
-                    textoMensagem = textoMensagem.Replace($"@{kv.Key}", kv.Value ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+                var placeholders = ConstruirPlaceholdersEnvioPorCodigo(request.CodigoConfiguracao, request);
+                var textoMensagem = SmsTemplateRenderer.Render(template, placeholders);
 
                 if(string.IsNullOrWhiteSpace(textoMensagem))
                     return ResponseFactory.Fail<Guid>("Mensagem final vazia após substituir placeholders.");
@@ -565,23 +562,81 @@ namespace CliCloud.Application.Services.Core.SmsService
             }
         }
 
-        private static Dictionary<string, string> ConstruirPlaceholdersEnvioPorCodigo(EnviarSmsPorCodigoRequest request)
+        private static Dictionary<string, string> ConstruirPlaceholdersEnvioPorCodigo(string codigoConfiguracao,EnviarSmsPorCodigoRequest request)
         {
-            var data = request.Data?.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) ?? string.Empty;
-            var hora = request.Hora ?? string.Empty;
+            static string FDate(DateTime? d) => d?.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) ?? string.Empty;
+            static string NZ(string? s) => s?.Trim() ?? string.Empty;
 
-            return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+
+            var data = FDate(request.Data);
+            var hora = NZ(request.Hora);
+
+            var dataAntiga = FDate(request.DataAntiga);
+            var horaAntiga = NZ(request.HoraAntiga);
+
+            var dataNova = FDate(request.DataNova);
+            var horaNova = NZ(request.HoraNova);
+
+            var medico = NZ(request.NomeMedico);
+            if(string.IsNullOrWhiteSpace(medico)) medico = NZ(request.NomeMedicoOuProfissional);
+
+            var fisioterapeuta = NZ(request.NomeFisioterapeuta);
+            if(string.IsNullOrWhiteSpace(fisioterapeuta)) fisioterapeuta = NZ(request.NomeMedicoOuProfissional);
+
+            var profissional = NZ(request.NomeProfissional);
+            if(string.IsNullOrWhiteSpace(profissional)) profissional = NZ(request.NomeMedicoOuProfissional);
+
+            var modalidade = NZ(request.NomeModalidade);
+            if(string.IsNullOrWhiteSpace(modalidade)) modalidade = NZ(request.NomeEspecialidade);
+
+            var especialidade = NZ(request.NomeEspecialidade);
+            var nSessao = NZ(request.NumeroSessao);
+            var utente = NZ(request.NomeUtente);
+
+            var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                ["Utente"] = request.NomeUtente ?? string.Empty,
+                ["Utente"] = utente,
+
                 ["Data"] = data,
                 ["Hora"] = hora,
-                ["Medico"] = request.NomeMedicoOuProfissional ?? string.Empty,
-                ["Especialidade"] = request.NomeEspecialidade ?? string.Empty,
-                ["Nsessao"] = request.NumeroSessao ?? string.Empty,
-                ["NSessao"] = request.NumeroSessao ?? string.Empty,
-                ["Profissional"] = request.NomeMedicoOuProfissional ?? string.Empty,
-                ["Modalidade"] = request.NomeEspecialidade ?? string.Empty,
+
+                ["DataAntiga"] = dataAntiga,
+                ["HoraAntiga"] = horaAntiga,
+
+                ["DataNova"] = dataNova,
+                ["HoraNova"] = horaNova,
+
+                ["Medico"] = medico,
+                ["Fisioterapeuta"] = fisioterapeuta, 
+                ["Profissional"] = profissional,
+
+                ["Especialidade"] = especialidade,
+                ["Modalidade"] = modalidade,
+
+                ["Nsessao"] = nSessao,
+                ["NSessao"] = nSessao,
+
             };
+
+            switch((codigoConfiguracao ?? string.Empty).Trim())
+            {
+                case "3": 
+                    map["Data"] = string.Empty;
+                    map["Hora"] = string.Empty;
+                    break;
+
+                case "4":
+                    if(string.IsNullOrWhiteSpace(map["DataAntiga"])) map["DataAntiga"] = map["Data"];
+                    if(string.IsNullOrWhiteSpace(map["HoraAntiga"])) map["HoraAntiga"] = map["Hora"];
+                    if(string.IsNullOrWhiteSpace(map["DataNova"])) map["DataNova"] = map["Data"];
+                    if(string.IsNullOrWhiteSpace(map["HoraNova"])) map["HoraNova"] = map["Hora"];
+                    break;
+
+                default: 
+                    break;
+            }
+
+            return map;
         }
     }
  

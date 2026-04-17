@@ -1,11 +1,13 @@
 using System.Net;
 using System.Net.Mail;
+using System.Text.RegularExpressions;
 using CliCloud.Application.Common;
 using CliCloud.Application.Services.Core.EmailService.DTOs;
 using CliCloud.Application.Services.Core.EmailService.Specifications;
 using CliCloud.Domain.Entities.Core;
 using CliCloud.Domain.Entities.Core.Email;
 using Microsoft.Extensions.Logging;
+using CliCloud.Application.Services.Core.EmailService.Helpers;
 
 namespace CliCloud.Application.Services.Core.EmailService;
 
@@ -76,7 +78,7 @@ public class ConfiguracaoEmailAutomaticoService(
     private async Task EnviarEventoAsync(ConfiguracaoEmail cfg, string? descricaoRegra, EmailAutomaticoEventoDTO evento)
     {
         var destino = (evento.EmailDestino ?? string.Empty).Trim();
-        var corpo = RenderTemplate(evento.MensagemTemplate, evento.Placeholders);
+        var corpo = EmailTemplateRenderer.Render(evento.MensagemTemplate, evento.Placeholders);
         var assunto = string.IsNullOrWhiteSpace(descricaoRegra) ? (string.IsNullOrWhiteSpace(evento.Assunto) ? "Notificação" : evento.Assunto) : descricaoRegra;
 
         var historico = new HistoricoEmail
@@ -151,11 +153,4 @@ public class ConfiguracaoEmailAutomaticoService(
         await _repository.SaveChangesAsync();
     }
 
-    private static string RenderTemplate(string template, Dictionary<string, string> values)
-    {
-        var result = template ?? string.Empty;
-        foreach (var kv in values)
-            result = result.Replace($"@{kv.Key}", kv.Value ?? string.Empty, StringComparison.OrdinalIgnoreCase);
-        return result;
-    }
 }

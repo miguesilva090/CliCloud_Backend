@@ -102,6 +102,7 @@ namespace CliCloud.Application.Services.Core.ClinicaService.DTOs
     public int? Cid { get; set; }
 
     public int? PortaLeitorCartoes { get; set; }
+    public string? AreaPrestacaoAssinarESPDefeito { get; set; }
     public bool? StocksColunaStockReal { get; set; }
     public int? CalendarioMarcacoesRadio { get; set; }
     public bool? NovoEstadoPaginaAtendimento { get; set; }

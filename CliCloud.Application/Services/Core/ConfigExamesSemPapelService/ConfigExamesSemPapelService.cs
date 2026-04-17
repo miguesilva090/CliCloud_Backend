@@ -46,6 +46,21 @@ public class ConfigExamesSemPapelService(IRepositoryAsync repository) : IConfigE
     {
         if(string.IsNullOrWhiteSpace(request.PesquisaPrestacao))
             return ResponseFactory.Fail<Guid>("Endpoint Pesquisa Prestação é obrigatorio");
+
+        if(string.IsNullOrWhiteSpace(request.Agendamento))
+            return ResponseFactory.Fail<Guid>("Endpoint Agendamento é obrigatório");
+
+        if(string.IsNullOrWhiteSpace(request.Efetivacao))
+            return ResponseFactory.Fail<Guid>("Endpoint Efetivação é obrigatório");
+
+        if(string.IsNullOrWhiteSpace(request.Anulacao))
+            return ResponseFactory.Fail<Guid>("Endpoint Anulação é obrigatório");
+
+        if(request.CodigoEntidade.HasValue && request.CodigoEntidade <= 0)
+            return ResponseFactory.Fail<Guid>("Codigo Entidade inválido");
+
+        if(!string.IsNullOrWhiteSpace(request.AreaPrestacao) && request.AreaPrestacao.Trim().Length > 20)
+            return ResponseFactory.Fail<Guid>("Area Prestação inválida");
         
         var spec = new ConfigExamesSemPapelPorClinicaSpec(clinicaId);
         var entity = (await _repository.GetListAsync<ConfigExamesSemPapel, Guid>(spec)).FirstOrDefault()

@@ -17,34 +17,17 @@ namespace CliCloud.Application.Services.Core.ClinicaService
     Task<Response<Guid>> DeleteClinicaAsync(Guid id);
     Task<Response<IEnumerable<Guid>>> DeleteMultipleClinicaAsync(IEnumerable<Guid> ids);
 
-    /// <summary>
-    /// Define a clínica como "por defeito" (legacy: EMPRESAS.pordefeito).
-    /// </summary>
     Task<Response<Guid>> SetDefaultClinicaAsync(Guid id, bool porDefeito);
 
-    /// <summary>
-    /// Legacy: WSComum.asmx/ObterAvisosClinica
-    /// </summary>
     Task<Response<AvisosClinicaLegacyDTO>> GetAvisosClinicaAsync(Guid id);
 
-    /// <summary>
-    /// Legacy: WSComum.asmx/ObterFolgasClinica
-    /// </summary>
     Task<Response<int[]>> GetFolgasClinicaAsync(Guid id);
-
-    /// <summary>
-    /// Legacy: WSComum.asmx/obterPortaCartao
-    /// </summary>
     Task<Response<int?>> GetPortaCartaoClinicaAsync(Guid id);
 
-    /// <summary>
-    /// Legacy: WSComum.asmx/ClinicasAutocomplete
-    /// </summary>
     Task<Response<IEnumerable<AutoCompleteItemDTO>>> GetClinicasAutocompleteAsync(string? q);
 
-    /// <summary>
-    /// Legacy: WSComum.asmx/ClinicasSelectedAutocomplete
-    /// </summary>
     Task<Response<IEnumerable<AutoCompleteItemDTO>>> GetClinicasSelectedAutocompleteAsync(string? q, Guid currentClinicaId);
+
+    Task<Response<int>> GetConfiguracaoAnoAtivaAsync(Guid clinicaId);
   }
 }

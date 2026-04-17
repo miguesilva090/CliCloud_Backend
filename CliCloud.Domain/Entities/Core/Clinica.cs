@@ -140,6 +140,8 @@ namespace CliCloud.Domain.Entities.Core
     public int? Cid { get; set; }
 
     public int? PortaLeitorCartoes { get; set; }
+
+    public string? AreaPrestacaoAssinarESPDefeito { get; set; }
     public bool? StocksColunaStockReal { get; set; }
 
     public int? CalendarioMarcacoesRadio { get; set; }

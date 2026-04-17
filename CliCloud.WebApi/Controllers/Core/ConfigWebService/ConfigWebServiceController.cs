@@ -35,6 +35,14 @@ public class ConfigWebServiceController(
         return Ok(await _service.ObterConfiguracaoAtualAsync(clinicaId.Value));
     }
 
+    [HttpGet("versao-prescricao")]
+    public async Task<IActionResult> ObterVersaoPrescricaoAsync()
+    {
+        var clinicaId = await ObterClinicaIdAsync();
+        if (clinicaId is null) return BadRequest("Clínica atual inválida");
+        return Ok(await _service.ObterVersaoPrescricaoAsync(clinicaId.Value));
+    }
+
     [HttpPut("configuracao")]
     public async Task<IActionResult> GuardarConfiguracaoAsync([FromBody] AtualizarConfigWebServiceRequest request)
     {

@@ -51,7 +51,9 @@ using CliCloud.Domain.Entities.ProcessoClinico.Odontologia;
 using CliCloud.Domain.Entities.Core.Sms;
 using CliCloud.Domain.Entities.Core.Tratamentos;
 using CliCloud.Domain.Entities.Common.Configurations;
+using CliCloud.Domain.Entities.Core.ConfigReferenciaMB;
 using CliCloud.Domain.Entities.Core.Email;
+using CliCloud.Domain.Entities.Faturacao;
 using Microsoft.EntityFrameworkCore;
 
 //---------------------------------- CLI COMMANDS --------------------------------------------------
@@ -187,6 +189,7 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     public DbSet<ClinicaMotivoIsencaoDefault> ClinicasMotivosIsencaoDefault { get; set; }
     public DbSet<ClinicaTipoConsultaDefault> ClinicasTiposConsultaDefault { get; set; }
     public DbSet<ClinicaArmazemDefault> ClinicasArmazensDefault { get; set; }
+    public DbSet<ConfigReferenciaMB> ConfiguracoesReferenciasMB { get; set; }
 
     // DbSets - Seguradoras
     public DbSet<Seguradora> Seguradoras { get; set; }
@@ -195,6 +198,7 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     public DbSet<Documento> Documentos { get; set; }
     public DbSet<Recibo> Recibos { get; set; }
     public DbSet<TipoDocumento> TiposDocumento { get; set; }
+    public DbSet<ReferenciaMB> ReferenciasMB { get; set; }
     
     // DbSets - Servicos
     public DbSet<TipoServico> TiposServico { get; set; }
@@ -203,6 +207,8 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     // DbSets - Consultas
     public DbSet<Consulta> Consultas { get; set; }
     public DbSet<ConsultaMarcacao> MarcacoesConsultas { get; set; }
+    public DbSet<ExamesSemPapelAssinaturaSessao> ExamesSemPapelAssinaturasSessao { get; set; }
+    public DbSet<ExamesSemPapelOperacao> ExamesSemPapelOperacoes { get; set; }
     public DbSet<TeleconsultaSessao> TeleconsultasSessoes { get; set; }
     public DbSet<TeleconsultaAcessoLog> TeleconsultasAcessosLogs { get; set; }
     public DbSet<ServicoConsulta> ServicosConsultas { get; set; }

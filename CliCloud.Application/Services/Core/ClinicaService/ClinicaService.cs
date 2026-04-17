@@ -136,6 +136,52 @@ namespace CliCloud.Application.Services.Core.ClinicaService
       dto.AtPass = DecryptIfEncrypted(dto.AtPass);
     }
 
+    private static bool TryParseHora(string? value, out TimeSpan time)
+    {
+      return TimeSpan.TryParseExact(value, @"hh\:mm", null, out time);
+    }
+
+    private static string? ValidateHorario(UpdateClinicaRequest request)
+    {
+      if(string.IsNullOrWhiteSpace(request.HoraInicManha))
+        return "Hora início manhã é obrigatória";
+      
+      if(string.IsNullOrWhiteSpace(request.HoraFimTarde))
+        return "Hora fim tarde é obrigatória";
+
+      if(!TryParseHora(request.HoraInicManha, out var hiM))
+        return "Hora início manhã inválida";
+
+      if(!TryParseHora(request.HoraFimTarde, out var hfT))
+        return "Hora fim tarde inválida";
+
+      var comInterrupcao = request.Interrupcao == true;
+
+      if(!comInterrupcao)
+      {
+        if (hiM > hfT)
+          return "Intervalo horário inválido";
+        return null;
+      }
+
+      if(string.IsNullOrWhiteSpace(request.HoraFimManha))
+        return "Hora fim manhã é obrigatória quando há interrupção";
+      
+      if(string.IsNullOrWhiteSpace(request.HoraInicTarde))
+        return "Hora início tarde é obrigatória quando há interrupção";
+
+      if(!TryParseHora(request.HoraFimManha, out var hfM))
+        return "Hora fim manhã inválida";
+
+      if(!TryParseHora(request.HoraInicTarde, out var hiT))
+        return "Hora início tarde inválida";
+
+      if(hiM > hfM || hfM > hiT || hiT > hfT)
+        return "Intervalo horário inválido";
+
+      return null;
+    }
+
     private async Task RunCreateSideEffectsAsync(Clinica clinica)
     {
       await EnsureClinicaIvaConfigurationAsync(clinica.Id, clinica.ZonFisc);
@@ -357,6 +403,19 @@ namespace CliCloud.Application.Services.Core.ClinicaService
         if (await _repository.ExistsAsync<Clinica, Guid>(spec))
           return ResponseFactory.Fail<Guid>("Já existe uma clínica com este nome.");
       }
+
+      if(!string.IsNullOrWhiteSpace(request.CodSb))
+      {
+        var codSb = request.CodSb.Trim();
+        if(codSb.Length != 4 || !codSb.All(char.IsDigit))
+          return ResponseFactory.Fail<Guid>("O código SB tem de conter 4 digitos numéricos");
+      }
+
+      var horarioError = ValidateHorario(request);
+      if(!string.IsNullOrWhiteSpace(horarioError))
+        return ResponseFactory.Fail<Guid>(horarioError);
+
+      
       _mapper.Map(request, existing);
 
       existing.Atividade = request.Atividade;
@@ -514,6 +573,12 @@ namespace CliCloud.Application.Services.Core.ClinicaService
       try
       {
         var entity = await _repository.RemoveByIdAsync<Clinica, Guid>(id);
+      
+        if(entity == null)
+          return ResponseFactory.Fail<Guid>("Clínica não encontrada");
+        
+        await DeleteOldClinicaLogoIfNeededAsync(entity.UrlFoto, null);
+        var removed = await _repository.RemoveByIdAsync<Clinica, Guid>(id);
         await _repository.SaveChangesAsync();
         return ResponseFactory.Success(entity.Id);
       }
@@ -677,6 +742,28 @@ namespace CliCloud.Application.Services.Core.ClinicaService
       catch (Exception ex)
       {
         return ResponseFactory.Fail<IEnumerable<AutoCompleteItemDTO>>(ex.Message);
+      }
+    }
+
+    public async Task<Response<int>> GetConfiguracaoAnoAtivaAsync(Guid clinicaId)
+    {
+      try
+      {
+        var list = await _repository.GetListAsync<ClinicaConfiguracaoIva, Guid>();
+
+        var cfg = list 
+          .Where(x => x.ClinicaId == clinicaId)
+          .OrderByDescending(x => x.Ano)
+          .FirstOrDefault();
+
+        if(cfg == null) 
+          return ResponseFactory.Fail<int>("Clínica não tem configuração ativa");
+
+        return ResponseFactory.Success(cfg.Ano);
+      }
+      catch (Exception ex)
+      {
+        return ResponseFactory.Fail<int>(ex.Message);
       }
     }
   }

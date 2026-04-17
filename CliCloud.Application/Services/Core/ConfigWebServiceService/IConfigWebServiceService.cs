@@ -7,5 +7,6 @@ namespace CliCloud.Application.Services.Core.ConfigWebServiceService;
 public interface IConfigWebServiceService : ITransientService
 {
     Task<Response<ConfigWebServiceDTO>> ObterConfiguracaoAtualAsync(Guid clinicaId);
+    Task<Response<int>> ObterVersaoPrescricaoAsync(Guid clinicaId);
     Task<Response<Guid>> GuardarConfiguracaoAsync(Guid clinicaId, AtualizarConfigWebServiceRequest request);
 }

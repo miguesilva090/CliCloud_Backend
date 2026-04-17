@@ -9,6 +9,7 @@ using CliCloud.Application.Services.Core.EmailService.Filters;
 using CliCloud.Application.Services.Core.EmailService.Specifications;
 using CliCloud.Application.Utility;
 using CliCloud.Domain.Entities.Core.Email;
+using CliCloud.Application.Services.Core.EmailService.Helpers;
 
 namespace CliCloud.Application.Services.Core.EmailService;
 
@@ -161,7 +162,7 @@ public class ConfiguracaoEmailService(IRepositoryAsync repository) : IConfigurac
                 return ResponseFactory.Fail<Guid>("Configuração de Email automática não encontrada/ativa.");
 
             var placeholders = ConstruirPlaceholders(request);
-            var corpo = RenderTemplate(regra.Textomensagem, placeholders);
+            var corpo = EmailTemplateRenderer.Render(regra.Textomensagem, placeholders);
             var assunto = string.IsNullOrWhiteSpace(regra.Descricao) ? "Notificação" : regra.Descricao.Trim();
             var destino = request.EmailDestino.Trim();
 

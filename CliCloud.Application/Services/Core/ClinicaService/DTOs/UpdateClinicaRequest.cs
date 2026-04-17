@@ -103,6 +103,7 @@ namespace CliCloud.Application.Services.Core.ClinicaService.DTOs
     public int? Cid { get; set; }
 
     public int? PortaLeitorCartoes { get; set; }
+    public string? AreaPrestacaoAssinarESPDefeito { get; set; }
     public bool? StocksColunaStockReal { get; set; }
 
     public int? CalendarioMarcacoesRadio { get; set; }
@@ -244,6 +245,7 @@ namespace CliCloud.Application.Services.Core.ClinicaService.DTOs
       _ = RuleFor(x => x.LocalPrescricao).MaximumLength(7);
       _ = RuleFor(x => x.NomeEtiqueta).MaximumLength(25);
       _ = RuleFor(x => x.CodSb).MaximumLength(9);
+      _ = RuleFor(x => x.AreaPrestacaoAssinarESPDefeito).MaximumLength(20);
       _ = RuleFor(x => x.CccDescLocalEmissao).MaximumLength(50);
       _ = RuleFor(x => x.Regiao).MaximumLength(10);
 
@@ -289,6 +291,10 @@ namespace CliCloud.Application.Services.Core.ClinicaService.DTOs
       _ = RuleFor(x => x.EmailAssuntoTratamentos).MaximumLength(500);
       _ = RuleFor(x => x.EmailAssuntoExames).MaximumLength(500);
       _ = RuleFor(x => x.EmailAssuntoRelatorios).MaximumLength(500);
+
+      _ = RuleFor(x => x.NomeComercial).NotEmpty().WithMessage("Nome comercial é obrigatório").MaximumLength(60);
+      _ = RuleFor(x => x.CodSb).Must(v => string.IsNullOrWhiteSpace(v) || (v.Length == 4 && v.All(char.IsDigit))).WithMessage("O código SB deve ser numérico com 4 digitos");
+      _ = RuleFor(x => x.AreaPrestacaoAssinarESPDefeito).MaximumLength(20);
     }
   }
 }

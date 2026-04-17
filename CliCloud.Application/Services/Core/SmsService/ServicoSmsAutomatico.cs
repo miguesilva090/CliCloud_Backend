@@ -240,12 +240,7 @@ public class ServicoSmsAutomatico(
     }
 
     private static string RenderTemplate(string template, Dictionary<string, string> values)
-    {
-        var result = template ?? string.Empty;
-        foreach(var kv in values)
-            result = result.Replace($"@{kv.Key}", kv.Value ?? string.Empty , StringComparison.OrdinalIgnoreCase);
-        return result;
-    }
+        => SmsTemplateRenderer.Render(template, values);
 
     private static string NormalizarNumeroTelemovel(string numero)
     {

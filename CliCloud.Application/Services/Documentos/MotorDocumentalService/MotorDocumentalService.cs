@@ -1,9 +1,11 @@
 using CliCloud.Application.Common;
 using CliCloud.Application.Common.Wrapper;
 using CliCloud.Application.Services.Documentos.MotorDocumentalService.DTOs;
+using CliCloud.Application.Services.Documentos.MotorDocumentalService.Specifications;
 using CliCloud.Domain.Entities.Core;
 using CliCloud.Domain.Entities.Documentos;
 using CliCloud.Domain.Entities.Utentes;
+using CliCloud.Domain.Entities.Utility;
 using CliCloud.Domain.Enums.Documentos;
 
 namespace CliCloud.Application.Services.Documentos.MotorDocumentalService;
@@ -221,18 +223,56 @@ public class MotorDocumentalService(
                 }
             }
 
+            var marcadoresAspcli = new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["ClinicaNome"] = string.Empty,
+                ["ClinicaLocalidade"] = string.Empty,
+                ["DataNormal"] = DateTime.Now.ToString("dd/MM/yyyy"),
+                ["DataPorExtenso"] = DateTime.Now.ToString("dd 'de' MMMM 'de' yyyy", new System.Globalization.CultureInfo("pt-PT")),
+                ["UtenteNome"] = string.Empty,
+                // Compatibilidade com modelos legados do ASPcli.
+                ["NomeUtente"] = string.Empty,
+                ["UtenteNumero"] = string.Empty,
+                ["UtenteContribuinte"] = string.Empty,
+                ["UtenteNumeroCC"] = string.Empty,
+                ["UtenteDataNascimento"] = string.Empty,
+                ["UtenteEmail"] = string.Empty,
+                ["UtenteRua"] = string.Empty,
+                // Compatibilidade para modelos existentes que usem o nome antigo.
+                ["UtenteMorada"] = string.Empty,
+                ["UtenteLocalidade"] = string.Empty,
+                ["UtenteTelemovel"] = string.Empty,
+                ["UtenteConsentimento"] = string.Empty,
+                ["UtenteAssinatura"] = string.Empty,
+                ["UtenteTratamentoDados"] = string.Empty,
+                ["NumeroRequisicao"] = string.Empty,
+                ["NumeroRequisicaoCodBarras"] = string.Empty
+            };
+
             if (request.UtenteId.HasValue)
             {
-                Utente utente = await _repository.GetByIdAsync<Utente, Guid>(request.UtenteId.Value);
+                Utente utente = await _repository.GetByIdAsync<Utente, Guid>(
+                    request.UtenteId.Value,
+                    new UtenteByIdForDocumentMarkersSpec()
+                );
                 if (utente != null)
                 {
-                    html = SubstituirMarcador(html, "UtenteNome", utente.Nome ?? string.Empty);
-                    html = SubstituirMarcador(html, "NomeUtente", utente.Nome ?? string.Empty);
-                    html = SubstituirMarcador(html, "UtenteContribuinte", utente.NumeroContribuinte ?? string.Empty);
-                    html = SubstituirMarcador(html, "UtenteDataNascimento", utente.DataNascimento?.ToString("dd/MM/yyyy") ?? string.Empty);
-                    html = SubstituirMarcador(html, "UtenteEmail", utente.Email ?? string.Empty);
-                    html = SubstituirMarcador(html, "UtenteNumero", utente.NumeroUtente ?? string.Empty);
-                    html = SubstituirMarcador(html, "UtenteNumeroCC", utente.NumeroCartaoIdentificacao ?? string.Empty);
+                    string utenteRua = FormatarMorada(utente);
+                    string utenteLocalidade = ObterLocalidadeUtente(utente);
+                    string utenteTelemovel = ObterTelefonePreferencial(utente.EntidadeContactos);
+
+                    marcadoresAspcli["UtenteNome"] = utente.Nome ?? string.Empty;
+                    marcadoresAspcli["NomeUtente"] = utente.Nome ?? string.Empty;
+                    marcadoresAspcli["UtenteContribuinte"] = utente.NumeroContribuinte ?? string.Empty;
+                    marcadoresAspcli["UtenteDataNascimento"] = utente.DataNascimento?.ToString("dd/MM/yyyy") ?? string.Empty;
+                    marcadoresAspcli["UtenteEmail"] = utente.Email ?? string.Empty;
+                    marcadoresAspcli["UtenteNumero"] = utente.NumeroUtente ?? string.Empty;
+                    marcadoresAspcli["UtenteNumeroCC"] = utente.NumeroCartaoIdentificacao ?? string.Empty;
+                    marcadoresAspcli["UtenteRua"] = utenteRua;
+                    marcadoresAspcli["UtenteMorada"] = utenteRua;
+                    marcadoresAspcli["UtenteLocalidade"] = utenteLocalidade;
+                    marcadoresAspcli["UtenteTelemovel"] = utenteTelemovel;
+                    marcadoresAspcli["UtenteTratamentoDados"] = utente.MarkTratamentoDados ? "Sim" : "Não";
                 }
             }
 
@@ -240,10 +280,13 @@ public class MotorDocumentalService(
             string clinicaLocalidade = !string.IsNullOrWhiteSpace(clinica?.Localidade)
                 ? clinica.Localidade
                 : (clinica?.CCPostal ?? string.Empty);
-            html = SubstituirMarcador(html, "ClinicaNome", clinica?.Nome ?? string.Empty);
-            html = SubstituirMarcador(html, "ClinicaLocalidade", clinicaLocalidade);
-            html = SubstituirMarcador(html, "DataNormal", DateTime.Now.ToString("dd/MM/yyyy"));
-            html = SubstituirMarcador(html, "DataPorExtenso", DateTime.Now.ToString("dd 'de' MMMM 'de' yyyy", new System.Globalization.CultureInfo("pt-PT")));
+            marcadoresAspcli["ClinicaNome"] = clinica?.Nome ?? string.Empty;
+            marcadoresAspcli["ClinicaLocalidade"] = clinicaLocalidade;
+
+            foreach ((string key, string value) in marcadoresAspcli)
+            {
+                html = SubstituirMarcador(html, key, value);
+            }
 
             InstanciaDocumento instancia = new()
             {
@@ -531,6 +574,48 @@ public class MotorDocumentalService(
         html = html.Replace($"&lt;&lt;{campo}&gt;&gt;", valor);
         return html;
     }
+
+    private static string FormatarMorada(Utente utente)
+    {
+        List<string> componentes = [];
+        if (!string.IsNullOrWhiteSpace(utente.Rua?.Nome))
+            componentes.Add(utente.Rua.Nome.Trim());
+        if (!string.IsNullOrWhiteSpace(utente.NumeroPorta))
+            componentes.Add(utente.NumeroPorta.Trim());
+        if (!string.IsNullOrWhiteSpace(utente.AndarRua))
+            componentes.Add(utente.AndarRua.Trim());
+
+        return string.Join(", ", componentes);
+    }
+
+    private static string ObterLocalidadeUtente(Utente utente)
+    {
+        return utente.CodigoPostal?.Localidade
+            ?? utente.Rua?.CodigoPostal?.Localidade
+            ?? string.Empty;
+    }
+
+    private static string ObterTelefonePreferencial(ICollection<EntidadeContacto>? contactos)
+    {
+        if (contactos == null || ContactosSemValor(contactos))
+            return string.Empty;
+
+        EntidadeContacto? escolhido = contactos
+            .Where(c => c.EntidadeContactoTipoId == 1 || c.EntidadeContactoTipoId == 2)
+            .OrderByDescending(c => c.Principal)
+            .ThenBy(c => c.EntidadeContactoTipoId == 1 ? 0 : 1)
+            .FirstOrDefault(c => !string.IsNullOrWhiteSpace(c.Valor));
+
+        if (escolhido == null)
+            return string.Empty;
+
+        string indicativo = string.IsNullOrWhiteSpace(escolhido.Indicativo) ? string.Empty : escolhido.Indicativo.Trim();
+        string valor = escolhido.Valor!.Trim();
+        return string.IsNullOrWhiteSpace(indicativo) ? valor : $"{indicativo}{valor}";
+    }
+
+    private static bool ContactosSemValor(ICollection<EntidadeContacto> contactos)
+        => contactos == null || !contactos.Any(c => !string.IsNullOrWhiteSpace(c.Valor));
 
     private static string RemoverCaracteresInvalidosXml(string input)
     {
