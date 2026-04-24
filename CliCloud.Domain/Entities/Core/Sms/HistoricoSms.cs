@@ -7,7 +7,7 @@ using CliCloud.Domain.Entities.Common;
 namespace CliCloud.Domain.Entities.Core.Sms
 {
     [Table("HistoricoSms", Schema = "Core")]
-    public class HistoricoSms : AuditableEntity
+    public class HistoricoSms : AuditableEntityWithSoftDelete
     {
         public Guid ClinicaId { get; set; }
         public Clinica Clinica { get; set; } = null!;

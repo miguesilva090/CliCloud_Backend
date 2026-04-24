@@ -7,7 +7,7 @@ using CliCloud.Domain.Entities.Common;
 namespace CliCloud.Domain.Entities.CartaConducao
 {
     [Table("CartaConducaoRestricoes", Schema = "CartaConducao")]
-    public class CartaConducaoRestricao : AuditableEntity
+    public class CartaConducaoRestricao : AuditableEntityWithSoftDelete
     {
         [Key]
         public new Guid Id { get; set; }

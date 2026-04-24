@@ -12,7 +12,7 @@ namespace CliCloud.Domain.Entities.Tratamentos
   /// Valores (utente, instituição, preço) são guardados na linha como no legado.
   /// </summary>
   [Table("PatologiaServico", Schema = "Tratamentos")]
-  public class PatologiaServico : AuditableEntity
+  public class PatologiaServico : AuditableEntityWithSoftDelete
   {
     public Guid PatologiaId { get; set; }
     public Patologia Patologia { get; set; } = null!;

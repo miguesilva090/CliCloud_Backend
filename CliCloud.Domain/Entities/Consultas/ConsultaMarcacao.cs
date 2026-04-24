@@ -12,7 +12,7 @@ using CliCloud.Domain.Entities.Funcionarios;
 namespace CliCloud.Domain.Entities.Consultas
 {
   [Table("ConsultaMarcacao", Schema = "Consultas")]
-    public class ConsultaMarcacao : AuditableEntity
+    public class ConsultaMarcacao : AuditableEntityWithSoftDelete
   {
     public Guid? ConsultaId { get; set; }
     public Consulta? Consulta { get; set; }

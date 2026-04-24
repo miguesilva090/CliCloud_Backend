@@ -7,7 +7,7 @@ using CliCloud.Domain.Entities.Common;
 namespace CliCloud.Domain.Entities.GrausParentesco
 {
     [Table("GrauParentesco", Schema = "Utility")]
-    public class GrauParentesco : AuditableEntity
+    public class GrauParentesco : AuditableEntityWithSoftDelete
     {
         [Key]
         public new Guid Id { get; set; }

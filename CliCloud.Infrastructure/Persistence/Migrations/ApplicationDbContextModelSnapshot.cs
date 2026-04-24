@@ -5042,6 +5042,106 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.ToTable("Moeda", "Utility");
                 });
 
+            modelBuilder.Entity("CliCloud.Domain.Entities.Notificacoes.Notificacao", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ClinicaDestinoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DataLeitura")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Descricao")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("DestinatarioUtilizadorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Estado")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("LeituraPor")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("NotificacaoTipoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Prioridade")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("RemetenteId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Titulo")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NotificacaoTipoId");
+
+                    b.ToTable("Notificacao", "Notificacoes");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Notificacoes.NotificacaoTipo", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DesignacaoTipo")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("ReservadoSistema")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("NotificacaoTipo", "Notificacoes");
+                });
+
             modelBuilder.Entity("CliCloud.Domain.Entities.ProcessoClinico.BodyChart.MapaBodyChart", b =>
                 {
                     b.Property<Guid>("Id")
@@ -12102,6 +12202,17 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Navigation("Medico");
 
                     b.Navigation("Servico");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Notificacoes.Notificacao", b =>
+                {
+                    b.HasOne("CliCloud.Domain.Entities.Notificacoes.NotificacaoTipo", "NotificacaoTipo")
+                        .WithMany()
+                        .HasForeignKey("NotificacaoTipoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("NotificacaoTipo");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.ProcessoClinico.BodyChart.MarcadorBodyChart", b =>

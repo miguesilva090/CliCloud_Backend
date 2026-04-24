@@ -13,7 +13,7 @@ namespace CliCloud.Domain.Entities.Exames
     /// Corresponde ao ecrã legado "Acordos": Cód. Subsistema (texto), Cód. Organismo, Cód. Tipo Exame, valores e margem.
     /// </summary>
     [Table("Acordos", Schema = "Exames")]
-    public class Acordos : AuditableEntity
+    public class Acordos : AuditableEntityWithSoftDelete
     {
         [Key]
         public new Guid Id { get; set; }

@@ -6,7 +6,7 @@ using CliCloud.Domain.Entities.Common;
 namespace CliCloud.Domain.Entities.ProcessoClinico.BodyChart
 {
     [Table("MarcadorBodyChart", Schema = "ProcessoClinico")]
-    public class MarcadorBodyChart : AuditableEntity
+    public class MarcadorBodyChart : AuditableEntityWithSoftDelete
     {
         public Guid MapaBodyChartId { get; set; }
         public MapaBodyChart MapaBodyChart { get; set; } = null!;

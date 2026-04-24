@@ -5,7 +5,7 @@ using CliCloud.Domain.Entities.Common;
 namespace CliCloud.Domain.Entities.Common.Configurations;
 
 [Table("ConfigExamesSemPapel", Schema = "Core")]
-public class ConfigExamesSemPapel : AuditableEntity
+public class ConfigExamesSemPapel : AuditableEntityWithSoftDelete
 {
     [Required]
     public Guid ClinicaId { get; set; }

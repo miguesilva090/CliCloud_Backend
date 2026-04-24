@@ -7,7 +7,7 @@ using CliCloud.Domain.Entities.Common;
 namespace CliCloud.Domain.Entities.Especialidades
 {
   [Table("CategoriaEspecialidade", Schema = "Especialidades")]
-  public class CategoriaEspecialidade : AuditableEntity
+  public class CategoriaEspecialidade : AuditableEntityWithSoftDelete
   {
     [Key]
     public new Guid Id { get; set; }

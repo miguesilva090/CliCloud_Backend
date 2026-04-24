@@ -12,7 +12,7 @@ namespace CliCloud.Domain.Entities.Tratamentos
   /// Doenças: no legado é campo texto (Doencas); opcionalmente associadas via PatologiaDoencas (N-N).
   /// </summary>
   [Table("Patologias", Schema = "Tratamentos")]
-  public class Patologia : AuditableEntity
+  public class Patologia : AuditableEntityWithSoftDelete
   {
     [Key]
     public new Guid Id { get; set; }

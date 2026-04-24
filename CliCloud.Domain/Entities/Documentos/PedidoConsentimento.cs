@@ -3,7 +3,7 @@ using CliCloud.Domain.Enums.Documentos;
 
 namespace CliCloud.Domain.Entities.Documentos;
 
-public class PedidoConsentimento : AuditableEntity
+public class PedidoConsentimento : AuditableEntityWithSoftDelete
 {
     public Guid ClinicaId { get; set; }
     public Guid InstanciaDocumentoId { get; set; }

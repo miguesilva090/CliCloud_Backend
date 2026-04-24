@@ -10,7 +10,7 @@ using CliCloud.Domain.Entities.Especialidades;
 namespace CliCloud.Domain.Entities.ProcessoClinico.HistoriaClinica
 {
     [Table("HistoriasClinicas", Schema = "HistoriaClinica")]
-    public class HistoriaClinica : AuditableEntity
+    public class HistoriaClinica : AuditableEntityWithSoftDelete
     {
         public Guid UtenteId { get; set; }
         public Utente Utente { get; set; } = null!;

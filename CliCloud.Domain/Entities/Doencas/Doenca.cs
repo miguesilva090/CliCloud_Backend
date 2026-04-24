@@ -11,7 +11,7 @@ namespace CliCloud.Domain.Entities.Doencas
   /// Mapeada para a tabela Doencas.Doenca.
   /// </summary>
   [Table("Doenca", Schema = "Doencas")]
-  public class Doenca : AuditableEntity
+  public class Doenca : AuditableEntityWithSoftDelete
   {
     /// <summary>ID oficial WHO (extraído do @id ou URI).</summary>
     [Column(TypeName = "nvarchar(100)")]

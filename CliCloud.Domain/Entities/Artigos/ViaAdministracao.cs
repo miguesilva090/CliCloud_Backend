@@ -9,7 +9,7 @@ using CliCloud.Domain.Entities.Common;
 namespace CliCloud.Domain.Entities.Artigos
 {
     [Table("ViaAdministracao", Schema = "Artigos")]
-    public class ViaAdministracao : AuditableEntity
+    public class ViaAdministracao : AuditableEntityWithSoftDelete
     {
         [Key]
         public new Guid Id { get; set; }

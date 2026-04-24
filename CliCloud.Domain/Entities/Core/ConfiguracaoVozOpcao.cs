@@ -7,7 +7,7 @@ using CliCloud.Domain.Entities.Common;
 namespace CliCloud.Domain.Entities.Core
 {
   [Table("ConfiguracaoVozOpcao", Schema = "Core")]
-  public class ConfiguracaoVozOpcao : AuditableEntity
+  public class ConfiguracaoVozOpcao : AuditableEntityWithSoftDelete
   {
     [StringLength(20)]
     public string Tipo { get; set; } = null!;

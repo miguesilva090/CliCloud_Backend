@@ -10,7 +10,7 @@ using CliCloud.Domain.Entities.Core;
 namespace CliCloud.Domain.Entities.Antecedentes
 {
     [Table("AntecedentesPessoais", Schema = "Antecedentes")]
-    public class AntecedentesPessoais : AuditableEntity
+    public class AntecedentesPessoais : AuditableEntityWithSoftDelete
     {
         public Guid UtenteId { get; set; }
         public Utente Utente { get; set; } = null!;

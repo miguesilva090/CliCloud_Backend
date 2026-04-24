@@ -9,7 +9,7 @@ using CliCloud.Domain.Entities.TaxasIva;
 namespace CliCloud.Domain.Entities.Exames
 {
     [Table("TipoExame", Schema = "Exames")]
-    public class TipoExame : AuditableEntity
+    public class TipoExame : AuditableEntityWithSoftDelete
     {
         [Key]
         public new Guid Id {get;set;}

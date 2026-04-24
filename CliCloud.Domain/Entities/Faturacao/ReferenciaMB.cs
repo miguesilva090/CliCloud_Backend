@@ -4,7 +4,7 @@ using CliCloud.Domain.Entities.Common;
 namespace CliCloud.Domain.Entities.Faturacao;
 
 [Table("ReferenciaMB", Schema = "Faturacao")]
-public class ReferenciaMB : AuditableEntity
+public class ReferenciaMB : AuditableEntityWithSoftDelete
 {
     public Guid ClinicaId { get; set; }
 

@@ -72,7 +72,9 @@ namespace CliCloud.Application.Services.Medicos.MedicoService.DTOs
             _ = RuleFor(x => x.DistritoId).Must(id => string.IsNullOrWhiteSpace(id) || GSHelpers.BeValidGuid(id)).WithMessage("DistritoId deve ser um GUID válido.");
             _ = RuleFor(x => x.PaisId).Must(id => string.IsNullOrWhiteSpace(id) || GSHelpers.BeValidGuid(id)).WithMessage("PaisId deve ser um GUID válido.");
             _ = RuleFor(x => x.Status).InclusiveBetween(1, 3).When(x => x.Status.HasValue).WithMessage("Status deve ser um valor válido.");
-            _ = RuleFor(x => x.UrlFoto).Must(url => string.IsNullOrEmpty(url) || Uri.TryCreate(url, UriKind.Absolute, out _)).WithMessage("UrlFoto deve ser uma URL válida.");
+            _ = RuleFor(x => x.UrlFoto)
+              .Must(GSHelpers.BeValidUrlFotoOrEmpty)
+              .WithMessage("UrlFoto deve ser uma URL absoluta válida ou um caminho (ex.: /assets/...).");
             _ = RuleFor(x => x.EspecialidadeId).Must(id => string.IsNullOrWhiteSpace(id) || GSHelpers.BeValidGuid(id)).WithMessage("EspecialidadeId deve ser um GUID válido.");
             _ = RuleFor(x => x.IdUtilizador).Must(id => string.IsNullOrWhiteSpace(id) || GSHelpers.BeValidGuid(id)).WithMessage("IdUtilizador deve ser um GUID válido.");
             _ = RuleForEach(x => x.EntidadeContactos).SetValidator(new CreateEntidadeContactoItemValidator()).When(x => x.EntidadeContactos != null);

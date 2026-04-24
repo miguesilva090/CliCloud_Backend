@@ -184,6 +184,24 @@ namespace CliCloud.Application.Services.Medicos.MedicoService
           return imageUrl;
         }
 
+        /// <summary>
+        /// null no pedido = não alterar o valor na BD. String vazia = remover. Caso contrário, guardar caminho parcial.
+        /// </summary>
+        private static string? NormalizeUrlFotoForUpdate(string? currentInDb, string? incomingFromRequest)
+        {
+          if (incomingFromRequest == null)
+          {
+            return currentInDb;
+          }
+
+          if (string.IsNullOrWhiteSpace(incomingFromRequest))
+          {
+            return null;
+          }
+
+          return ConvertToPartialUrl(incomingFromRequest);
+        }
+
         // create new Medico
         public async Task<Response<Guid>> CreateMedicoAsync(CreateMedicoRequest request)
         {
@@ -259,10 +277,8 @@ namespace CliCloud.Application.Services.Medicos.MedicoService
                 return ResponseFactory.Fail<Guid>("Medico não encontrado");
             }
 
-            if(request.UrlFoto != null)
-            {
-              request.UrlFoto = ConvertToPartialUrl(request.UrlFoto);
-            }
+            request.UrlFoto = NormalizeUrlFotoForUpdate(MedicoInDb.UrlFoto, request.UrlFoto);
+            request.UrlFotoAssinatura = NormalizeUrlFotoForUpdate(MedicoInDb.UrlFotoAssinatura, request.UrlFotoAssinatura);
 
             Medico updatedMedico = _mapper.Map(request, MedicoInDb);
             updatedMedico.TipoEntidade = EntidadeTipo.Medico;

@@ -9,7 +9,6 @@ using CliCloud.Domain.Enums;
 using CliCloud.Application.Services.Core.ClinicaService.DTOs;
 using CliCloud.Application.Services.Core.ClinicaService.Filters;
 using CliCloud.Application.Services.Core.ClinicaService.Specifications;
-using CliCloud.Infrastructure.Encryption;
 using CliCloud.Domain.Entities.Core.Tratamentos;
 using CliCloud.Domain.Entities.Consultas;
 using CliCloud.Domain.Entities.TaxasIva;
@@ -21,19 +20,16 @@ namespace CliCloud.Application.Services.Core.ClinicaService
   {
     private readonly IRepositoryAsync _repository;
     private readonly IMapper _mapper;
-    private readonly IEncryptionService _encryptionService;
     private readonly IWebHostEnvironment _environment;
 
     public ClinicaService(
       IRepositoryAsync repository,
       IMapper mapper,
-      IEncryptionService encryptionService,
       IWebHostEnvironment environment
     )
     {
       _repository = repository;
       _mapper = mapper;
-      _encryptionService = encryptionService;
       _environment = environment;
     }
 
@@ -81,35 +77,6 @@ namespace CliCloud.Application.Services.Core.ClinicaService
       return Task.CompletedTask;
     }
 
-    private string? EncryptIfPlain(string? value)
-    {
-      if (string.IsNullOrWhiteSpace(value)) return value;
-
-      try
-      {
-        _ = _encryptionService.DecryptString(value);
-        return value;
-      }
-      catch
-      {
-        return _encryptionService.EncryptString(value);
-      }
-    }
-
-    private string? DecryptIfEncrypted(string? value)
-    {
-      if (string.IsNullOrWhiteSpace(value)) return value;
-
-      try
-      {
-        return _encryptionService.DecryptString(value);
-      }
-      catch
-      {
-        return value;
-      }
-    }
-
     private static void NormalizeFaturacaoFields(Clinica c)
     {
       c.Regrafaturacao = c.Regrafaturacao?.Trim() switch
@@ -128,12 +95,6 @@ namespace CliCloud.Application.Services.Core.ClinicaService
 
       if (string.IsNullOrWhiteSpace(c.FaturacaoDocumentosImpressao))
         c.FaturacaoDocumentosImpressao = "A4";
-    }
-
-    private void DecryptDtoSecrets(ClinicaDTO dto)
-    {
-      dto.AtUser = DecryptIfEncrypted(dto.AtUser);
-      dto.AtPass = DecryptIfEncrypted(dto.AtPass);
     }
 
     private static bool TryParseHora(string? value, out TimeSpan time)
@@ -314,10 +275,6 @@ namespace CliCloud.Application.Services.Core.ClinicaService
     {
       var spec = new ClinicaSearchList(keyword);
       var list = await _repository.GetListAsync<Clinica, ClinicaDTO, Guid>(spec);
-      foreach (var dto in list)
-      {
-        DecryptDtoSecrets(dto);
-      }
       return ResponseFactory.Success(list);
     }
 
@@ -357,7 +314,6 @@ namespace CliCloud.Application.Services.Core.ClinicaService
         var dto = await _repository.GetByIdAsync<Clinica, ClinicaDTO, Guid>(id);
         if (dto == null) return ResponseFactory.Fail<ClinicaDTO>("Clínica não encontrada.");
 
-        DecryptDtoSecrets(dto);
         dto.ConfiguracaoTratamentos = await GetConfiguracaoTratamentosOrNullAsync(id);
         return ResponseFactory.Success(dto);
       }
@@ -374,10 +330,6 @@ namespace CliCloud.Application.Services.Core.ClinicaService
       entity.UrlFoto = NormalizeClinicaLogoUrl(entity.UrlFoto);
       if (!IsValidClinicaLogoUrl(entity.UrlFoto))
         return ResponseFactory.Fail<Guid>("URL de foto inválida.");
-
-      // Legacy: ATCUDUser/ATCUDPass são persistidos encriptados.
-      entity.AtUser = EncryptIfPlain(entity.AtUser);
-      entity.AtPass = EncryptIfPlain(entity.AtPass);
 
       NormalizeFaturacaoFields(entity);
 
@@ -433,10 +385,6 @@ namespace CliCloud.Application.Services.Core.ClinicaService
       if (!IsValidClinicaLogoUrl(existing.UrlFoto))
         return ResponseFactory.Fail<Guid>("URL de foto inválida.");
 
-      // Legacy: ATCUDUser/ATCUDPass são persistidos encriptados.
-      existing.AtUser = EncryptIfPlain(existing.AtUser);
-      existing.AtPass = EncryptIfPlain(existing.AtPass);
-      
       NormalizeFaturacaoFields(existing);
 
       try
@@ -614,18 +562,17 @@ namespace CliCloud.Application.Services.Core.ClinicaService
         var existing = await _repository.GetByIdAsync<Clinica, Guid>(id);
         if (existing == null) return ResponseFactory.Fail<Guid>("Clínica não encontrada.");
 
-        // Legacy behavior: limpar todos e, se ativo, marcar apenas a escolhida como pordefeito.
-        await _repository.ExecuteSqlRawAsync(
-          "UPDATE [Core].[Clinica] SET PorDefeito = 0"
-        );
-
-        if (porDefeito)
+        // Mantem uma unica clinica como default sem depender de SQL bruto.
+        var clinicas = await _repository.GetListAsync<Clinica, Guid>();
+        foreach (var clinica in clinicas.Where(x => x.PorDefeito == true))
         {
-          await _repository.ExecuteSqlRawAsync(
-            "UPDATE [Core].[Clinica] SET PorDefeito = 1 WHERE Id = {0}",
-            id
-          );
+          clinica.PorDefeito = false;
+          _ = await _repository.UpdateAsync<Clinica, Guid>(clinica);
         }
+
+        existing.PorDefeito = porDefeito;
+        _ = await _repository.UpdateAsync<Clinica, Guid>(existing);
+        _ = await _repository.SaveChangesAsync();
 
         return ResponseFactory.Success(id);
       }

@@ -9,7 +9,7 @@ namespace CliCloud.Domain.Entities.Consultas
 {
   [Index(nameof(ClinicaId), nameof(RequisicaoId), IsUnique = true)]
   [Table("ExamesSemPapelOperacao", Schema = "Consultas")]
-  public class ExamesSemPapelOperacao : AuditableEntity
+  public class ExamesSemPapelOperacao : AuditableEntityWithSoftDelete
   {
     public Guid ClinicaId { get; set; }
 

@@ -54,6 +54,7 @@ using CliCloud.Domain.Entities.Common.Configurations;
 using CliCloud.Domain.Entities.Core.ConfigReferenciaMB;
 using CliCloud.Domain.Entities.Core.Email;
 using CliCloud.Domain.Entities.Faturacao;
+using CliCloud.Domain.Entities.Notificacoes;
 using Microsoft.EntityFrameworkCore;
 
 //---------------------------------- CLI COMMANDS --------------------------------------------------
@@ -407,6 +408,10 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     // DbSets - Pedidos de Consentimento
     public DbSet<PedidoConsentimento> PedidosConsentimento { get; set; }
 
+    // DbSets - Notificacoes
+    public DbSet<NotificacaoTipo> NotificacaoTipos { get; set; }
+    public DbSet<Notificacao> Notificacoes { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
       base.OnModelCreating(modelBuilder);
@@ -682,6 +687,10 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
 
       // Pedidos de Consentimento configurations
       _ = modelBuilder.ApplyConfiguration(new PedidoConsentimentoConfiguration());
+
+      // Notificacoes configurations
+      _ = modelBuilder.ApplyConfiguration(new NotificacaoTipoConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new NotificacaoConfiguration());
 
       // Odontologia - chaves alternativas e FKs por código
       modelBuilder.Entity<EstadosDentarios>(b =>

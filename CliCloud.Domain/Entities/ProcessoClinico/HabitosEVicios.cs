@@ -7,7 +7,7 @@ using CliCloud.Domain.Entities.Utentes;
 namespace CliCloud.Domain.Entities.ProcessoClinico
 {
     [Table("HabitosEVicios", Schema = "ProcessoClinico")]
-    public class HabitosEVicios : AuditableEntity
+    public class HabitosEVicios : AuditableEntityWithSoftDelete
     {
         public Guid UtenteId { get; set; }
         public Utente Utente { get; set; } = null!;

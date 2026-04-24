@@ -9,7 +9,7 @@ namespace CliCloud.Domain.Entities.Utentes
 {
   /// <summary>Linha do subsistema de saúde do utente (organismo, beneficiário, apólice, etc.).</summary>
   [Table("UtenteSubsistemaLinha", Schema = "Utentes")]
-  public class UtenteSubsistemaLinha : AuditableEntity
+  public class UtenteSubsistemaLinha : AuditableEntityWithSoftDelete
   {
     public Guid UtenteId { get; set; }
     public Utente? Utente { get; set; }

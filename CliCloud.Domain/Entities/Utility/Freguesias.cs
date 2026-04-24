@@ -5,7 +5,7 @@ using CliCloud.Domain.Entities.Utility;
 namespace CliCloud.Domain.Entities.Utility
 {
   [Table("Freguesia", Schema = "Utility")]
-  public class Freguesia : AuditableEntity
+  public class Freguesia : AuditableEntityWithSoftDelete
   {
     public string Nome {get;set;}
     public Guid ConcelhoId {get;set;}

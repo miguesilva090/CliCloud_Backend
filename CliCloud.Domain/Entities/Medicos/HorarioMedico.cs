@@ -7,7 +7,7 @@ using CliCloud.Domain.Entities.Common;
 namespace CliCloud.Domain.Entities.Medicos
 {
   [Table("HorarioMedico", Schema = "Medicos")]
-  public class HorarioMedico : AuditableEntity
+  public class HorarioMedico : AuditableEntityWithSoftDelete
   {
     [Key]
     public new Guid Id { get; set; }

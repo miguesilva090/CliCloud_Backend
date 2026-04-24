@@ -7,7 +7,7 @@ using CliCloud.Domain.Entities.Medicos;
 namespace CliCloud.Domain.Entities.ProcessoClinico.RelatorioAtestado
 {
     [Table("RelatorioAtestado", Schema = "ProcessoClinico")]
-    public class RelatorioAtestado : AuditableEntity
+    public class RelatorioAtestado : AuditableEntityWithSoftDelete
     {
         [Key]
         public new Guid Id { get; set; }

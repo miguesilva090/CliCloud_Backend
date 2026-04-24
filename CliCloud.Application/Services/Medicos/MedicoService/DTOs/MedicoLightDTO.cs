@@ -37,6 +37,8 @@ namespace CliCloud.Application.Services.Medicos.MedicoService.DTOs
         public string? Arquivo { get; set; }
         public string? Carteira { get; set; }
         public string? NomeUtilizador { get; set; }
+        /// <summary>Foto do médico (Entidade.UrlFoto).</summary>
+        public string? UrlFoto { get; set; }
         public string? UrlFotoAssinatura { get; set; }
         public string? NumeroIdentificacaoBancaria { get; set; }
         public bool Director { get; set; }

@@ -63,42 +63,55 @@ public class FeriadoService(
 
     public async Task<PaginatedResponse<FeriadoDTO>> GetPaginadoAsync(FeriadoTableFilter filter)
     {
-        Guid clinicaId = await ObterClinicaAtualIdAsync();
-
-        IEnumerable<Feriado> todos = await _repository.GetListAsync<Feriado, Guid>();
-        IQueryable<Feriado> query = todos.Where(x => x.ClinicaId == clinicaId).AsQueryable();
-
-        if (filter.DataDe.HasValue)
+        try
         {
-            query = query.Where(x => x.Data.Date >= filter.DataDe.Value.Date);
-        }
+            Guid clinicaId = await ObterClinicaAtualIdAsync();
 
-        if (filter.DataAte.HasValue)
+            IEnumerable<Feriado> todos = await _repository.GetListAsync<Feriado, Guid>();
+            IQueryable<Feriado> query = todos.Where(x => x.ClinicaId == clinicaId).AsQueryable();
+
+            if (filter.DataDe.HasValue)
+            {
+                query = query.Where(x => x.Data.Date >= filter.DataDe.Value.Date);
+            }
+
+            if (filter.DataAte.HasValue)
+            {
+                query = query.Where(x => x.Data.Date <= filter.DataAte.Value.Date);
+            }
+
+            if (!string.IsNullOrWhiteSpace(filter.Designacao))
+            {
+                string d = filter.Designacao.Trim().ToLowerInvariant();
+                query = query.Where(x => x.Designacao.ToLower().Contains(d));
+            }
+
+            if (filter.Ativo.HasValue)
+            {
+                query = query.Where(x => x.Ativo == filter.Ativo.Value);
+            }
+
+            int total = query.Count();
+
+            List<FeriadoDTO> itens = query
+                .OrderBy(x => x.Data)
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .Select(_mapper.Map<FeriadoDTO>)
+                .ToList();
+
+            return new PaginatedResponse<FeriadoDTO>(itens, total, filter.PageNumber, filter.PageSize);
+        }
+        catch (InvalidOperationException)
         {
-            query = query.Where(x => x.Data.Date <= filter.DataAte.Value.Date);
+            // Alinhado a GetTodosAsync: sem clínica válida não rebentar o middleware nem spammar logs.
+            return new PaginatedResponse<FeriadoDTO>(
+                [],
+                0,
+                filter.PageNumber,
+                filter.PageSize
+            );
         }
-
-        if (!string.IsNullOrWhiteSpace(filter.Designacao))
-        {
-            string d = filter.Designacao.Trim().ToLowerInvariant();
-            query = query.Where(x => x.Designacao.ToLower().Contains(d));
-        }
-
-        if (filter.Ativo.HasValue)
-        {
-            query = query.Where(x => x.Ativo == filter.Ativo.Value);
-        }
-
-        int total = query.Count();
-
-        List<FeriadoDTO> itens = query
-            .OrderBy(x => x.Data)
-            .Skip((filter.PageNumber - 1) * filter.PageSize)
-            .Take(filter.PageSize)
-            .Select(_mapper.Map<FeriadoDTO>)
-            .ToList();
-
-        return new PaginatedResponse<FeriadoDTO>(itens, filter.PageNumber, filter.PageSize, total);
     }
 
     public async Task<Response<FeriadoDTO>> GetPorIdAsync(Guid id)

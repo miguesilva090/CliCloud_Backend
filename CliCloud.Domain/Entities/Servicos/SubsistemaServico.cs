@@ -5,7 +5,7 @@ namespace CliCloud.Domain.Entities.Servicos
 {
  
   [Table("SubsistemaServico", Schema = "Servicos")]
-  public class SubsistemaServico : AuditableEntity
+  public class SubsistemaServico : AuditableEntityWithSoftDelete
   {
     public Guid ServicoId { get; set; }
     public Servico Servico { get; set; } = null!;

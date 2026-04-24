@@ -7,7 +7,7 @@ using CliCloud.Domain.Entities.Common;
 namespace CliCloud.Domain.Entities.ProvenienciasUtente
 {
     [Table("ProvenienciaUtente", Schema = "Utility")]
-    public class ProvenienciaUtente : AuditableEntity
+    public class ProvenienciaUtente : AuditableEntityWithSoftDelete
     {
         [Key]
         public new Guid Id { get; set; }

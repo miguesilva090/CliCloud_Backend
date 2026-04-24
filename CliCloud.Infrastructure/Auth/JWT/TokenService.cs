@@ -1,14 +1,15 @@
+using System.Collections.Concurrent;
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using CliCloud.Application.Common.Wrapper;
 using CliCloud.Application.Utility;
+using CliCloud.Domain.Entities.Core;
 using CliCloud.Infrastructure.Auth.JWT.DTOs;
 using CliCloud.Infrastructure.Encryption;
-using CliCloud.Infrastructure.Identity;
 using CliCloud.Infrastructure.Persistence.Contexts;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -16,190 +17,271 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace CliCloud.Infrastructure.Auth.JWT
 {
-  /// <summary>
-  /// Implementação do Auth Server (login + refresh) dentro do próprio backend.
-  /// Multi-client: requer X-API-Key válido (ClinicaApiKey) e emite JWT com claim "code".
-  /// </summary>
-  public class TokenService : ITokenService
+  public class TokenService(
+    ApplicationDbContext dbContext,
+    IOptions<JWTSettings> jwtSettings,
+    IEncryptionService encryptionService
+  ) : ITokenService
   {
-    private readonly JWTSettings _jwtSettings;
-    private readonly UserManager<ApplicationUser> _userManager;
-    private readonly SignInManager<ApplicationUser> _signInManager;
-    private readonly IEncryptionService _encryptionService;
-    private readonly ApplicationDbContext _dbContext;
-    private readonly IHttpContextAccessor _httpContextAccessor;
-
-    public TokenService(
-      IOptions<JWTSettings> jwtSettings,
-      UserManager<ApplicationUser> userManager,
-      SignInManager<ApplicationUser> signInManager,
-      IEncryptionService encryptionService,
-      ApplicationDbContext dbContext,
-      IHttpContextAccessor httpContextAccessor
-    )
-    {
-      _jwtSettings = jwtSettings.Value;
-      _userManager = userManager;
-      _signInManager = signInManager;
-      _encryptionService = encryptionService;
-      _dbContext = dbContext;
-      _httpContextAccessor = httpContextAccessor;
-    }
+    private static readonly ConcurrentDictionary<string, RefreshTokenEntry> RefreshTokens = new();
+    private readonly ApplicationDbContext _dbContext = dbContext;
+    private readonly JWTSettings _jwtSettings = jwtSettings.Value;
+    private readonly IEncryptionService _encryptionService = encryptionService;
 
     public async Task<Response<TokenResponse>> GetTokenAsync(TokenRequest request)
     {
-      string? apiKey = _httpContextAccessor.HttpContext?.Items["APIKey"] as string
-        ?? _httpContextAccessor.HttpContext?.Request.Headers["X-API-Key"].FirstOrDefault();
-
-      if (string.IsNullOrWhiteSpace(apiKey))
+      if (string.IsNullOrWhiteSpace(request?.Email) || string.IsNullOrWhiteSpace(request.Password))
       {
-        return ResponseFactory.Fail<TokenResponse>("API Key em falta");
+        return ResponseFactory.Fail<TokenResponse>("Email e password são obrigatórios.");
       }
 
-      var clinicaApiKey = await _dbContext.ClinicasApiKeys.AsNoTracking()
-        .FirstOrDefaultAsync(k => k.ApiKey == apiKey && k.Ativo);
+      // AspNetUsers primeiro: se o email existir também em Clinica.AtUser, a autenticação
+      // por clínica ganhava e o token ficava sem aspnet_user_id (UserId caía no uid = clínica).
+      string? aspNetUserId = null;
+      (bool legacyOk, string? legacyUserId) = await TryAuthenticateByLegacyUserAsync(request);
+      bool authenticated = legacyOk;
+      aspNetUserId = legacyUserId;
 
-      if (clinicaApiKey == null)
+      Clinica? clinica = null;
+      if (!authenticated)
       {
-        return ResponseFactory.Fail<TokenResponse>("Chave de API inválida");
+        clinica = await TryAuthenticateByClinicaCredentialsAsync(request);
+        authenticated = clinica != null;
       }
 
-      ApplicationUser? user = await _userManager.FindByEmailAsync(request.Email);
-      if (user == null || !user.IsActive)
+      if (!authenticated)
       {
-        return ResponseFactory.Fail<TokenResponse>("Credenciais inválidas");
+        return ResponseFactory.Fail<TokenResponse>("Credenciais inválidas.");
       }
 
-      SignInResult signInResult = await _signInManager.CheckPasswordSignInAsync(
-        user,
-        request.Password,
-        lockoutOnFailure: false
+      clinica ??= await ResolveClinicaForTokenAsync(request.Email);
+      if (clinica == null)
+      {
+        return ResponseFactory.Fail<TokenResponse>("Não foi possível determinar a clínica do utilizador.");
+      }
+
+      ClinicaApiKey? activeApiKey = await _dbContext.ClinicasApiKeys
+        .FirstOrDefaultAsync(k => k.ClinicaId == clinica.Id && k.Ativo);
+
+      if (activeApiKey == null || string.IsNullOrWhiteSpace(activeApiKey.ApiKey))
+      {
+        return ResponseFactory.Fail<TokenResponse>(
+          "Não foi encontrada uma API key ativa para a clínica."
+        );
+      }
+
+      TokenResponse tokenResponse = BuildTokenResponse(clinica, request.Email, activeApiKey.ApiKey, aspNetUserId);
+      return ResponseFactory.Success(tokenResponse);
+    }
+
+    private Task<Clinica?> TryAuthenticateByClinicaCredentialsAsync(TokenRequest request)
+    {
+      return _dbContext.Clinicas.FirstOrDefaultAsync(c =>
+        c.AtUser != null
+        && c.AtPass != null
+        && c.AtUser == request.Email
+        && c.AtPass == request.Password
       );
-      if (!signInResult.Succeeded)
+    }
+
+    private async Task<(bool Ok, string? AspNetUserId)> TryAuthenticateByLegacyUserAsync(TokenRequest request)
+    {
+      const string sql = """
+SELECT TOP(1)
+  [Id],
+  [Email],
+  [PasswordHash]
+FROM [AspNetUsers]
+WHERE [IsActive] = 1
+  AND (
+    [NormalizedUserName] = @normalized
+    OR [NormalizedEmail] = @normalized
+    OR [UserName] = @email
+    OR [Email] = @email
+  );
+""";
+
+      string normalized = request.Email.Trim().ToUpperInvariant();
+
+      var connection = _dbContext.Database.GetDbConnection();
+      bool shouldClose = connection.State != ConnectionState.Open;
+      if (shouldClose)
       {
-        return ResponseFactory.Fail<TokenResponse>("Credenciais inválidas");
+        await connection.OpenAsync();
       }
 
-      // Gerar refresh token e guardar no utilizador
-      string refreshToken = GenerateRefreshToken();
-      DateTime refreshTokenExpiryTime = DateTime.Now.AddDays(_jwtSettings.RefreshTokenDurationInDays);
-      user.RefreshToken = refreshToken;
-      user.RefreshTokenExpiryTime = refreshTokenExpiryTime;
-      _ = await _userManager.UpdateAsync(user);
+      try
+      {
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
 
-      JwtSecurityToken jwt = await GenerateJwtAsync(user, apiKey, clinicaApiKey.ClinicaId);
-      DateTime expiryTime = jwt.ValidTo.ToLocalTime();
+        var normalizedParam = command.CreateParameter();
+        normalizedParam.ParameterName = "@normalized";
+        normalizedParam.Value = normalized;
+        command.Parameters.Add(normalizedParam);
 
-      return ResponseFactory.Success(
-        new TokenResponse
+        var emailParam = command.CreateParameter();
+        emailParam.ParameterName = "@email";
+        emailParam.Value = request.Email.Trim();
+        command.Parameters.Add(emailParam);
+
+        await using var reader = await command.ExecuteReaderAsync();
+        if (!await reader.ReadAsync())
         {
-          Token = new JwtSecurityTokenHandler().WriteToken(jwt),
-          RefreshToken = refreshToken,
-          RefreshTokenExpiryTime = refreshTokenExpiryTime,
-          ExpiryTime = expiryTime,
+          return (false, null);
         }
-      );
+
+        string? passwordHash = reader["PasswordHash"]?.ToString();
+        if (string.IsNullOrWhiteSpace(passwordHash))
+        {
+          return (false, null);
+        }
+
+        var user = new LegacyUserAuthRecord
+        {
+          Id = reader["Id"]?.ToString(),
+          Email = reader["Email"]?.ToString(),
+          PasswordHash = passwordHash,
+        };
+
+        var passwordHasher = new PasswordHasher<LegacyUserAuthRecord>();
+        PasswordVerificationResult result = passwordHasher.VerifyHashedPassword(
+          user,
+          user.PasswordHash,
+          request.Password
+        );
+
+        if (result is not PasswordVerificationResult.Success and not PasswordVerificationResult.SuccessRehashNeeded)
+        {
+          return (false, null);
+        }
+
+        string? id = user.Id?.Trim();
+        return string.IsNullOrWhiteSpace(id) ? (true, null) : (true, id);
+      }
+      finally
+      {
+        if (shouldClose)
+        {
+          await connection.CloseAsync();
+        }
+      }
+    }
+
+    private async Task<Clinica?> ResolveClinicaForTokenAsync(string email)
+    {
+      Clinica? byEmail = await _dbContext.Clinicas.FirstOrDefaultAsync(c => c.AtUser == email);
+      if (byEmail != null)
+      {
+        return byEmail;
+      }
+
+      Clinica? defaultClinica = await _dbContext.Clinicas.FirstOrDefaultAsync(c => c.PorDefeito);
+      if (defaultClinica != null)
+      {
+        return defaultClinica;
+      }
+
+      return await _dbContext.Clinicas.FirstOrDefaultAsync();
     }
 
     public async Task<Response<TokenResponse>> RefreshTokenAsync(string refreshToken)
     {
       if (string.IsNullOrWhiteSpace(refreshToken))
       {
-        return ResponseFactory.Fail<TokenResponse>("Refresh token em falta");
+        return ResponseFactory.Fail<TokenResponse>("Refresh token inválido.");
       }
 
-      string? apiKey = _httpContextAccessor.HttpContext?.Items["APIKey"] as string
-        ?? _httpContextAccessor.HttpContext?.Request.Headers["X-API-Key"].FirstOrDefault();
-
-      if (string.IsNullOrWhiteSpace(apiKey))
+      if (!RefreshTokens.TryGetValue(refreshToken, out RefreshTokenEntry? entry))
       {
-        return ResponseFactory.Fail<TokenResponse>("API Key em falta");
+        return ResponseFactory.Fail<TokenResponse>("Refresh token inválido.");
       }
 
-      var clinicaApiKey = await _dbContext.ClinicasApiKeys.AsNoTracking()
-        .FirstOrDefaultAsync(k => k.ApiKey == apiKey && k.Ativo);
-
-      if (clinicaApiKey == null)
+      if (entry.ExpiresAtUtc <= DateTime.UtcNow)
       {
-        return ResponseFactory.Fail<TokenResponse>("Chave de API inválida");
+        _ = RefreshTokens.TryRemove(refreshToken, out _);
+        return ResponseFactory.Fail<TokenResponse>("Refresh token expirado.");
       }
 
-      ApplicationUser? user = await _userManager.Users.FirstOrDefaultAsync(u =>
-        u.RefreshToken == refreshToken
-      );
-
-      if (user == null)
+      Clinica? clinica = await _dbContext.Clinicas.FirstOrDefaultAsync(c => c.Id == entry.ClinicaId);
+      if (clinica == null)
       {
-        return ResponseFactory.Fail<TokenResponse>("Token inválido");
+        _ = RefreshTokens.TryRemove(refreshToken, out _);
+        return ResponseFactory.Fail<TokenResponse>("Clínica não encontrada.");
       }
 
-      if (user.RefreshTokenExpiryTime == null || user.RefreshTokenExpiryTime < DateTime.Now)
-      {
-        return ResponseFactory.Fail<TokenResponse>("Refresh token expirado");
-      }
+      TokenResponse tokenResponse = BuildTokenResponse(clinica, entry.Email, entry.ApiKey, entry.AspNetUserId);
+      _ = RefreshTokens.TryRemove(refreshToken, out _);
 
-      JwtSecurityToken jwt = await GenerateJwtAsync(user, apiKey, clinicaApiKey.ClinicaId);
-      DateTime expiryTime = jwt.ValidTo.ToLocalTime();
-
-      return ResponseFactory.Success(
-        new TokenResponse
-        {
-          Token = new JwtSecurityTokenHandler().WriteToken(jwt),
-          RefreshToken = user.RefreshToken ?? refreshToken,
-          RefreshTokenExpiryTime = user.RefreshTokenExpiryTime.Value,
-          ExpiryTime = expiryTime,
-        }
-      );
+      return ResponseFactory.Success(tokenResponse);
     }
 
-    private async Task<JwtSecurityToken> GenerateJwtAsync(
-      ApplicationUser user,
-      string apiKey,
-      Guid clinicaId
-    )
+    private TokenResponse BuildTokenResponse(Clinica clinica, string email, string apiKey, string? aspNetUserId)
     {
-      IList<string> roles = await _userManager.GetRolesAsync(user);
+      DateTime issuedAtUtc = DateTime.UtcNow;
+      DateTime accessTokenExpiry = issuedAtUtc.AddMinutes(_jwtSettings.AuthTokenDurationInMinutes);
+      DateTime refreshTokenExpiry = issuedAtUtc.AddDays(_jwtSettings.RefreshTokenDurationInDays);
 
-      // code claim (bind token <-> api key)
-      string specificChars = GSHelpers.GetSpecificChars(apiKey, [19, 11, 12, 25]);
-      string encryptedCode = _encryptionService.EncryptString(specificChars);
+      string codePlainText = GSHelpers.GetSpecificChars(apiKey, [19, 11, 12, 25]);
+      string codeEncrypted = _encryptionService.EncryptString(codePlainText);
+      string refreshToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
 
       List<Claim> claims =
       [
-        new(JwtRegisteredClaimNames.Sub, user.UserName ?? user.Email ?? user.Id),
-        new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-        new(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
-        new("uid", user.Id),
-        new("code", encryptedCode),
-        new("clinica_id", clinicaId.ToString()),
+        new Claim(JwtRegisteredClaimNames.Sub, clinica.Id.ToString()),
+        new Claim("uid", clinica.Id.ToString()),
+        new Claim("email", email),
+        new Claim("clinica_id", clinica.Id.ToString()),
+        new Claim("roles", "client"),
+        new Claim("code", codeEncrypted),
       ];
 
-      foreach (string role in roles)
+      if (!string.IsNullOrWhiteSpace(aspNetUserId))
       {
-        claims.Add(new Claim("roles", role));
-        // também adiciona Role standard para [Authorize(Roles=...)]
-        claims.Add(new Claim(ClaimTypes.Role, role));
+        claims.Add(new Claim("aspnet_user_id", aspNetUserId.Trim()));
       }
 
-      SymmetricSecurityKey key = new(Encoding.UTF8.GetBytes(_jwtSettings.Key));
-      SigningCredentials creds = new(key, SecurityAlgorithms.HmacSha256);
+      SigningCredentials signingCredentials = new(
+        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key)),
+        SecurityAlgorithms.HmacSha256
+      );
 
-      return new JwtSecurityToken(
+      JwtSecurityToken jwtToken = new(
         issuer: _jwtSettings.Issuer,
         audience: _jwtSettings.Audience,
         claims: claims,
-        expires: DateTime.Now.AddMinutes(_jwtSettings.AuthTokenDurationInMinutes),
-        signingCredentials: creds
+        notBefore: issuedAtUtc,
+        expires: accessTokenExpiry,
+        signingCredentials: signingCredentials
       );
+
+      _ = RefreshTokens.TryAdd(
+        refreshToken,
+        new RefreshTokenEntry(clinica.Id, email, apiKey, refreshTokenExpiry, aspNetUserId)
+      );
+
+      return new TokenResponse
+      {
+        Token = new JwtSecurityTokenHandler().WriteToken(jwtToken),
+        RefreshToken = refreshToken,
+        ExpiryTime = accessTokenExpiry,
+        RefreshTokenExpiryTime = refreshTokenExpiry,
+      };
     }
 
-    private static string GenerateRefreshToken()
+    private sealed record RefreshTokenEntry(
+      Guid ClinicaId,
+      string Email,
+      string ApiKey,
+      DateTime ExpiresAtUtc,
+      string? AspNetUserId
+    );
+
+    private sealed class LegacyUserAuthRecord
     {
-      byte[] randomNumber = new byte[32];
-      using RandomNumberGenerator generator = RandomNumberGenerator.Create();
-      generator.GetBytes(randomNumber);
-      return Convert.ToBase64String(randomNumber).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+      public string? Id { get; init; }
+      public string? Email { get; init; }
+      public string PasswordHash { get; init; } = string.Empty;
     }
   }
 }
-

@@ -8,7 +8,7 @@ using CliCloud.Domain.Entities.Utentes;
 namespace CliCloud.Domain.Entities.ProcessoClinico.SinaisVitais 
 {
     [Table("GlicemiaCapilar", Schema = "SinaisVitais")]
-    public class GlicemiaCapilar : AuditableEntity
+    public class GlicemiaCapilar : AuditableEntityWithSoftDelete
     {
         public Guid UtenteId { get; set; }
         public Utente Utente { get; set; } = null!;

@@ -11,7 +11,7 @@ namespace CliCloud.Domain.Entities.Exames
   /// Cód. e Designação vêm do TipoExame associado.
   /// </summary>
   [Table("ExameLinha", Schema = "Exames")]
-  public class ExameLinha : AuditableEntity
+  public class ExameLinha : AuditableEntityWithSoftDelete
   {
     [Required]
     public Guid ExameId { get; set; }

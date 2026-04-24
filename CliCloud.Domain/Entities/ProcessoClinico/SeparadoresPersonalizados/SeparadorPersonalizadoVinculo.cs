@@ -13,7 +13,7 @@ public enum TipoVinculoSeparador
 }
 
 [Table("SeparadorPersonalizadoVinculo", Schema = "ProcessoClinico")]
-public class SeparadorPersonalizadoVinculo : AuditableEntity
+public class SeparadorPersonalizadoVinculo : AuditableEntityWithSoftDelete
 {
     [Key]
     public new Guid Id { get; set; }

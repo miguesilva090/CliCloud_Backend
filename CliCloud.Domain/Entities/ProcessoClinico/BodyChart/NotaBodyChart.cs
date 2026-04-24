@@ -7,7 +7,7 @@ using CliCloud.Domain.Entities.Tratamentos;
 namespace CliCloud.Domain.Entities.ProcessoClinico.BodyChart
 {
     [Table("NotaBodyChart", Schema = "ProcessoClinico")]
-    public class NotaBodyChart : AuditableEntity
+    public class NotaBodyChart : AuditableEntityWithSoftDelete
     {
         public Guid TratamentoId {get;set;}
         public Tratamento Tratamento {get;set;} = null!;

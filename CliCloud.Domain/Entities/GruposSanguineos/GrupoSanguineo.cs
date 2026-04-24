@@ -7,7 +7,7 @@ using CliCloud.Domain.Entities.Common;
 namespace CliCloud.Domain.Entities.GruposSanguineos
 {
     [Table("GrupoSanguineo", Schema = "Utility")]
-    public class GrupoSanguineo : AuditableEntity
+    public class GrupoSanguineo : AuditableEntityWithSoftDelete
     {
         [Key]
         public new Guid Id { get; set; }

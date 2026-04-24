@@ -5,7 +5,7 @@ using CliCloud.Domain.Entities.Common;
 namespace CliCloud.Domain.Entities.Common.Configurations;
 
 [Table("ConfigCartaConducao", Schema = "Core")]
-public class ConfigCartaConducao : AuditableEntity
+public class ConfigCartaConducao : AuditableEntityWithSoftDelete
 {
     [Required]
     public Guid ClinicaId { get; set; }

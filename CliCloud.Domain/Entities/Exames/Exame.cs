@@ -15,7 +15,7 @@ namespace CliCloud.Domain.Entities.Exames
   /// Data, Prioridade, Nº Prescrição, Organismo, Observações; associado ao utente e médico.
   /// </summary>
   [Table("Exame", Schema = "Exames")]
-  public class Exame : AuditableEntity
+  public class Exame : AuditableEntityWithSoftDelete
   {
     [Required]
     public Guid UtenteId { get; set; }

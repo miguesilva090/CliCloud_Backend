@@ -75,6 +75,5 @@ namespace CliCloud.Application.Common
       where TDto : IDto;
     Task<int> SaveChangesAsync();
     void ClearChangeTracker();
-    Task<int> ExecuteSqlRawAsync(string sql, params object[] parameters);
   }
 }

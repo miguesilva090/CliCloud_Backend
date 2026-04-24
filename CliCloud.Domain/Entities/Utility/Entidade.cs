@@ -8,7 +8,7 @@ using CliCloud.Domain.Enums;
 namespace CliCloud.Domain.Entities.Utility
 {
   [Table("Entidade", Schema = "Utility")]
-  public class Entidade : AuditableEntity
+  public class Entidade : AuditableEntityWithSoftDelete
   {
     public string Nome {get;set;} = string.Empty;
     public EntidadeTipo TipoEntidade {get;set;}

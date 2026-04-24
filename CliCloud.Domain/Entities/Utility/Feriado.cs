@@ -2,7 +2,7 @@ using CliCloud.Domain.Entities.Common;
 
 namespace CliCloud.Domain.Entities.Utility;
 
-public class Feriado : AuditableEntity
+public class Feriado : AuditableEntityWithSoftDelete
 {
     
     public Guid ClinicaId {get;set;}

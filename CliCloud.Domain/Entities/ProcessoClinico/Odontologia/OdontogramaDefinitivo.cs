@@ -8,7 +8,7 @@ using CliCloud.Domain.Entities.Consultas;
 namespace CliCloud.Domain.Entities.ProcessoClinico.Odontologia 
 {
     [Table("OdontogramaDefinitivo", Schema = "Odontologia")]
-    public class OdontogramaDefinitivo : AuditableEntity
+    public class OdontogramaDefinitivo : AuditableEntityWithSoftDelete
     {
         [Key]
         public new Guid Id {get;set;}

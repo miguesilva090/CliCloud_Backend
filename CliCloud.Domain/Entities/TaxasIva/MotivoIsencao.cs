@@ -10,7 +10,7 @@ namespace CliCloud.Domain.Entities.TaxasIva
     /// Motivo de isenção de IVA. Obrigatório quando a TaxaIva selecionada for "Isento".
     /// </summary>
     [Table("MotivoIsencao", Schema = "Utility")]
-    public class MotivoIsencao : AuditableEntity
+    public class MotivoIsencao : AuditableEntityWithSoftDelete
     {
         [Key]
         public new Guid Id { get; set; }

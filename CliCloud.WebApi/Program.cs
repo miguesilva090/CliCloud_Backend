@@ -2,7 +2,6 @@ using CliCloud.Application.Common.Wrapper;
 using CliCloud.WebApi.Extensions;
 using CliCloud.WebApi.Logging;
 using CliCloud.WebApi.Middleware;
-using CliCloud.WebApi.Seeding;
 
 try
 {
@@ -42,15 +41,6 @@ try
   StartupLogger.LogInfo("Building application...");
   WebApplication app = builder.Build(); // Create the App
   StartupLogger.LogInfo("Application built successfully");
-
-  // DEV seed: clinica + api key + user(role=client) para login
-  if (builder.Environment.IsDevelopment())
-  {
-    StartupLogger.LogInfo(
-      $"DEV AUTH seed: user={DevAuthSeed.SeedUserEmail}, role={DevAuthSeed.SeedRole}, apiKey={DevAuthSeed.SeedApiKey}"
-    );
-    await DevAuthSeed.SeedAsync(app.Services);
-  }
 
   StartupLogger.LogInfo("Configuring middleware pipeline...");
   _ = app.UseCors("defaultPolicy"); // CORS policy (default - allow any orgin)

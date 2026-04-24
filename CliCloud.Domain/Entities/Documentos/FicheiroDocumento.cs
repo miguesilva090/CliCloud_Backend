@@ -2,7 +2,7 @@ using CliCloud.Domain.Entities.Common;
 
 namespace CliCloud.Domain.Entities.Documentos;
 
-public class FicheiroDocumento : AuditableEntity
+public class FicheiroDocumento : AuditableEntityWithSoftDelete
 {
     public Guid ClinicaId { get; set; }
 

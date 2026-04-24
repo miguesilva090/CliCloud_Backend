@@ -7,7 +7,7 @@ using CliCloud.Domain.Entities.Common;
 namespace CliCloud.Domain.Entities.UnidadesLocaisSaude
 {
   [Table("UnidadesLocaisSaude", Schema = "UnidadesLocaisSaude")]
-  public class UnidadesLocaisSaude : AuditableEntity
+  public class UnidadesLocaisSaude : AuditableEntityWithSoftDelete
   {
     [Required]
     public int Codigo { get; set; }

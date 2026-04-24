@@ -10,7 +10,7 @@ using CliCloud.Domain.Entities.TaxasIva;
 namespace CliCloud.Domain.Entities.Servicos
 {
   [Table("Servico", Schema = "Servicos")]
-  public class Servico : AuditableEntity
+  public class Servico : AuditableEntityWithSoftDelete
   {
     [Required]
     [StringLength(250)]

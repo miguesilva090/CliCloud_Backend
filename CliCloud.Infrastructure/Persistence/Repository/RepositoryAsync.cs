@@ -336,11 +336,6 @@ namespace CliCloud.Infrastructure.Persistence.Repository
       return await _context.SaveChangesAsync();
     }
 
-    public async Task<int> ExecuteSqlRawAsync(string sql, params object[] parameters)
-    {
-      return await _context.Database.ExecuteSqlRawAsync(sql, parameters);
-    }
-
     // clear the change tracker to reset context state
     public void ClearChangeTracker()
     {

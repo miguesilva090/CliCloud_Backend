@@ -8,7 +8,7 @@ using CliCloud.Domain.Entities.Servicos;
 namespace CliCloud.Domain.Entities.Medicos
 {
     [Table("MargemMedico", Schema = "Medicos")]
-    public class MargemMedico : AuditableEntity
+    public class MargemMedico : AuditableEntityWithSoftDelete
     {
         [Key]
         public new Guid Id { get; set; }

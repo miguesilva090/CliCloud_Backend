@@ -10,7 +10,7 @@ using CliCloud.Domain.Entities.Utility;
 namespace CliCloud.Domain.Entities.Atestados
 {
     [Table("Atestado", Schema = "Atestados")]
-    public class Atestado : AuditableEntity
+    public class Atestado : AuditableEntityWithSoftDelete
     {
         public Guid UtenteId { get; set; }
         public Utente? Utente { get; set; }

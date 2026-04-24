@@ -183,7 +183,7 @@ public class ReferenciasMbService(IRepositoryAsync repository, IConfiguration co
         }
         catch (Exception ex) when (IsMissingConfigTable(ex))
         {
-            return ResponseFactory.Fail<string>("Tabela Core.ConfigReferenciaMB não existe. Execute as migrações da base de dados.");
+            return ResponseFactory.Fail<string>("Tabela Configuração MB não existe.");
         }
 
         if (conf == null)

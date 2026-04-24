@@ -8,7 +8,7 @@ using CliCloud.Domain.Enums;
 namespace CliCloud.Domain.Entities.Tecnicos
 {
   [Table("HorarioTecnicoDia", Schema = "Tecnicos")]
-  public class HorarioTecnicoDia : AuditableEntity
+  public class HorarioTecnicoDia : AuditableEntityWithSoftDelete
   {
     [Key]
     public new Guid Id { get; set; }

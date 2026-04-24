@@ -7,7 +7,7 @@ using CliCloud.Domain.Entities.Common;
 namespace CliCloud.Domain.Entities.ProcessoClinico.SeparadoresPersonalizados;
 
 [Table("Separador", Schema = "ProcessoClinico")]
-public class Separador : AuditableEntity
+public class Separador : AuditableEntityWithSoftDelete
 {
     [Key]
     public new Guid Id { get; set; }

@@ -13,13 +13,11 @@ using CliCloud.Infrastructure.Encryption;
 using CliCloud.Infrastructure.Images;
 using CliCloud.Infrastructure.Mailer;
 using CliCloud.Infrastructure.Mapper;
-using CliCloud.Infrastructure.Identity;
 using CliCloud.Infrastructure.Persistence.Contexts;
 using CliCloud.Infrastructure.Persistence.Extensions;
 using CliCloud.WebApi.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
@@ -142,6 +140,7 @@ namespace CliCloud.WebApi.Extensions
       _ = services.AddTransient<IServicoSms, ServicoSms>();
       _ = services.AddTransient<IServicoWebhookSms, ServicoWebhookSms>();
       _ = services.AddTransient<IServicoVoz, ServicoVoz>();
+      _ = services.AddTransient<ITokenService, TokenService>();
       _ = services.AddTransient<IConfiguracaoTeleconsultaService, ConfiguracaoTeleconsultaService>();
       _ = services.AddTransient<IServicoTeleconsulta, ServicoTeleconsulta>();
       _ = services.AddTransient<IChamadaUtentesService, ChamadaUtentesService>();
@@ -156,36 +155,8 @@ namespace CliCloud.WebApi.Extensions
           sqlOptions => sqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
         )
       );
-      
-      // Identity tables (AuthDbContext) — separado do contexto de negócio
-      _ = services.AddDbContext<AuthDbContext>(options =>
-        options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"))
-      );
 
       _ = services.AddHttpContextAccessor();
-
-      _ = services
-        .AddIdentityCore<ApplicationUser>(options =>
-        {
-          // Password policy (robusto)
-          options.Password.RequiredLength = 12;
-          options.Password.RequireDigit = true;
-          options.Password.RequireLowercase = true;
-          options.Password.RequireUppercase = true;
-          options.Password.RequireNonAlphanumeric = true;
-
-          // Lockout (brute-force protection)
-          options.Lockout.AllowedForNewUsers = true;
-          options.Lockout.MaxFailedAccessAttempts = 5;
-          options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
-
-          // User
-          options.User.RequireUniqueEmail = true;
-        })
-        .AddRoles<IdentityRole>()
-        .AddEntityFrameworkStores<AuthDbContext>()
-        .AddSignInManager()
-        .AddDefaultTokenProviders();
 
       _ = services.AddAndMigrateDatabase<ApplicationDbContext>(configuration);
       #endregion
@@ -201,6 +172,9 @@ namespace CliCloud.WebApi.Extensions
         })
         .AddJwtBearer(o =>
         {
+          // Preserva nomes das claims tal como no JWT (aspnet_user_id, clinica_id, uid, roles, …).
+          // Com o default true, o JwtSecurityTokenHandler pode mapear tipos e a leitura por FindFirstValue("aspnet_user_id") falha.
+          o.MapInboundClaims = false;
           o.RequireHttpsMetadata = false;
           o.SaveToken = false;
           o.TokenValidationParameters = new TokenValidationParameters
@@ -215,6 +189,7 @@ namespace CliCloud.WebApi.Extensions
             IssuerSigningKey = new SymmetricSecurityKey(
               Encoding.UTF8.GetBytes(configuration["JWTSettings:Key"] ?? string.Empty)
             ),
+            RoleClaimType = "roles",
           };
           o.Events = new JwtBearerEvents()
           {

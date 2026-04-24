@@ -11,7 +11,7 @@ namespace CliCloud.Domain.Entities.Tratamentos
     /// Utilizado em Tratamento.LocalTratamentoId.
     /// </summary>
     [Table("LocaisTratamento", Schema = "Tratamentos")]
-    public class LocalTratamento : AuditableEntity
+    public class LocalTratamento : AuditableEntityWithSoftDelete
     {
         [Key]
         public new Guid Id { get; set; }

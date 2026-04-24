@@ -7,7 +7,7 @@ using CliCloud.Domain.Entities.Utentes;
 namespace CliCloud.Domain.Entities.ProcessoClinico.SinaisVitais 
 {
     [Table("GorduraMassaMuscular", Schema = "SinaisVitais")]
-    public class GorduraMassaMuscular : AuditableEntity
+    public class GorduraMassaMuscular : AuditableEntityWithSoftDelete
     {
         public Guid UtenteId { get; set; }
         public Utente Utente { get; set; } = null!;

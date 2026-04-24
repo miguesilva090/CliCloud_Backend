@@ -16,7 +16,7 @@ using CliCloud.Domain.Enums;
 namespace CliCloud.Domain.Entities.Consultas
 {
   [Table("Consulta", Schema = "Consultas")]
-  public class Consulta : AuditableEntity
+  public class Consulta : AuditableEntityWithSoftDelete
   {
     public Guid? UtenteId { get; set; }
     public Utente? Utente { get; set; }

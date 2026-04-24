@@ -104,8 +104,8 @@ namespace CliCloud.WebApi.Middleware
           fileNotFoundEx
         );
 
-        // devolver a mensagem original, com o caminho completo do report
-        Response response = Response.Fail(fileNotFoundEx.Message);
+        // Evita expor caminhos internos do servidor para o cliente.
+        Response response = Response.Fail("O arquivo solicitado não foi encontrado.");
 
         httpContext.Response.ContentType = "application/json";
         httpContext.Response.StatusCode = (int)HttpStatusCode.NotFound;

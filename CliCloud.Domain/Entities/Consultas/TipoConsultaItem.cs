@@ -11,7 +11,7 @@ namespace CliCloud.Domain.Entities.Consultas
     /// Permite ver e editar; inserções via seed ou import.
     /// </summary>
     [Table("TiposConsulta", Schema = "Consultas")]
-    public class TipoConsultaItem : AuditableEntity
+    public class TipoConsultaItem : AuditableEntityWithSoftDelete
     {
         [Key]
         public new Guid Id { get; set; }

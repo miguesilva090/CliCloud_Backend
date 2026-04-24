@@ -10,7 +10,7 @@ namespace CliCloud.Domain.Entities.Tratamentos
     /// Estado da lista de espera (ex: Aguarda marcação definitiva, Em tentativa de contacto).
     /// </summary>
     [Table("EstadosListaEspera", Schema = "Tratamentos")]
-    public class EstadoListaEspera : AuditableEntity
+    public class EstadoListaEspera : AuditableEntityWithSoftDelete
     {
         [Key]
         public new Guid Id { get; set; }

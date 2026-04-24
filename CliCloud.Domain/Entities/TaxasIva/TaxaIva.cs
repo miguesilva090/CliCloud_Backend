@@ -7,7 +7,7 @@ using CliCloud.Domain.Entities.Common;
 namespace CliCloud.Domain.Entities.TaxasIva
 {
     [Table("TaxaIva", Schema = "Utility")]
-    public class TaxaIva : AuditableEntity
+    public class TaxaIva : AuditableEntityWithSoftDelete
     {
         [Key]
         public new Guid Id { get; set; }

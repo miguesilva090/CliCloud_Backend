@@ -7,7 +7,7 @@ using CliCloud.Domain.Entities.Core;
 namespace CliCloud.Domain.Entities.Consultas
 {
   [Table("Sala", Schema = "Consultas")]
-  public class Sala : AuditableEntity
+  public class Sala : AuditableEntityWithSoftDelete
   {
     public string Nome { get; set; } = string.Empty;
     public int NumeroSala { get; set; }

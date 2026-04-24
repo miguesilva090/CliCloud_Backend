@@ -8,7 +8,7 @@ using CliCloud.Domain.Entities.Especialidades;
 namespace CliCloud.Domain.Entities.HistoriaClinica;
 
 [Table("HistoriasClinicas", Schema = "HistoriaClinica")]
-public class HistoriaClinica : AuditableEntity
+public class HistoriaClinica : AuditableEntityWithSoftDelete
 {
     [Key]
     public new Guid Id { get; set; }

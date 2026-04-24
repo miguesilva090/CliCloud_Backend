@@ -4,6 +4,7 @@ using CliCloud.Domain.Entities.CartaConducao;
 using CliCloud.Domain.Entities.Consultas;
 using CliCloud.Domain.Entities.Exames;
 using CliCloud.Domain.Entities.Core;
+using CliCloud.Domain.Entities.Core.Email;
 using CliCloud.Domain.Entities.Documentos;
 using CliCloud.Domain.Entities.Servicos;
 using CliCloud.Domain.Entities.Seguradoras;
@@ -33,6 +34,9 @@ using CliCloud.Application.Common;
 using System.Globalization;
 using DoencaDtos = CliCloud.Application.Services.Doencas.DoencaService.DTOs;
 using TipoConsultaDtos = CliCloud.Application.Services.TiposConsulta.TipoConsultaService.DTOs;
+using CliCloud.Domain.Entities.ProcessoClinico.Estomatologia;
+using CliCloud.Domain.Entities.ProcessoClinico.Odontologia;
+using CliCloud.Domain.Entities.Notificacoes;
 
 // TipoAparelho, MarcaAparelho, ModeloAparelho, Exame, Aparelho, Clinica, Seguradora, Recibo — Fase 0 services
 using TipoAparelhoDtos = CliCloud.Application.Services.Tratamentos.TipoAparelhoService.DTOs;
@@ -165,8 +169,10 @@ using AnamneseOrtodonticaDenticaoDeciduaeMistaDtos = CliCloud.Application.Servic
 using AnamneseOrtodonticaATMDtos = CliCloud.Application.Services.ProcessoClinico.Estomatologia.AnamneseOrtodonticaATMService.DTOs;
 using AnamneseOrtodonticaAnaliseFuncionalDtos = CliCloud.Application.Services.ProcessoClinico.Estomatologia.AnamneseOrtodonticaAnaliseFuncionalService.DTOs;
 using SmsDtos = CliCloud.Application.Services.Core.SmsService.DTOs;
-using CliCloud.Domain.Entities.ProcessoClinico.Estomatologia;
-using CliCloud.Domain.Entities.ProcessoClinico.Odontologia;
+using NotificacaoTipoDtos = CliCloud.Application.Services.Notificacoes.NotificacaoTipoService.DTOs;
+using NotificacaoDtos = CliCloud.Application.Services.Notificacoes.NotificacaoService.DTOs;
+
+
 
 namespace CliCloud.Infrastructure.Mapper
 {
@@ -880,6 +886,7 @@ namespace CliCloud.Infrastructure.Mapper
       _ = CreateMap<Clinica, ClinicaDtos.ClinicaDTO>();
       _ = CreateMap<Clinica, ClinicaDtos.ClinicaLightDTO>();
       _ = CreateMap<Clinica, ClinicaDtos.ClinicaTableDTO>();
+      _ = CreateMap<HistoricoEmail, CliCloud.Application.Services.Core.EmailService.DTOs.HistoricoEmailTabelaDTO>();
       _ = CreateMap<ClinicaDtos.CreateClinicaRequest, Clinica>();
       // Não queremos que o payload parcial (quando ainda nem todas as abas estão mapeadas)
       // apague valores existentes. Se o campo vier null, mantemos o que está.
@@ -1268,6 +1275,9 @@ namespace CliCloud.Infrastructure.Mapper
         .ForMember(d => d.PrimeiraConsulta, o => o.Ignore())
         .ForMember(d => d.Medico, o => o.Ignore())
         .ForMember(d => d.Horarios, o => o.Ignore());
+      // HorarioMedicoDiaDTO.HorarioMedico é HorarioMedicoLightDTO (não a entidade)
+      _ = CreateMap<HorarioMedico, HorarioMedicoDtos.HorarioMedicoLightDTO>()
+        .ForMember(d => d.MedicoNome, o => o.MapFrom(s => s.Medico != null ? s.Medico.Nome : null));
 
       // ---- ViaAdministracao ----
       _ = CreateMap<CliCloud.Domain.Entities.Artigos.ViaAdministracao, ViaAdministracaoDtos.ViaAdministracaoDTO>();
@@ -2100,6 +2110,32 @@ namespace CliCloud.Infrastructure.Mapper
         .ForMember(d => d.Id, o => o.Ignore());
       _ = CreateMap<TiposTratamentoDentarioDtos.UpdateTiposTratamentoDentarioRequest, TipoTratamentoDentario>()
         .ForMember(d => d.Id, o => o.Ignore());
+
+      // ---- NotificacaoTipo ----
+       _ = CreateMap<CliCloud.Domain.Entities.Notificacoes.NotificacaoTipo, NotificacaoTipoDtos.NotificacaoTipoDTO>();
+      _ = CreateMap<CliCloud.Domain.Entities.Notificacoes.NotificacaoTipo, NotificacaoTipoDtos.NotificacaoTipoLightDTO>();
+      _ = CreateMap<CliCloud.Domain.Entities.Notificacoes.NotificacaoTipo, NotificacaoTipoDtos.NotificacaoTipoTableDTO>();
+      _ = CreateMap<NotificacaoTipoDtos.CreateNotificacaoTipoRequest, CliCloud.Domain.Entities.Notificacoes.NotificacaoTipo>()
+        .ForMember(d => d.Id, o => o.Ignore());
+      _ = CreateMap<NotificacaoTipoDtos.UpdateNotificacaoTipoRequest, CliCloud.Domain.Entities.Notificacoes.NotificacaoTipo>()
+        .ForMember(d => d.Id, o => o.Ignore());
+
+      // ---- Notificacao ----
+      _ = CreateMap<Notificacao, NotificacaoDtos.NotificacaoDTO>()
+        .ForMember(
+          d => d.TipoDesignacao,
+          o => o.MapFrom(s => s.NotificacaoTipo != null ? s.NotificacaoTipo.DesignacaoTipo : null));
+      _ = CreateMap<Notificacao, NotificacaoDtos.NotificacaoTableDTO>()
+        .ForMember(
+          d => d.TipoDesignacao,
+          o => o.MapFrom(s => s.NotificacaoTipo != null ? s.NotificacaoTipo.DesignacaoTipo : null))
+        .ForMember(d => d.Lida, o => o.MapFrom(s => s.DataLeitura.HasValue));
+      _ = CreateMap<NotificacaoDtos.CreateNotificacaoRequest, Notificacao>()
+        .ForMember(d => d.Id, o => o.Ignore())
+        .ForMember(d => d.NotificacaoTipo, o => o.Ignore())
+        .ForMember(d => d.RemetenteId, o => o.Ignore())
+        .ForMember(d => d.DataLeitura, o => o.Ignore())
+        .ForMember(d => d.LeituraPor, o => o.Ignore());
 
       
     }

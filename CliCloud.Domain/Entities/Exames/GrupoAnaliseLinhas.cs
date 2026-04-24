@@ -11,7 +11,7 @@ namespace CliCloud.Domain.Entities.Exames
     /// Opcionalmente permite overrides de descrição/unidade/valores de referência para esta linha.
     /// </summary>
     [Table("GrupoAnaliseLinha", Schema = "Exames")]
-    public class GrupoAnaliseLinha : AuditableEntity
+    public class GrupoAnaliseLinha : AuditableEntityWithSoftDelete
     {
         [Key]
         public new Guid Id { get; set; }

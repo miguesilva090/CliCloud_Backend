@@ -8,7 +8,7 @@ using CliCloud.Domain.Entities.Servicos;
 namespace CliCloud.Domain.Entities.Tratamentos
 {
   [Table("ServicoSessao", Schema = "Tratamentos")]
-  public class ServicoSessao : AuditableEntity
+  public class ServicoSessao : AuditableEntityWithSoftDelete
   {
     // Relacionamento com SessaoTratamento
     public Guid SessaoTratamentoId { get; set; }

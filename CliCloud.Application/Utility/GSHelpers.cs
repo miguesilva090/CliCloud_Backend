@@ -146,5 +146,28 @@ namespace CliCloud.Application.Utility
 
       return result.ToString();
     }
+
+    /// <summary>
+    /// Aceita vazio, URL absoluta http(s), ou caminho relativo à raiz (formato guardado após upload, ex. /assets/...).
+    /// </summary>
+    public static bool BeValidUrlFotoOrEmpty(string? url)
+    {
+      if (string.IsNullOrWhiteSpace(url))
+      {
+        return true;
+      }
+
+      if (url.StartsWith("/", StringComparison.Ordinal))
+      {
+        return true;
+      }
+
+      if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? uri))
+      {
+        return false;
+      }
+
+      return uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps;
+    }
   }
 }

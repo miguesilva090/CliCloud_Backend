@@ -12,7 +12,7 @@ using CliCloud.Domain.Enums;
 namespace CliCloud.Domain.Entities.Documentos
 {
   [Table("Documento", Schema = "Documentos")]
-  public class Documento : AuditableEntity
+  public class Documento : AuditableEntityWithSoftDelete
   {
     // Identificação do documento
     public Guid TipoDocumentoId { get; set; }

@@ -5,7 +5,7 @@ using CliCloud.Domain.Entities.Common;
 namespace CliCloud.Domain.Entities.Common.Configurations;
 
 [Table("ConfigWebService", Schema = "Core")]
-public class ConfigWebService : AuditableEntity
+public class ConfigWebService : AuditableEntityWithSoftDelete
 {
     [Required]
     public Guid ClinicaId { get; set; }

@@ -178,26 +178,23 @@ namespace CliCloud.Application.Services.Consultas.ConsultaService
     {
       try
       {
-        var statusConcluida = (int)StatusConsulta.Concluida;
-        var horaFimStr = DateTime.Now.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture);
-
-        var rows = await _repository.ExecuteSqlRawAsync(
-          "UPDATE Consultas.Consulta SET StatusConsulta = {0}, HoraFim = {1} WHERE Id = {2} AND DeletedOn IS NULL",
-          statusConcluida,
-          horaFimStr,
-          id
-        );
-
-        if (rows == 0)
-        {
+        var horaFim = DateTime.Now.TimeOfDay;
+        var consulta = await _repository.GetByIdAsync<Consulta, Guid>(id);
+        if (consulta == null || consulta.DeletedOn != null)
           return ResponseFactory.Fail<Guid>("Consulta não encontrada.");
+
+        consulta.StatusConsulta = StatusConsulta.Concluida;
+        consulta.HoraFim = horaFim;
+        _ = await _repository.UpdateAsync<Consulta, Guid>(consulta);
+
+        var marcacoes = await _repository.GetListAsync<ConsultaMarcacao, Guid>();
+        foreach (var marcacao in marcacoes.Where(x => x.ConsultaId == id && x.DeletedOn == null))
+        {
+          marcacao.StatusConsulta = StatusConsulta.Concluida;
+          _ = await _repository.UpdateAsync<ConsultaMarcacao, Guid>(marcacao);
         }
 
-        await _repository.ExecuteSqlRawAsync(
-          "UPDATE Consultas.ConsultaMarcacao SET StatusConsulta = {0} WHERE ConsultaId = {1} AND DeletedOn IS NULL",
-          statusConcluida,
-          id
-        );
+        _ = await _repository.SaveChangesAsync();
 
         // Criar registo de faturação se ainda não existir
         var existeFaturacao = await _repository.ExistsAsync<ConsultaFaturacao, Guid>(

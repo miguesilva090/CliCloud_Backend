@@ -28,6 +28,8 @@ namespace CliCloud.Application.Services.Medicos.MedicoService.DTOs
         public string? NumeroPorta { get; set; }
         public string? AndarRua { get; set; }
         public int? Status { get; set; }
+        /// <summary>Foto do médico (Entidade.UrlFoto), para listagens e avatares.</summary>
+        public string? UrlFoto { get; set; }
         public DateTime CreatedOn { get; set; }
         public int ContactoCount { get; set; }
 

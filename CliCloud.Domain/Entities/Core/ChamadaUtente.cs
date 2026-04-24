@@ -7,7 +7,7 @@ using CliCloud.Domain.Entities.Common;
 namespace CliCloud.Domain.Entities.Core
 {
   [Table("ChamadaUtente", Schema = "Core")]
-  public class ChamadaUtente : AuditableEntity
+  public class ChamadaUtente : AuditableEntityWithSoftDelete
   {
     public Guid ClinicaId { get; set; }
     public Clinica Clinica { get; set; } = null!;

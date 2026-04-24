@@ -11,7 +11,7 @@ namespace CliCloud.Domain.Entities.Tratamentos
     /// Chave primária é Guid herdado de AuditableEntity; sem IdPrioridade.
     /// </summary>
     [Table("Prioridades", Schema = "Tratamentos")]
-    public class Prioridade : AuditableEntity
+    public class Prioridade : AuditableEntityWithSoftDelete
     {
         [Key]
         public new Guid Id { get; set; }

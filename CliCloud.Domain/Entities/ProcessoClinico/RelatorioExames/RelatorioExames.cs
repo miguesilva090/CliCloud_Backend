@@ -10,7 +10,7 @@ using CliCloud.Domain.Entities.Medicos;
 namespace CliCloud.Domain.Entities.ProcessoClinico.RelatorioExames
 {
     [Table("RelatorioExames", Schema = "ProcessoClinico")]
-    public class RelatorioExames : AuditableEntity
+    public class RelatorioExames : AuditableEntityWithSoftDelete
     {
 
         [Key]

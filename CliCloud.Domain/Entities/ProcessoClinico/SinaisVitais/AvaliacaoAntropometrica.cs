@@ -7,7 +7,7 @@ using CliCloud.Domain.Entities.Utentes;
 namespace CliCloud.Domain.Entities.ProcessoClinico.SinaisVitais 
 {
     [Table("AvaliacaoAntropometrica", Schema = "SinaisVitais")]
-    public class AvaliacaoAntropometrica : AuditableEntity
+    public class AvaliacaoAntropometrica : AuditableEntityWithSoftDelete
     {
         public Guid UtenteId { get; set; }
         public Utente Utente { get; set; } = null!;

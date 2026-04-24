@@ -7,7 +7,7 @@ using CliCloud.Domain.Entities.Common;
 namespace CliCloud.Domain.Entities.Moedas
 {
     [Table("Moeda", Schema = "Utility")]
-    public class Moeda : AuditableEntity
+    public class Moeda : AuditableEntityWithSoftDelete
     {
         [Key]
         public new Guid Id { get; set; }

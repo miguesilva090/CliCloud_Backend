@@ -8,7 +8,7 @@ using CliCloud.Domain.Entities.Organismos;
 namespace CliCloud.Domain.Entities.Tratamentos
 {
     [Table("TiposDeDor", Schema = "Tratamentos")]
-    public class TipoDeDor : AuditableEntity
+    public class TipoDeDor : AuditableEntityWithSoftDelete
     {
         [Key]
         public new Guid Id { get; set; }

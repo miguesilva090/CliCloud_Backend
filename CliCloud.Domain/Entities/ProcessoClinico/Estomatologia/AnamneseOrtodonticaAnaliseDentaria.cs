@@ -5,7 +5,7 @@ using CliCloud.Domain.Entities.Utentes;
 
 namespace CliCloud.Domain.Entities.ProcessoClinico.Estomatologia{
     [Table("AnamneseOrtodonticaAnaliseDentaria", Schema = "Estomatologia")]
-    public class AnamneseOrtodonticaAnaliseDentaria : AuditableEntity
+    public class AnamneseOrtodonticaAnaliseDentaria : AuditableEntityWithSoftDelete
     {
         [Key]
         public new Guid Id {get;set;}
