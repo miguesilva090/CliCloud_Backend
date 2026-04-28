@@ -72,6 +72,7 @@ namespace CliCloud.Infrastructure.Persistence.Configurations
       // Indexes
       builder.HasIndex(u => u.NumeroUtente);
       builder.HasIndex(u => u.NumeroSegurancaSocial);
+      builder.HasIndex(u => u.IdUtilizador);
     }
   }
 }

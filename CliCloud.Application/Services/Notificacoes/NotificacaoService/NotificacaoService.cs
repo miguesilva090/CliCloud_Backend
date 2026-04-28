@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using AutoMapper;
 using CliCloud.Application.Common;
 using CliCloud.Application.Common.Filter;
@@ -86,6 +88,11 @@ public class NotificacaoService : INotificacaoService
         return ResponseFactory.Fail<NotificacaoDTO>("Notificação não encontrada ou sem permissão.");
 
       NotificacaoDTO dto = _mapper.Map<NotificacaoDTO>(entity);
+      dto.EstadoDesignacao = NotificacaoLabels.EstadoPt(dto.Estado);
+      dto.PrioridadeDesignacao = NotificacaoLabels.PrioridadePt(dto.Prioridade);
+      dto.AlcanceResumo = entity.DestinatarioUtilizadorId.HasValue
+        ? "Utilizador específico"
+        : "Anúncio à clínica (todos os utilizadores da clínica)";
       return ResponseFactory.Success(dto);
     }
     catch (Exception ex)
@@ -94,28 +101,50 @@ public class NotificacaoService : INotificacaoService
     }
   }
 
-  public async Task<Response<Guid>> CreateNotificacaoAsync(CreateNotificacaoRequest request)
+  public async Task<Response<IReadOnlyList<Guid>>> CreateNotificacaoAsync(CreateNotificacaoRequest request)
   {
     try
     {
       (Guid utilizadorId, Guid? clinicaId) = await ResolveContextoAsync();
-      bool tipoExiste = await _repository.ExistsAsync<NotificacaoTipo, Guid>(
-        new NotificacaoTipoExistsById(request.NotificacaoTipoId));
-      if (!tipoExiste)
-        return ResponseFactory.Fail<Guid>("Tipo de notificação inválido.");
 
-      NotificacaoEntity entity = _mapper.Map(request, new NotificacaoEntity { Id = Guid.NewGuid() });
-      entity.RemetenteId = utilizadorId;
-      if (entity.ClinicaDestinoId == null)
-        entity.ClinicaDestinoId = clinicaId;
+      NotificacaoTipo? tipoEntidade =
+        await _repository.GetByIdAsync<NotificacaoTipo, Guid>(request.NotificacaoTipoId);
+      if (tipoEntidade == null)
+        return ResponseFactory.Fail<IReadOnlyList<Guid>>("Tipo de notificação inválido.");
+      if (tipoEntidade.ReservadoSistema)
+        return ResponseFactory.Fail<IReadOnlyList<Guid>>(
+          $"Não é possível criar notificações do tipo «{tipoEntidade.DesignacaoTipo}».");
 
-      NotificacaoEntity response = await _repository.CreateAsync<NotificacaoEntity, Guid>(entity);
+      List<Guid?> destinatarios = [];
+      if (request.DestinatariosUtilizadorIds is { Count: > 0 })
+      {
+        foreach (Guid uid in request.DestinatariosUtilizadorIds.Distinct())
+          destinatarios.Add(uid);
+      }
+      else if (request.DestinatarioUtilizadorId.HasValue)
+        destinatarios.Add(request.DestinatarioUtilizadorId.Value);
+      else
+        destinatarios.Add(null);
+
+      List<Guid> criadas = [];
+      foreach (Guid? destino in destinatarios)
+      {
+        NotificacaoEntity entity = _mapper.Map(request, new NotificacaoEntity { Id = Guid.NewGuid() });
+        entity.RemetenteId = utilizadorId;
+        entity.DestinatarioUtilizadorId = destino;
+        if (entity.ClinicaDestinoId == null)
+          entity.ClinicaDestinoId = clinicaId;
+
+        NotificacaoEntity created = await _repository.CreateAsync<NotificacaoEntity, Guid>(entity);
+        criadas.Add(created.Id);
+      }
+
       _ = await _repository.SaveChangesAsync();
-      return ResponseFactory.Success(response.Id);
+      return ResponseFactory.Success<IReadOnlyList<Guid>>(criadas);
     }
     catch (Exception ex)
     {
-      return ResponseFactory.Fail<Guid>(ex.Message);
+      return ResponseFactory.Fail<IReadOnlyList<Guid>>(ex.Message);
     }
   }
 

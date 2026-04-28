@@ -115,6 +115,8 @@ namespace CliCloud.Application.Services.Utentes.UtenteService.DTOs
         public string? NDocMigrante { get; set; }
         public DateTime? DataRegisto { get; set; }
         public TipoTaxaModeradora? TipoTaxaModeradora { get; set; }
+        /// <summary>Conta de utilizador na plataforma (portal / notificações).</summary>
+        public Guid? IdUtilizador { get; set; }
         public IEnumerable<UtenteSubsistemaLinhaDTO>? SubsistemaLinhas { get; set; }
     }
 }

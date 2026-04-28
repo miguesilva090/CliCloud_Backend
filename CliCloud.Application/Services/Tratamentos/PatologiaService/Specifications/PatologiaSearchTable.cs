@@ -34,7 +34,35 @@ namespace CliCloud.Application.Services.Tratamentos.PatologiaService.Specificati
       if (string.IsNullOrEmpty(dynamicOrder))
         _ = Query.OrderBy(x => x.Designacao);
       else
-        _ = Query.OrderBy(dynamicOrder);
+        _ = Query.OrderBy(NormalizePatologiaOrder(dynamicOrder));
+    }
+
+    private static string NormalizePatologiaOrder(string orderByFields)
+    {
+      if(string.IsNullOrWhiteSpace(orderByFields))
+      {
+        return orderByFields;
+      }
+
+      string[] segments = orderByFields.Split(
+        ',',
+        StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+      );
+
+      for (int i = 0; i < segments.Length; i++)
+      {
+        string s = segments[i];
+        bool desc = s.StartsWith('-');
+        string field = desc ? s[1..] : s;
+
+        string mapped = field.Equals("organismoNome", StringComparison.OrdinalIgnoreCase)
+          ? "Organismo.Nome"
+          : field;
+
+        segments[i] = desc ? "-" + mapped : mapped;
+      }
+
+      return string.Join(",", segments);
     }
   }
 }

@@ -30,8 +30,36 @@ namespace CliCloud.Application.Services.Servicos.ServicoService.Specifications
       }
       else
       {
-        _ = Query.OrderBy(dynamicOrder);
+        _ = Query.OrderBy(NormalizeServicoOrder(dynamicOrder));
       }
+    }
+
+    private static string NormalizeServicoOrder(string orderByFields)
+    {
+      if (string.IsNullOrWhiteSpace(orderByFields))
+      {
+        return orderByFields;
+      }
+
+      string[] segments = orderByFields.Split(
+        ',',
+        StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+      );
+
+      for (int i = 0; i < segments.Length; i++)
+      {
+        string s = segments[i];
+        bool desc = s.StartsWith('-');
+        string field = desc ? s[1..] : s;
+
+        string mapped = field.Equals("tipoServicoDescricao", StringComparison.OrdinalIgnoreCase)
+          ? "TipoServico.Descricao"
+          : field;
+
+        segments[i] = desc ? "-" + mapped : mapped;
+      }
+
+      return string.Join(",", segments);
     }
   }
 }

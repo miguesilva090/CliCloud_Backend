@@ -84,6 +84,8 @@ namespace CliCloud.Application.Services.Utentes.UtenteService.DTOs
         public DateTime? DataRegisto { get; set; }
         public TipoTaxaModeradora? TipoTaxaModeradora { get; set; }
         public IEnumerable<UpsertUtenteSubsistemaLinhaItemRequest>? SubsistemaLinhas { get; set; }
+        /// <summary>GUID da conta na plataforma (opcional).</summary>
+        public string? IdUtilizador { get; set; }
     }
 
     public class CreateUtenteValidator : AbstractValidator<CreateUtenteRequest>
@@ -116,6 +118,7 @@ namespace CliCloud.Application.Services.Utentes.UtenteService.DTOs
             _ = RuleFor(x => x.UrlFoto).Must(url => string.IsNullOrEmpty(url) || Uri.TryCreate(url, UriKind.Absolute, out _)).WithMessage("UrlFoto deve ser uma URL válida.");
             _ = RuleFor(x => x.EntidadeContactos).NotEmpty().WithMessage("EntidadeContactos deve ser um array não vazio.");
             _ = RuleForEach(x => x.EntidadeContactos).SetValidator(new CreateEntidadeContactoItemValidator()).When(x => x.EntidadeContactos != null);
+            _ = RuleFor(x => x.IdUtilizador).Must(id => string.IsNullOrWhiteSpace(id) || GSHelpers.BeValidGuid(id)).WithMessage("IdUtilizador deve ser um GUID válido.");
         }
     }
 }

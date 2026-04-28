@@ -6,7 +6,10 @@ using CliCloud.Application.Utility;
 using CliCloud.Application.Services.Consultas.ConsultaService.DTOs;
 using CliCloud.Application.Services.Consultas.ConsultaService.Filters;
 using CliCloud.Application.Services.Consultas.ConsultaService.Specifications;
+using CliCloud.Application.Services.Utentes.UtenteService.DTOs;
+using CliCloud.Application.Services.Utentes.UtenteService.Specifications;
 using CliCloud.Domain.Entities.Consultas;
+using CliCloud.Domain.Entities.Utentes;
 using CliCloud.Domain.Enums;
 using CliCloud.Application.Services.Medicos.MedicoService;
 
@@ -55,11 +58,13 @@ namespace CliCloud.Application.Services.Consultas.ConsultaService
 
       var order = filter.Sorting != null ? GSHelpers.GenerateOrderByString(filter) : "";
       var spec = new ConsultaSearchTable(filter.Filters ?? [], order);
-      return await _repository.GetPaginatedResultsAsync<Consulta, ConsultaTableDTO, Guid>(
-        filter.PageNumber,
-        filter.PageSize,
-        spec
-      );
+      PaginatedResponse<ConsultaTableDTO> result = await _repository.GetPaginatedResultsAsync<
+        Consulta,
+        ConsultaTableDTO,
+        Guid
+      >(filter.PageNumber, filter.PageSize, spec);
+      await HydrateConsultaUtenteNumerosAsync(result.Data);
+      return result;
     }
 
     // all (non-paginated)
@@ -71,8 +76,11 @@ namespace CliCloud.Application.Services.Consultas.ConsultaService
         var order = filter.GetOrderByString();
         var filters = filter.Filters ?? new List<TableFilter>();
         var spec = new ConsultaSearchTable(filters, order);
-        var list = await _repository.GetListAsync<Consulta, ConsultaTableDTO, Guid>(spec);
-        return ResponseFactory.Success(list);
+        List<ConsultaTableDTO> list = (await _repository.GetListAsync<Consulta, ConsultaTableDTO, Guid>(
+          spec
+        )).ToList();
+        await HydrateConsultaUtenteNumerosAsync(list);
+        return ResponseFactory.Success<IEnumerable<ConsultaTableDTO>>(list);
       }
       catch (Exception ex)
       {
@@ -284,6 +292,36 @@ namespace CliCloud.Application.Services.Consultas.ConsultaService
       if (ok.Count == list.Count) return ResponseFactory.Success<IEnumerable<Guid>>(ok);
       if (ok.Count > 0) return ResponseFactory.PartialSuccess<IEnumerable<Guid>>(ok, $"Eliminadas {ok.Count} de {list.Count}.");
       return ResponseFactory.Fail<IEnumerable<Guid>>(string.Join("; ", fail));
+    }
+
+    /// <summary>
+    /// Preenche o número de utente com <c>Utente.NumeroUtente</c> via projeção sobre a entidade
+    /// <see cref="Utente"/> (mesma origem que a listagem paginada de utentes).
+    /// </summary>
+    private async Task HydrateConsultaUtenteNumerosAsync(IReadOnlyCollection<ConsultaTableDTO> rows)
+    {
+      List<Guid> ids = rows
+        .Where(r => r.UtenteId.HasValue)
+        .Select(r => r.UtenteId!.Value)
+        .Distinct()
+        .ToList();
+      if (ids.Count == 0)
+      {
+        return;
+      }
+
+      UtenteNumerosByIdsSpecification spec = new(ids);
+      List<UtenteNumeroLookupDTO> lookups = (
+        await _repository.GetListAsync<Utente, UtenteNumeroLookupDTO, Guid>(spec)
+      ).ToList();
+      Dictionary<Guid, string?> dict = lookups.ToDictionary(x => x.Id, x => x.NumeroUtente);
+      foreach (ConsultaTableDTO row in rows)
+      {
+        if (row.UtenteId.HasValue && dict.TryGetValue(row.UtenteId.Value, out string? numero))
+        {
+          row.UtenteNumero = numero;
+        }
+      }
     }
   }
 }

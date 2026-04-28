@@ -4,6 +4,7 @@ using CliCloud.Infrastructure.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CliCloud.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260427082949_Add_Utente_IdUtilizador")]
+    partial class Add_Utente_IdUtilizador
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -5948,52 +5951,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.HasIndex("UtenteId");
 
                     b.ToTable("AnamneseOrtodonticaDenticaoDeciduaeMista", "Estomatologia");
-                });
-
-            modelBuilder.Entity("CliCloud.Domain.Entities.ProcessoClinico.Estomatologia.HistoriaDentaria", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("DataRegisto")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("DeletedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("DeletedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("HistoriaHtml")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid?>("LastModifiedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("LastModifiedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid>("MedicoId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("UtenteId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MedicoId");
-
-                    b.HasIndex("UtenteId", "DataRegisto");
-
-                    b.ToTable("HistoriaDentaria", "Estomatologia");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.ProcessoClinico.HabitosEVicios", b =>
@@ -12377,25 +12334,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .HasForeignKey("UtenteId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
-
-                    b.Navigation("Utente");
-                });
-
-            modelBuilder.Entity("CliCloud.Domain.Entities.ProcessoClinico.Estomatologia.HistoriaDentaria", b =>
-                {
-                    b.HasOne("CliCloud.Domain.Entities.Medicos.Medico", "Medico")
-                        .WithMany()
-                        .HasForeignKey("MedicoId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("CliCloud.Domain.Entities.Utentes.Utente", "Utente")
-                        .WithMany()
-                        .HasForeignKey("UtenteId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Medico");
 
                     b.Navigation("Utente");
                 });

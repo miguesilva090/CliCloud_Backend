@@ -7,7 +7,9 @@ public class NotificacaoTableDTO : IDto
   public Guid Id { get; set; }
   public string Titulo { get; set; } = string.Empty;
   public int Estado { get; set; }
+  public string? EstadoDesignacao { get; set; }
   public int Prioridade { get; set; }
+  public string? PrioridadeDesignacao { get; set; }
   public Guid NotificacaoTipoId { get; set; }
   public string? TipoDesignacao { get; set; }
   public Guid RemetenteId { get; set; }

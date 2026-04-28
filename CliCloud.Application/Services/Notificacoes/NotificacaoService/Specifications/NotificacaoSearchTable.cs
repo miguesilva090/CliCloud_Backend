@@ -72,10 +72,13 @@ public class NotificacaoSearchTable : Specification<Notificacao>
             ? x.ClinicaDestinoId == null
             : x.ClinicaDestinoId == null || x.ClinicaDestinoId == clinicaId));
         break;
+      // Apenas avisos de atualização (estado «Atualização clínica»), não todos os anúncios à empresa.
       case NotificacaoListMode.AtualizacoesClinica:
         if (clinicaId is Guid cid)
           _ = Query.Where(x =>
-            x.ClinicaDestinoId == cid && x.DestinatarioUtilizadorId == null);
+            x.ClinicaDestinoId == cid
+            && x.DestinatarioUtilizadorId == null
+            && x.Estado == 3);
         else
           _ = Query.Where(_ => false);
         break;

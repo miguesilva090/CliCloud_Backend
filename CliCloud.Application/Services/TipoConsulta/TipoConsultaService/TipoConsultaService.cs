@@ -76,5 +76,19 @@ namespace CliCloud.Application.Services.TiposConsulta.TipoConsultaService
                 return ResponseFactory.Fail<Guid>(ex.Message);
             }
         }
+
+        public async Task<Response<Guid>> DeleteTipoConsultaAsync(Guid id)
+        {
+            try
+            {
+                _ = await _repository.RemoveByIdAsync<TipoConsultaItem, Guid>(id);
+                await _repository.SaveChangesAsync();
+                return ResponseFactory.Success(id);
+            }
+            catch (Exception ex)
+            {
+                return ResponseFactory.Fail<Guid>(ex.Message);
+            }
+        }
     }
 }

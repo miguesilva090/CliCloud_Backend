@@ -11,5 +11,6 @@ namespace CliCloud.Application.Services.TiposConsulta.TipoConsultaService
         Task<Response<IEnumerable<TipoConsultaTableDTO>>> GetAllTipoConsultaAsync(TipoConsultaAllFilter? filter);
         Task<Response<TipoConsultaDTO>> GetTipoConsultaAsync(Guid id);
         Task<Response<Guid>> UpdateTipoConsultaAsync(UpdateTipoConsultaRequest request, Guid id);
+        Task<Response<Guid>> DeleteTipoConsultaAsync(Guid id);
     }
 }

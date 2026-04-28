@@ -168,6 +168,7 @@ using AnamneseOrtodonticaAnaliseDentariaDtos = CliCloud.Application.Services.Pro
 using AnamneseOrtodonticaDenticaoDeciduaeMistaDtos = CliCloud.Application.Services.ProcessoClinico.Estomatologia.AnamneseOrtodonticaDenticaoDeciduaeMistaService.DTOs;
 using AnamneseOrtodonticaATMDtos = CliCloud.Application.Services.ProcessoClinico.Estomatologia.AnamneseOrtodonticaATMService.DTOs;
 using AnamneseOrtodonticaAnaliseFuncionalDtos = CliCloud.Application.Services.ProcessoClinico.Estomatologia.AnamneseOrtodonticaAnaliseFuncionalService.DTOs;
+using HistoriaDentariaDtos = CliCloud.Application.Services.ProcessoClinico.Estomatologia.HistoriaDentariaService.DTOs;
 using SmsDtos = CliCloud.Application.Services.Core.SmsService.DTOs;
 using NotificacaoTipoDtos = CliCloud.Application.Services.Notificacoes.NotificacaoTipoService.DTOs;
 using NotificacaoDtos = CliCloud.Application.Services.Notificacoes.NotificacaoService.DTOs;
@@ -419,6 +420,9 @@ namespace CliCloud.Infrastructure.Mapper
       // ---- RelatorioExames ----
       _ = CreateMap<RelatorioExames, RelatorioExamesDtos.RelatorioExamesDTO>();
 
+      // ---- HistoriaDentaria (Estomatologia) ----
+      _ = CreateMap<HistoriaDentaria, HistoriaDentariaDtos.HistoriaDentariaDTO>();
+
       // ---- CategoriaProcedimento (Exames) ----
       _ = CreateMap<CategoriaProcedimento, CategoriaProcedimentoDtos.CategoriaProcedimentoTableDTO>();
       _ = CreateMap<CategoriaProcedimento, CategoriaProcedimentoDtos.CategoriaProcedimentoLightDTO>();
@@ -486,6 +490,8 @@ namespace CliCloud.Infrastructure.Mapper
       _ = CreateMap<Consulta, ConsultaDtos.ConsultaTableDTO>()
         .ForMember(d => d.TipoConsultaDesignacao,
           o => o.MapFrom(s => s.TipoConsultaItem != null ? s.TipoConsultaItem.Designacao : null))
+        .ForMember(d => d.UtenteNumero,
+          o => o.MapFrom(s => s.Utente != null ? s.Utente.NumeroUtente : null))
         .ForMember(d => d.UtenteNome,
           o => o.MapFrom(s => s.Utente != null ? s.Utente.Nome : null))
         .ForMember(d => d.OrganismoNome,
@@ -887,7 +893,6 @@ namespace CliCloud.Infrastructure.Mapper
       _ = CreateMap<Clinica, ClinicaDtos.ClinicaLightDTO>();
       _ = CreateMap<Clinica, ClinicaDtos.ClinicaTableDTO>();
       _ = CreateMap<HistoricoEmail, CliCloud.Application.Services.Core.EmailService.DTOs.HistoricoEmailTabelaDTO>();
-      _ = CreateMap<ClinicaDtos.CreateClinicaRequest, Clinica>();
       // Não queremos que o payload parcial (quando ainda nem todas as abas estão mapeadas)
       // apague valores existentes. Se o campo vier null, mantemos o que está.
       var updateClinicaMap = CreateMap<ClinicaDtos.UpdateClinicaRequest, Clinica>();
@@ -977,6 +982,7 @@ namespace CliCloud.Infrastructure.Mapper
         .ForMember(d => d.Status, o => o.MapFrom(s => s.Status.HasValue ? (int?)s.Status.Value : null))
         .ForMember(d => d.Sexo, o => o.MapFrom(s => s.Sexo))
         .ForMember(d => d.EstadoCivil, o => o.MapFrom(s => s.EstadoCivil));
+      _ = CreateMap<Utente, UtenteDtos.UtenteNumeroLookupDTO>();
       _ = CreateMap<Utente, UtenteDtos.UtenteTableDTO>()
         // Entidade.Status é enum nullable; no DTO usamos int? (para tabelas simples)
         .ForMember(d => d.Status, o => o.MapFrom(s => s.Status.HasValue ? (int?)s.Status.Value : null))
@@ -1014,7 +1020,8 @@ namespace CliCloud.Infrastructure.Mapper
         .ForMember(d => d.Sexo, o => o.Ignore())
         // Contactos são tratados fora do AutoMapper (CreateEntidadeContactoBulkAsync)
         .ForMember(d => d.EntidadeContactos, o => o.Ignore())
-        .ForMember(d => d.SubsistemaLinhas, o => o.Ignore());
+        .ForMember(d => d.SubsistemaLinhas, o => o.Ignore())
+        .ForMember(d => d.IdUtilizador, o => o.MapFrom(s => ToNullableGuid(s.IdUtilizador)));
       _ = CreateMap<UtenteDtos.UpdateUtenteRequest, Utente>()
         .ForMember(d => d.EstadoCivilId, o => o.MapFrom(s => ToNullableGuid(s.EstadoCivilId)))
         .ForMember(d => d.GrupoSanguineoId, o => o.MapFrom(s => ToNullableGuid(s.GrupoSanguineoId)))
@@ -1042,7 +1049,8 @@ namespace CliCloud.Infrastructure.Mapper
         .ForMember(d => d.Sexo, o => o.Ignore())
         // Contactos são tratados fora do AutoMapper (UpsertEntidadeContactoBulkAsync)
         .ForMember(d => d.EntidadeContactos, o => o.Ignore())
-        .ForMember(d => d.SubsistemaLinhas, o => o.Ignore());
+        .ForMember(d => d.SubsistemaLinhas, o => o.Ignore())
+        .ForMember(d => d.IdUtilizador, o => o.MapFrom(s => ToNullableGuid(s.IdUtilizador)));
 
       // ---- Medico ----
       _ = CreateMap<Medico, MedicoDtos.MedicoDTO>()
@@ -2124,12 +2132,21 @@ namespace CliCloud.Infrastructure.Mapper
       _ = CreateMap<Notificacao, NotificacaoDtos.NotificacaoDTO>()
         .ForMember(
           d => d.TipoDesignacao,
-          o => o.MapFrom(s => s.NotificacaoTipo != null ? s.NotificacaoTipo.DesignacaoTipo : null));
+          o => o.MapFrom(s => s.NotificacaoTipo != null ? s.NotificacaoTipo.DesignacaoTipo : null))
+        .ForMember(d => d.EstadoDesignacao, o => o.Ignore())
+        .ForMember(d => d.PrioridadeDesignacao, o => o.Ignore())
+        .ForMember(d => d.AlcanceResumo, o => o.Ignore());
       _ = CreateMap<Notificacao, NotificacaoDtos.NotificacaoTableDTO>()
         .ForMember(
           d => d.TipoDesignacao,
           o => o.MapFrom(s => s.NotificacaoTipo != null ? s.NotificacaoTipo.DesignacaoTipo : null))
-        .ForMember(d => d.Lida, o => o.MapFrom(s => s.DataLeitura.HasValue));
+        .ForMember(d => d.Lida, o => o.MapFrom(s => s.DataLeitura.HasValue))
+        .ForMember(
+          d => d.EstadoDesignacao,
+          o => o.MapFrom(s => CliCloud.Application.Services.Notificacoes.NotificacaoService.NotificacaoLabels.EstadoPt(s.Estado)))
+        .ForMember(
+          d => d.PrioridadeDesignacao,
+          o => o.MapFrom(s => CliCloud.Application.Services.Notificacoes.NotificacaoService.NotificacaoLabels.PrioridadePt(s.Prioridade)));
       _ = CreateMap<NotificacaoDtos.CreateNotificacaoRequest, Notificacao>()
         .ForMember(d => d.Id, o => o.Ignore())
         .ForMember(d => d.NotificacaoTipo, o => o.Ignore())

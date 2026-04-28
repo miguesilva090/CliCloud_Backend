@@ -108,8 +108,40 @@ namespace CliCloud.Application.Services.Consultas.ConsultaService.Specifications
       }
       else
       {
-        _ = Query.OrderBy(dynamicOrder);
+        _ = Query.OrderBy(NormalizeConsultaOrder(dynamicOrder));
       }
+    }
+
+    /// <summary>
+    /// Os ids de ordenação vindos do frontend (camelCase / DTO) nem sempre coincidem com as propriedades da entidade (ex.: horaInic → HoraInicio).
+    /// </summary>
+    private static string NormalizeConsultaOrder(string orderByFields)
+    {
+      if (string.IsNullOrWhiteSpace(orderByFields))
+      {
+        return orderByFields;
+      }
+
+      string[] segments = orderByFields.Split(
+        ',',
+        StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+      );
+      for (int i = 0; i < segments.Length; i++)
+      {
+        string s = segments[i];
+        bool desc = s.StartsWith('-');
+        string field = desc ? s[1..] : s;
+
+        string mapped = field.Equals("horaInic", StringComparison.OrdinalIgnoreCase)
+          ? nameof(Consulta.HoraInicio)
+          : field.Equals("horaFim", StringComparison.OrdinalIgnoreCase)
+            ? nameof(Consulta.HoraFim)
+            : field;
+
+        segments[i] = desc ? "-" + mapped : mapped;
+      }
+
+      return string.Join(",", segments);
     }
   }
 }

@@ -41,5 +41,7 @@ namespace CliCloud.Application.Services.Tecnicos.TecnicoService.DTOs
         public string? NumeroIdentificacaoBancaria { get; set; }
         public Guid? EspecialidadeId { get; set; }
         public string? EspecialidadeNome { get; set; }
+        /// <summary>Conta de utilizador na plataforma (destino de notificações pessoais).</summary>
+        public Guid? IdUtilizador { get; set; }
     }
 }

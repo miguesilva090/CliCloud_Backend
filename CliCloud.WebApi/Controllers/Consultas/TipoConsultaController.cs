@@ -54,5 +54,20 @@ namespace CliCloud.WebApi.Controllers.Consultas
                 return BadRequest(ex.Message);
             }
         }
+
+        [Authorize(Roles = "client")]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteTipoConsultaAsync(Guid id)
+        {
+            try
+            {
+                Response<Guid> response = await _tipoConsultaService.DeleteTipoConsultaAsync(id);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

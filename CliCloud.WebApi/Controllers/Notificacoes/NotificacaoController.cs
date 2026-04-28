@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using CliCloud.Application.Common.Wrapper;
@@ -50,7 +51,7 @@ public class NotificacaoController(INotificacaoService notificacaoService) : Con
   {
     try
     {
-      Response<Guid> result = await _notificacaoService.CreateNotificacaoAsync(request);
+      Response<IReadOnlyList<Guid>> result = await _notificacaoService.CreateNotificacaoAsync(request);
       return Ok(result);
     }
     catch (Exception ex)

@@ -45,5 +45,7 @@ namespace CliCloud.Application.Services.Medicos.MedicoService.DTOs
         public Guid? EspecialidadeId { get; set; }
         public string? EspecialidadeNome { get; set; }
         public string? Letra { get; set; }
+        /// <summary>Conta de utilizador na plataforma (destino de notificações pessoais).</summary>
+        public Guid? IdUtilizador { get; set; }
     }
 }

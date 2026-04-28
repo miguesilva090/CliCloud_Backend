@@ -10,6 +10,8 @@ namespace CliCloud.Application.Services.Consultas.ConsultaService.DTOs
     public string? HoraFim { get; set; }
     public string? Sala { get; set; }
     public Guid? UtenteId { get; set; }
+    /// <summary>Número de utente (clínico), para listagens — não confundir com <see cref="UtenteId"/> (GUID).</summary>
+    public string? UtenteNumero { get; set; }
     public string? UtenteNome { get; set; }
     public Guid? OrganismoId { get; set; }
     public string? OrganismoNome { get; set; }

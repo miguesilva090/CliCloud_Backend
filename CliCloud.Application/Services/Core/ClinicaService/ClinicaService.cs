@@ -97,6 +97,26 @@ namespace CliCloud.Application.Services.Core.ClinicaService
         c.FaturacaoDocumentosImpressao = "A4";
     }
 
+    /// <summary>
+    /// Campos espelhados após AutoMapper (igual ao ramo de atualização).
+    /// </summary>
+    private static void SyncClinicaScalarFieldsFromUpdateRequest(
+      Clinica entity,
+      UpdateClinicaRequest request
+    )
+    {
+      entity.Atividade = request.Atividade;
+      entity.Regcom = request.Regcom;
+      entity.Capsocial = request.Capsocial;
+      entity.Cae = request.Cae;
+      entity.ZonFisc = request.ZonFisc;
+      entity.Tipo = request.Tipo;
+      entity.Portaria = request.Portaria;
+      entity.DespachoUcc = request.DespachoUcc;
+      entity.ObsNotaCredito = request.ObsNotaCredito;
+      entity.CMoeda = request.CMoeda;
+    }
+
     private static bool TryParseHora(string? value, out TimeSpan time)
     {
       return TimeSpan.TryParseExact(value, @"hh\:mm", null, out time);
@@ -320,12 +340,27 @@ namespace CliCloud.Application.Services.Core.ClinicaService
       catch (Exception ex) { return ResponseFactory.Fail<ClinicaDTO>(ex.Message); }
     }
 
-    public async Task<Response<Guid>> CreateClinicaAsync(CreateClinicaRequest request)
+    public async Task<Response<Guid>> CreateClinicaAsync(UpdateClinicaRequest request)
     {
       var spec = new ClinicaMatchNome(request.Nome);
       if (await _repository.ExistsAsync<Clinica, Guid>(spec))
         return ResponseFactory.Fail<Guid>("Clínica com este nome já existe.");
-      var entity = _mapper.Map<Clinica>(request);
+
+      if (!string.IsNullOrWhiteSpace(request.CodSb))
+      {
+        var codSb = request.CodSb.Trim();
+        if (codSb.Length != 4 || !codSb.All(char.IsDigit))
+          return ResponseFactory.Fail<Guid>("O código SB tem de conter 4 digitos numéricos");
+      }
+
+      var horarioError = ValidateHorario(request);
+      if (!string.IsNullOrWhiteSpace(horarioError))
+        return ResponseFactory.Fail<Guid>(horarioError);
+
+      var entity = new Clinica();
+      _mapper.Map(request, entity);
+      SyncClinicaScalarFieldsFromUpdateRequest(entity, request);
+
       entity.TipoEntidade = EntidadeTipo.Clinica;
       entity.UrlFoto = NormalizeClinicaLogoUrl(entity.UrlFoto);
       if (!IsValidClinicaLogoUrl(entity.UrlFoto))
@@ -337,7 +372,41 @@ namespace CliCloud.Application.Services.Core.ClinicaService
       {
         var created = await _repository.CreateAsync<Clinica, Guid>(entity);
         _ = await _repository.SaveChangesAsync();
+
         await RunCreateSideEffectsAsync(created);
+
+        if (request.GravarConfiguracaoTratamentos == true)
+        {
+          var tratamentosRequest = new AtualizarConfiguracaoTratamentosRequest
+          {
+            TipoSrvTratamentos = request.TipoSrvTratamentos,
+            AreaPrestacaoDefeitoAreaZ = request.AreaPrestacaoDefeitoAreaZ,
+            ControlarAparelhos = request.ControlarAparelhos,
+
+            Segundos = request.Segundos,
+            FaltasMax = request.FaltasMax,
+            FaltasConsecutivasMax = request.FaltasConsecutivasMax,
+            Taxamoderadora = request.Taxamoderadora,
+            CredencialExternaAdse = request.CredencialExternaAdse,
+
+            TipoPagamento = request.TipoPagamento,
+            AvisoInqueritoSessoesDiarias = request.AvisoInqueritoSessoesDiarias,
+          };
+
+          var tratamentosRes =
+            await GuardarConfiguracaoTratamentosAsync(created.Id, tratamentosRequest);
+
+          if (tratamentosRes.Status != ResponseStatus.Success)
+          {
+            var msg =
+              tratamentosRes.Messages.TryGetValue("$", out var messages) &&
+              messages is { Count: > 0 }
+                ? messages.First()
+                : "Falha ao guardar configurações de tratamentos.";
+            return ResponseFactory.Fail<Guid>(msg);
+          }
+        }
+
         return ResponseFactory.Success(created.Id);
       }
       catch (Exception ex) { return ResponseFactory.Fail<Guid>(ex.Message); }
@@ -370,16 +439,8 @@ namespace CliCloud.Application.Services.Core.ClinicaService
       
       _mapper.Map(request, existing);
 
-      existing.Atividade = request.Atividade;
-      existing.Regcom = request.Regcom;
-      existing.Capsocial = request.Capsocial;
-      existing.Cae = request.Cae;
-      existing.ZonFisc = request.ZonFisc;
-      existing.Tipo = request.Tipo;
-      existing.Portaria = request.Portaria;
-      existing.DespachoUcc = request.DespachoUcc;
-      existing.ObsNotaCredito = request.ObsNotaCredito;
-      existing.CMoeda = request.CMoeda;
+      SyncClinicaScalarFieldsFromUpdateRequest(existing, request);
+
       existing.TipoEntidade = EntidadeTipo.Clinica;
       existing.UrlFoto = NormalizeClinicaLogoUrl(existing.UrlFoto);
       if (!IsValidClinicaLogoUrl(existing.UrlFoto))

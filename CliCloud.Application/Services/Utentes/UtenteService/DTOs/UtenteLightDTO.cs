@@ -48,5 +48,7 @@ namespace CliCloud.Application.Services.Utentes.UtenteService.DTOs
         public string? NumeroSegurancaSocial { get; set; }
         public bool Desistencia { get; set; }
         public bool Cronico { get; set; }
+        /// <summary>Identificador da conta na plataforma (para notificações ao utente).</summary>
+        public Guid? IdUtilizador { get; set; }
     }
 }

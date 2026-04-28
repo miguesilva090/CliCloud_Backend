@@ -70,7 +70,7 @@ namespace CliCloud.WebApi.Controllers.Core
         // create
         [Authorize(Roles = "client")]
         [HttpPost]
-        public async Task<IActionResult> CreateClinicaAsync(CreateClinicaRequest request)
+        public async Task<IActionResult> CreateClinicaAsync(UpdateClinicaRequest request)
         {
             try
             {

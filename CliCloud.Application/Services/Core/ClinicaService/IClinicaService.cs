@@ -12,7 +12,7 @@ namespace CliCloud.Application.Services.Core.ClinicaService
     Task<PaginatedResponse<ClinicaTableDTO>> GetClinicaPaginatedAsync(ClinicaTableFilter filter);
     Task<Response<IEnumerable<ClinicaTableDTO>>> GetAllClinicaAsync(ClinicaAllFilter filter);
     Task<Response<ClinicaDTO>> GetClinicaAsync(Guid id);
-    Task<Response<Guid>> CreateClinicaAsync(CreateClinicaRequest request);
+    Task<Response<Guid>> CreateClinicaAsync(UpdateClinicaRequest request);
     Task<Response<Guid>> UpdateClinicaAsync(UpdateClinicaRequest request, Guid id);
     Task<Response<Guid>> DeleteClinicaAsync(Guid id);
     Task<Response<IEnumerable<Guid>>> DeleteMultipleClinicaAsync(IEnumerable<Guid> ids);

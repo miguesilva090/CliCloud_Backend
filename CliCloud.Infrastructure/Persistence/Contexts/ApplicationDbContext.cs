@@ -379,6 +379,9 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     // DbSets - OdontogramaDefinitivo
     public DbSet<OdontogramaDefinitivo> OdontogramaDefinitivo { get; set; }
 
+    // DbSets - História dentária (relatório acumulado)
+    public DbSet<HistoriaDentaria> HistoriaDentaria { get; set; }
+
     // DbSets - ConfiguracaoSms
     public DbSet<ConfiguracaoSms> ConfiguracaoSms { get; set; }
     public DbSet<ConfiguracaoSmsAutomatica> ConfiguracaoSmsAutomaticas { get; set; }
@@ -634,6 +637,9 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
 
       // RelatorioExames configurations
       _ = modelBuilder.ApplyConfiguration(new RelatorioExamesConfiguration());
+
+      // HistoriaDentaria configurations
+      _ = modelBuilder.ApplyConfiguration(new HistoriaDentariaConfiguration());
 
       // RelatorioAtestado configurations
       _ = modelBuilder.ApplyConfiguration(new RelatorioAtestadoConfiguration());

@@ -66,6 +66,9 @@ namespace CliCloud.Domain.Entities.Utentes
     public DateTime? DataRegisto {get;set;}
     public TipoTaxaModeradora? TipoTaxaModeradora {get;set;}
 
+    /// <summary>Conta de utilizador na plataforma (portal do utente, notificações pessoais, etc.).</summary>
+    public Guid? IdUtilizador { get; set; }
+
     /// <summary>Linhas do subsistema de saúde (organismo, beneficiário, apólice, etc.).</summary>
     public ICollection<UtenteSubsistemaLinha> SubsistemaLinhas { get; set; } = [];
   }
