@@ -188,6 +188,12 @@ namespace CliCloud.Infrastructure.Mapper
       _ = CreateMap<Rua, RuaDtos.RuaDTO>();
       _ = CreateMap<Rua, RuaDtos.RuaLightDTO>();
       _ = CreateMap<Rua, RuaDtos.RuaTableDTO>();
+      // Nested DTOs para RuaTableDTO (listagem)
+      _ = CreateMap<Freguesia, RuaDtos.RuaTableFreguesiaDTO>();
+      _ = CreateMap<Concelho, RuaDtos.RuaTableConcelhoDTO>();
+      _ = CreateMap<Distrito, RuaDtos.RuaTableDistritoDTO>();
+      _ = CreateMap<Pais, RuaDtos.RuaTablePaisDTO>();
+      _ = CreateMap<CodigoPostal, RuaDtos.RuaTableCodigoPostalDTO>();
       _ = CreateMap<RuaDtos.CreateRuaRequest, Rua>();
       _ = CreateMap<RuaDtos.UpdateRuaRequest, Rua>();
       // Mapeamentos usados em DTOs "table" de Entidade/Utente (nested DTOs)
