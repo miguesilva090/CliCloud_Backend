@@ -190,6 +190,7 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     public DbSet<ClinicaMotivoIsencaoDefault> ClinicasMotivosIsencaoDefault { get; set; }
     public DbSet<ClinicaTipoConsultaDefault> ClinicasTiposConsultaDefault { get; set; }
     public DbSet<ClinicaArmazemDefault> ClinicasArmazensDefault { get; set; }
+    public DbSet<LicencaUserClinicaMap> LicencaUsersClinicasMap { get; set; }
     public DbSet<ConfigReferenciaMB> ConfiguracoesReferenciasMB { get; set; }
 
     // DbSets - Seguradoras
@@ -414,6 +415,9 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     // DbSets - Notificacoes
     public DbSet<NotificacaoTipo> NotificacaoTipos { get; set; }
     public DbSet<Notificacao> Notificacoes { get; set; }
+
+    // DbSets - LicencaUserClinicaMap
+    public DbSet<LicencaUserClinicaMap> LicencaUserClinicaMap { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -72,6 +72,12 @@ namespace CliCloud.WebApi.Controllers.Atestados
     {
       try
       {
+        var clinicaId = await ObterClinicaIdAsync();
+        if (clinicaId is null)
+          return BadRequest("Sem clinica associada ao utilizador. Selecione uma clínica");
+        
+        request.ClinicaId = clinicaId.Value;
+
         Response<Guid> result = await _atestadoService.CreateAtestadoAsync(request);
         return Ok(result);
       }

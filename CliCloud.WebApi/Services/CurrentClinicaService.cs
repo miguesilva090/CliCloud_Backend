@@ -26,45 +26,45 @@ namespace CliCloud.WebApi.Services
 
     public async Task SetClinicaAsync()
     {
-      // Ordem alinhada ao TokenService.ResolveClinicaForTokenAsync: BD primeiro, depois JWT.
-      // Tokens emitidos pelo serviço de licenças podem não trazer "clinica_id".
       ClinicaId = null;
 
-      try
-      {
-        var defaultClinica = (await _repository
-            .GetListAsync<Clinica, Guid>(new ClinicaPorDefeitoSelected()))
-          .FirstOrDefault();
+      var httpContext = _httpContextAccessor?.HttpContext;
+      var user = httpContext?.User;
 
-        if (defaultClinica != null)
-          ClinicaId = defaultClinica.Id.ToString();
-      }
-      catch
+      if(user?.Identities.Any(i => i.IsAuthenticated) != true)
+        return;
+      // Claim UID (User ID)
+      var uidRaw = user.FindFirstValue("uid");
+      if(string.IsNullOrWhiteSpace(uidRaw) || !Guid.TryParse(uidRaw, out var userIdLicencas))
+        return;
+
+      // Header enviado pelo Frontend
+      var clientIdRaw = httpContext?.Request?.Headers["X-Client-Id"].FirstOrDefault();
+      if(string.IsNullOrWhiteSpace(clientIdRaw) || !Guid.TryParse(clientIdRaw, out var clientIdLicencas))
+        return;
+  
+      // default ativa
+      var mapDefault = ( await _repository.GetListAsync<LicencaUserClinicaMap, Guid>(
+        new LicencaUserClinicaMapDefaultSpec(clientIdLicencas, userIdLicencas)))
+        .FirstOrDefault();
+      
+      if(mapDefault is not null)
       {
+        ClinicaId = mapDefault.ClinicaId.ToString();
+        return;
       }
 
-      if (string.IsNullOrWhiteSpace(ClinicaId) || !Guid.TryParse(ClinicaId, out _))
-      {
-        string? fromClaims = ResolveClinicaIdFromClaims(_httpContextAccessor?.HttpContext?.User);
-        if (!string.IsNullOrWhiteSpace(fromClaims) && Guid.TryParse(fromClaims.Trim(), out _))
-          ClinicaId = fromClaims.Trim();
+      // fallback: unica ativa
+      var mapAtivas = (await _repository.GetListAsync<LicencaUserClinicaMap, Guid>(
+        new LicencaUserClinicaMapAtivasSpec(clientIdLicencas, userIdLicencas)))
+      .ToList();
+
+      if(mapAtivas.Count == 1)
+      { 
+        ClinicaId = mapAtivas[0].ClinicaId.ToString();
+        return;
       }
 
-      if (string.IsNullOrWhiteSpace(ClinicaId) || !Guid.TryParse(ClinicaId, out _))
-      {
-        try
-        {
-          var anyClinica = (await _repository
-              .GetListAsync<Clinica, Guid>(new ClinicaFallbackParaContextoAtualSpec()))
-            .FirstOrDefault();
-
-          if (anyClinica != null)
-            ClinicaId = anyClinica.Id.ToString();
-        }
-        catch
-        {
-        }
-      }
     }
 
     /// <summary>

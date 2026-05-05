@@ -108,7 +108,7 @@ public class SpmsCartaConducaoService : ISpmsCartaConducaoService
         var xml = BuildSoapEnvelope(atestado, utente, medico, clinica, config, categorias, restricoes, restricoesAnteriores, softwareCode);
         using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
         request.Content = new StringContent(xml, Encoding.UTF8, "text/xml");
-        _ = request.Headers.TryAddWithoutValidation("SOAPAction", "\"regista\"");
+        _ = request.Headers.TryAddWithoutValidation("SOAPAction", "regista");
 
         var response = await http.SendAsync(request);
         var body = await response.Content.ReadAsStringAsync();
@@ -160,7 +160,14 @@ public class SpmsCartaConducaoService : ISpmsCartaConducaoService
 
             var restrCat = restricoes
                 .Where(r => r.CartaConducaoId == c.CartaConducaoId)
-                .Select(r => $"<restricao><codigo>{MapRestricaoCodigo(r.CartaConducaoRestricao?.CodigoRestricao ?? 0)}</codigo><anotacao>{Escape(TrimToMax(r.Anotacoes, 10))}</anotacao></restricao>")
+                .Select(r =>
+                {
+                    var anotacao = TrimToMax(r.Anotacoes, 10);
+                    var anotacaoXml = string.IsNullOrWhiteSpace(anotacao)
+                        ? string.Empty
+                        : $"<anotacao>{Escape(anotacao)}</anotacao>";
+                    return $"<restricao><codigo>{MapRestricaoCodigo(r.CartaConducaoRestricao?.CodigoRestricao ?? 0)}</codigo>{anotacaoXml}</restricao>";
+                })
                 .ToList();
 
             var restricoesCategoriaXml = restrCat.Count > 0
@@ -170,9 +177,14 @@ public class SpmsCartaConducaoService : ISpmsCartaConducaoService
             return $"<categoria><codigo>{Escape(codigoCategoria)}</codigo><situacaoAptidao>{situacao}</situacaoAptidao>{restricoesCategoriaXml}</categoria>";
         }));
 
-        var restricoesAnterioresXml = string.Join("", restricoesAnteriores.Select( r => 
-            $"<restricao><codigo>{MapRestricaoCodigo(r.CartaConducaoRestricao?.CodigoRestricao ?? 0)}</codigo><anotacao>{Escape(TrimToMax(r.Anotacoes, 10))}</anotacao></restricao>"
-        ));
+        var restricoesAnterioresXml = string.Join("", restricoesAnteriores.Select(r =>
+        {
+            var anotacao = TrimToMax(r.Anotacoes, 10);
+            var anotacaoXml = string.IsNullOrWhiteSpace(anotacao)
+                ? string.Empty
+                : $"<anotacao>{Escape(anotacao)}</anotacao>";
+            return $"<restricao><codigo>{MapRestricaoCodigo(r.CartaConducaoRestricao?.CodigoRestricao ?? 0)}</codigo>{anotacaoXml}</restricao>";
+        }));
 
         return $"""
         <?xml version="1.0" encoding="UTF-8"?>
