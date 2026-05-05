@@ -134,6 +134,33 @@ namespace CliCloud.Application.Services.Medicos.MedicoService
             }
         }
 
+        public async Task<Response<MedicoDTO?>> GetMedicoByEmailAsync(string email)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(email))
+                {
+                    return ResponseFactory.Fail<MedicoDTO?>("Email do utilizador em falta.");
+                }
+
+                var spec = new MedicoByEmailSpec(email);
+                var list = (await _repository.GetListAsync<Medico, MedicoDTO, Guid>(spec)).ToList();
+
+                if (list.Count > 1)
+                {
+                    return ResponseFactory.Fail<MedicoDTO?>(
+                      "Foram encontrados vários médicos com o mesmo email. Associe explicitamente o médico ao utilizador."
+                    );
+                }
+
+                return ResponseFactory.Success<MedicoDTO?>(list.FirstOrDefault());
+            }
+            catch (Exception ex)
+            {
+                return ResponseFactory.Fail<MedicoDTO?>(ex.Message);
+            }
+        }
+
         // get multiple Medicos by Nome 
         public async Task<Response<IEnumerable<MedicoDTO>>> GetMedicoByNameAsync(string nome)
         {

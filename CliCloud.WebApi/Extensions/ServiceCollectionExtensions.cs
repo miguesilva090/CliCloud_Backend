@@ -32,6 +32,7 @@ using CliCloud.Application.Services.Prescricao.SpmsPrescricaoSoapService;
 using CliCloud.Application.Services.ProcessoClinico.SeparadorVinculoService;
 using CliCloud.Application.Services.Consultas.TeleconsultaService;
 using CliCloud.Application.Services.Core.TeleconsultaService;
+using CliCloud.Application.Services.Utentes.UtenteRnuService;
 
 namespace CliCloud.WebApi.Extensions
 {
@@ -145,6 +146,7 @@ namespace CliCloud.WebApi.Extensions
       _ = services.AddTransient<IServicoTeleconsulta, ServicoTeleconsulta>();
       _ = services.AddTransient<IChamadaUtentesService, ChamadaUtentesService>();
       _ = services.AddTransient<ISpmsCartaConducaoService, SpmsCartaConducaoService>();
+      _ = services.AddTransient<IUtenteRnuService, UtenteRnuService>();
 
       #endregion
 

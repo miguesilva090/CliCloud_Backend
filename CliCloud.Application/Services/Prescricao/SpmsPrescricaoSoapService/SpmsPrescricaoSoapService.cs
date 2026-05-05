@@ -15,6 +15,7 @@ public class SpmsPrescricaoSoapService(IRepositoryAsync repository) : ISpmsPresc
 {
     private readonly IRepositoryAsync _repository = repository;
     private const string OperacaoSucesso = "100006010001";
+    private const string ConsultaUtenteSoapAction = "\"http://xmlnssns.min-saude.pt/ConsultaUtente/process\"";
 
     public async Task<Response<ProxyTokenResultDTO>> ObterTokenCredAsync(Guid clinicaId, ObterTokenCredRequest request)
     {
@@ -78,18 +79,27 @@ public class SpmsPrescricaoSoapService(IRepositoryAsync repository) : ISpmsPresc
         if (cfg is null) return ResponseFactory.Fail<SpmsSoapOperationResultDTO>("Configuração de WebService não encontrada");
         if (string.IsNullOrWhiteSpace(cfg.UrlRnu)) return ResponseFactory.Fail<SpmsSoapOperationResultDTO>("URL RNU em falta");
         if (string.IsNullOrWhiteSpace(request.CorpoXml)) return ResponseFactory.Fail<SpmsSoapOperationResultDTO>("CorpoXml é obrigatório");
-        var body = BuildOperationRequestXml(
-            "cons",
-            "http://xmlns.dmm.spms.pt/201207/ConsultaUtente",
-            "ConsultaUtenteProcessRequest",
-            request.CodigoOperacao,
-            request.EnviadoEmUtc,
-            request.AtivadoEmUtc,
-            request.ChavePedido,
-            request.ChavePedidoRelacionado,
-            request.CorpoXml
-        );
-        return await ExecutarOperacaoGenericaAsync(cfg, cfg.UrlRnu, body);
+
+        // RNU ConsultaUtente (2.00) usa credenciais ACSS.
+        var login = !string.IsNullOrWhiteSpace(cfg.LoginAcss) ? cfg.LoginAcss : cfg.LoginAutenticacao;
+        var password = !string.IsNullOrWhiteSpace(cfg.PasswordAcss) ? cfg.PasswordAcss : cfg.PasswordAutenticacao;
+        if (string.IsNullOrWhiteSpace(login) || string.IsNullOrWhiteSpace(password))
+            return ResponseFactory.Fail<SpmsSoapOperationResultDTO>("Login/Password ACSS em falta");
+
+        var envelope = ConstruirEnvelopeSoapConsultaUtente(login, password, request.CorpoXml.Trim());
+        var raw = await EnviarSoapAsync(cfg.UrlRnu, envelope, ConsultaUtenteSoapAction);
+        if (!raw.ok) return ResponseFactory.Fail<SpmsSoapOperationResultDTO>(raw.errorMessage ?? "Erro SOAP");
+
+        var parse = ParseSoap(raw.xml ?? string.Empty);
+        if (!parse.ok) return ResponseFactory.Fail<SpmsSoapOperationResultDTO>(parse.errorMessage ?? "Erro SOAP");
+
+        return ResponseFactory.Success(new SpmsSoapOperationResultDTO
+        {
+            Codigo = parse.codigo,
+            Descricao = parse.descricao,
+            Token = parse.token,
+            RawXml = raw.xml ?? string.Empty
+        });
     }
 
     public async Task<Response<SpmsSoapOperationResultDTO>> ExecutarRegistoPrescricaoAsync(Guid clinicaId, RegistoPrescricaoRequest request)
@@ -109,7 +119,7 @@ public class SpmsPrescricaoSoapService(IRepositoryAsync repository) : ISpmsPresc
             request.ChavePedidoRelacionado,
             request.CorpoXml
         );
-        return await ExecutarOperacaoGenericaAsync(cfg, cfg.UrlAcss, body);
+        return await ExecutarOperacaoGenericaAsync(cfg, cfg.UrlAcss, body, "process");
     }
 
     public async Task<Response<SpmsSoapOperationResultDTO>> ExecutarRegistoPrescricaoRspAsync(Guid clinicaId, RegistoPrescricaoRspRequest request)
@@ -129,7 +139,7 @@ public class SpmsPrescricaoSoapService(IRepositoryAsync repository) : ISpmsPresc
             request.ChavePedidoRelacionado,
             request.CorpoXml
         );
-        return await ExecutarOperacaoGenericaAsync(cfg, cfg.UrlAcssRsp, body);
+        return await ExecutarOperacaoGenericaAsync(cfg, cfg.UrlAcssRsp, body, "process");
     }
 
     private async Task<Response<ProxyTokenResultDTO>> ExecutarOperacaoProxyAutenticacaoAsync(ConfigWebService cfg, string operationBodyXml)
@@ -139,7 +149,7 @@ public class SpmsPrescricaoSoapService(IRepositoryAsync repository) : ISpmsPresc
             return ResponseFactory.Fail<ProxyTokenResultDTO>("Login/Password de autenticação em falta");
 
         var envelope = ConstruirEnvelopeSoap(cfg.LoginAutenticacao, cfg.PasswordAutenticacao, operationBodyXml);
-        var raw = await EnviarSoapAsync(cfg.ProxyAutenticacao, envelope);
+        var raw = await EnviarSoapAsync(cfg.ProxyAutenticacao, envelope, "process");
         if (!raw.ok) return ResponseFactory.Fail<ProxyTokenResultDTO>(raw.errorMessage ?? "Erro SOAP");
 
         var parse = ParseSoap(raw.xml ?? string.Empty);
@@ -158,7 +168,8 @@ public class SpmsPrescricaoSoapService(IRepositoryAsync repository) : ISpmsPresc
     private async Task<Response<SpmsSoapOperationResultDTO>> ExecutarOperacaoGenericaAsync(
         ConfigWebService cfg,
         string endpoint,
-        string operationBodyXml
+        string operationBodyXml,
+        string soapAction
     )
     {
         if (string.IsNullOrWhiteSpace(operationBodyXml))
@@ -167,7 +178,7 @@ public class SpmsPrescricaoSoapService(IRepositoryAsync repository) : ISpmsPresc
             return ResponseFactory.Fail<SpmsSoapOperationResultDTO>("Login/Password de autenticação em falta");
 
         var envelope = ConstruirEnvelopeSoap(cfg.LoginAutenticacao, cfg.PasswordAutenticacao, operationBodyXml.Trim());
-        var raw = await EnviarSoapAsync(endpoint, envelope);
+        var raw = await EnviarSoapAsync(endpoint, envelope, soapAction);
         if (!raw.ok) return ResponseFactory.Fail<SpmsSoapOperationResultDTO>(raw.errorMessage ?? "Erro SOAP");
 
         var parse = ParseSoap(raw.xml ?? string.Empty);
@@ -267,11 +278,38 @@ public class SpmsPrescricaoSoapService(IRepositoryAsync repository) : ISpmsPresc
             """;
     }
 
-    private static async Task<(bool ok, string? xml, string? errorMessage)> EnviarSoapAsync(string endpoint, string xml)
+    private static string ConstruirEnvelopeSoapConsultaUtente(string login, string password, string bodyXml)
+    {
+        return $"""
+            <?xml version="1.0" encoding="utf-8"?>
+            <soapenv:Envelope
+              xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+              xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"
+              xmlns:ws="http://xmlnssns.min-saude.pt/ConsultaUtenteWS">
+              <soapenv:Header>
+                <wsse:Security>
+                  <wsse:UsernameToken>
+                    <wsse:Username>{Escape(login)}</wsse:Username>
+                    <wsse:Password>{Escape(password)}</wsse:Password>
+                  </wsse:UsernameToken>
+                </wsse:Security>
+              </soapenv:Header>
+              <soapenv:Body>
+                {bodyXml}
+              </soapenv:Body>
+            </soapenv:Envelope>
+            """;
+    }
+
+    private static async Task<(bool ok, string? xml, string? errorMessage)> EnviarSoapAsync(
+        string endpoint,
+        string xml,
+        string soapAction
+    )
     {
         using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
         using var req = new HttpRequestMessage(HttpMethod.Post, endpoint);
-        req.Headers.TryAddWithoutValidation("SOAPAction", "process");
+        req.Headers.TryAddWithoutValidation("SOAPAction", soapAction);
         req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("text/xml"));
         req.Content = new StringContent(xml, Encoding.UTF8, "text/xml");
 
@@ -279,7 +317,13 @@ public class SpmsPrescricaoSoapService(IRepositoryAsync repository) : ISpmsPresc
         var respXml = await resp.Content.ReadAsStringAsync();
 
         if (!resp.IsSuccessStatusCode)
-            return (false, respXml, $"HTTP {(int)resp.StatusCode}: {respXml}");
+        {
+            var fault = ExtractFaultStringFromSoapXml(respXml);
+            var msg = !string.IsNullOrWhiteSpace(fault)
+                ? $"HTTP {(int)resp.StatusCode}: {fault}"
+                : $"HTTP {(int)resp.StatusCode}: erro SOAP";
+            return (false, respXml, msg);
+        }
 
         return (true, respXml, null);
     }
@@ -301,6 +345,24 @@ public class SpmsPrescricaoSoapService(IRepositoryAsync repository) : ISpmsPresc
         catch (Exception ex)
         {
             return (false, null, null, null, $"XML inválido: {ex.Message}");
+        }
+    }
+
+    private static string? ExtractFaultStringFromSoapXml(string? xml)
+    {
+        if (string.IsNullOrWhiteSpace(xml))
+            return null;
+        try
+        {
+            var doc = XDocument.Parse(xml);
+            return doc.Descendants()
+                .FirstOrDefault(x => x.Name.LocalName.Equals("faultstring", StringComparison.OrdinalIgnoreCase))
+                ?.Value
+                ?.Trim();
+        }
+        catch
+        {
+            return null;
         }
     }
 

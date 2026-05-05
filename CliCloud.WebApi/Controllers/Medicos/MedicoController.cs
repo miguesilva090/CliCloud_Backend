@@ -5,6 +5,7 @@ using CliCloud.Application.Services.Medicos.MedicoService;
 using CliCloud.Application.Services.Medicos.MedicoService.DTOs;
 using CliCloud.Application.Services.Medicos.MedicoService.Filters;
 using CliCloud.Application.Common.Wrapper;
+using System.Security.Claims;
 
 namespace CliCloud.WebApi.Controllers.Medicos
 {
@@ -78,13 +79,28 @@ namespace CliCloud.WebApi.Controllers.Medicos
         [HttpGet("current")]
         public async Task<IActionResult> GetCurrentMedicoAsync()
         {
-            if (string.IsNullOrWhiteSpace(_currentUser.UserId) || !Guid.TryParse(_currentUser.UserId, out Guid userId))
+            if (!string.IsNullOrWhiteSpace(_currentUser.UserId) && Guid.TryParse(_currentUser.UserId, out Guid userId))
             {
-                return BadRequest("Utilizador atual inválido.");
+                Response<MedicoDTO?> byUserId = await _MedicoService.GetMedicoByIdUtilizadorAsync(userId);
+                if (byUserId.Status == ResponseStatus.Success && byUserId.Data != null)
+                {
+                    return Ok(byUserId);
+                }
             }
 
-            Response<MedicoDTO?> result = await _MedicoService.GetMedicoByIdUtilizadorAsync(userId);
-            return Ok(result);
+            string? email = User.FindFirstValue("email");
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                email = User.FindFirstValue(ClaimTypes.Email);
+            }
+
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return BadRequest("Não foi possível identificar o utilizador atual (GUID/email).");
+            }
+
+            Response<MedicoDTO?> byEmail = await _MedicoService.GetMedicoByEmailAsync(email);
+            return Ok(byEmail);
         }
 
         // Single by NContrib 

@@ -14,6 +14,7 @@ namespace CliCloud.Application.Services.Medicos.MedicoService
         Task<Response<MedicoDTO>> GetMedicoAsync(Guid id);
         Task<Response<MedicoDTO>> GetMedicoByNContribAsync(string ncontrib);
         Task<Response<MedicoDTO?>> GetMedicoByIdUtilizadorAsync(Guid idUtilizador);
+        Task<Response<MedicoDTO?>> GetMedicoByEmailAsync(string email);
         Task<Response<IEnumerable<MedicoDTO>>> GetMedicoByNameAsync(string nome);
         Task<Response<Guid>> CreateMedicoAsync(CreateMedicoRequest request);
         Task<Response<Guid>> UpdateMedicoAsync(UpdateMedicoRequest request, Guid id);

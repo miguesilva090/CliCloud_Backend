@@ -62,7 +62,9 @@
     <PackageReference Include="Microsoft.OpenApi" Version="2.3.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
     <PackageReference Include="QuestPDF" Version="2026.2.1" />
+    <PackageReference Include="Stimulsoft.Reports.Engine.NetCore" Version="2026.2.2" />
     <PackageReference Include="Stimulsoft.Reports.Web" Version="2026.1.4" />
+    <PackageReference Include="Stimulsoft.Reports.Web.NetCore" Version="2026.2.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.0" />
   </ItemGroup>
 
