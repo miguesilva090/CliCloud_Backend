@@ -37,6 +37,8 @@ using TipoConsultaDtos = CliCloud.Application.Services.TiposConsulta.TipoConsult
 using CliCloud.Domain.Entities.ProcessoClinico.Estomatologia;
 using CliCloud.Domain.Entities.ProcessoClinico.Odontologia;
 using CliCloud.Domain.Entities.Notificacoes;
+using CliCloud.Domain.Entities.Sinistros;
+using CliCloud.Domain.Entities.Common;
 
 // TipoAparelho, MarcaAparelho, ModeloAparelho, Exame, Aparelho, Clinica, Seguradora, Recibo — Fase 0 services
 using TipoAparelhoDtos = CliCloud.Application.Services.Tratamentos.TipoAparelhoService.DTOs;
@@ -120,6 +122,8 @@ using GoniometriasDtos = CliCloud.Application.Services.Tratamentos.GoniometriasS
 using EstadosDentariosDtos = CliCloud.Application.Services.ProcessoClinico.Odontologia.EstadosDentariosService.DTOs;
 using OdontogramaDefinitivoDtos = CliCloud.Application.Services.ProcessoClinico.Odontologia.OdontogramaDefinitivoService.DTOs;
 using TiposTratamentoDentarioDtos = CliCloud.Application.Services.ProcessoClinico.Odontologia.TiposTratamentoDentarioService.DTOs;
+using SinistradoDtos = CliCloud.Application.Services.Sinistros.SinistradoService.DTOs;
+using EstadoSinistroDtos = CliCloud.Application.Services.Sinistros.EstadoSinistroService.DTOs;
 using FraquezasMuscularesDtos = CliCloud.Application.Services.Tratamentos.FraquezasMuscularesService.DTOs;
 using MotivoAltaDtos = CliCloud.Application.Services.Tratamentos.MotivoAltaService.DTOs;
 using MotivosDesmarcacaoDtos = CliCloud.Application.Services.Tratamentos.MotivosDesmarcacaoService.DTOs;
@@ -1748,6 +1752,30 @@ namespace CliCloud.Infrastructure.Mapper
 
       // ---- MotivoConsulta ----
       _ = CreateMap<MotivoConsulta, CliCloud.Application.Services.Consultas.MotivoConsultaService.DTOs.MotivoConsultaDTO>();
+      _ = CreateMap<MotivoConsulta, CliCloud.Application.Services.Consultas.MotivoConsultaService.DTOs.MotivoConsultaTableDTO>();
+      _ = CreateMap<CliCloud.Application.Services.Consultas.MotivoConsultaService.DTOs.CreateMotivoConsultaRequest, MotivoConsulta>()
+        .ForMember(d => d.Id, o => o.Ignore());
+      _ = CreateMap<CliCloud.Application.Services.Consultas.MotivoConsultaService.DTOs.UpdateMotivoConsultaRequest, MotivoConsulta>()
+        .ForMember(d => d.Id, o => o.Ignore());
+
+      // ---- Sala ----
+      _ = CreateMap<Sala, CliCloud.Application.Services.Consultas.SalaService.DTOs.SalaDTO>();
+      _ = CreateMap<Sala, CliCloud.Application.Services.Consultas.SalaService.DTOs.SalaTableDTO>()
+        .ForMember(d => d.ClinicaNome, o => o.MapFrom(s => s.Clinica != null ? s.Clinica.Nome : null));
+      _ = CreateMap<CliCloud.Application.Services.Consultas.SalaService.DTOs.CreateSalaRequest, Sala>()
+        .ForMember(d => d.Id, o => o.Ignore())
+        .ForMember(d => d.Clinica, o => o.Ignore());
+      _ = CreateMap<CliCloud.Application.Services.Consultas.SalaService.DTOs.UpdateSalaRequest, Sala>()
+        .ForMember(d => d.Id, o => o.Ignore())
+        .ForMember(d => d.Clinica, o => o.Ignore());
+
+      // ---- TipoCarta ----
+      _ = CreateMap<TipoCarta, CliCloud.Application.Services.Utility.TipoCartaService.DTOs.TipoCartaDTO>();
+      _ = CreateMap<TipoCarta, CliCloud.Application.Services.Utility.TipoCartaService.DTOs.TipoCartaTableDTO>();
+      _ = CreateMap<CliCloud.Application.Services.Utility.TipoCartaService.DTOs.CreateTipoCartaRequest, TipoCarta>()
+        .ForMember(d => d.Id, o => o.Ignore());
+      _ = CreateMap<CliCloud.Application.Services.Utility.TipoCartaService.DTOs.UpdateTipoCartaRequest, TipoCarta>()
+        .ForMember(d => d.Id, o => o.Ignore());
 
       // ---- Patologia ----
       _ = CreateMap<Patologia, PatologiaDtos.PatologiaDTO>()
@@ -2159,6 +2187,30 @@ namespace CliCloud.Infrastructure.Mapper
         .ForMember(d => d.RemetenteId, o => o.Ignore())
         .ForMember(d => d.DataLeitura, o => o.Ignore())
         .ForMember(d => d.LeituraPor, o => o.Ignore());
+
+      // ---- EstadoSinistro ----
+      _ = CreateMap<EstadoSinistroItem, EstadoSinistroDtos.EstadoSinistroDTO>();
+      _ = CreateMap<EstadoSinistroDtos.CreateEstadoSinistroRequest, EstadoSinistroItem>()
+        .ForMember(d => d.Id, o => o.Ignore());
+      _ = CreateMap<EstadoSinistroDtos.UpdateEstadoSinistroRequest, EstadoSinistroItem>()
+        .ForMember(d => d.Id, o => o.Ignore());
+
+      // ---- Sinistrado ----
+      _ = CreateMap<SinistradoLinhaServico, SinistradoDtos.SinistradoLinhaServicoDTO>();
+      _ = CreateMap<SinistradoDtos.SinistradoLinhaServicoDTO, SinistradoLinhaServico>()
+        .ForMember(d => d.Id, o => o.Ignore());
+      _ = CreateMap<Sinistrado, SinistradoDtos.SinistradoDTO>()
+        .ForMember(
+          d => d.EstadoSinistroDesignacao,
+          o => o.MapFrom(s => s.EstadoSinistro != null ? s.EstadoSinistro.Designacao : null));
+      _ = CreateMap<Sinistrado, SinistradoDtos.SinistradoTableDTO>()
+        .ForMember(
+          d => d.EstadoSinistroDesignacao,
+          o => o.MapFrom(s => s.EstadoSinistro != null ? s.EstadoSinistro.Designacao : null));
+      _ = CreateMap<SinistradoDtos.CreateSinistradoRequest, Sinistrado>()
+        .ForMember(d => d.Id, o => o.Ignore());
+      _ = CreateMap<SinistradoDtos.UpdateSinistradoRequest, Sinistrado>()
+        .ForMember(d => d.Id, o => o.Ignore());
 
       
     }

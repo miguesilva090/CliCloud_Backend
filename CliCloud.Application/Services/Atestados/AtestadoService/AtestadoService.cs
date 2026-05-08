@@ -11,12 +11,14 @@ using CliCloud.Application.Services.Atestados.AtestadoService.Specifications;
 using CliCloud.Application.Services.Atestados.SpmsCartaConducaoService;
 using CliCloud.Application.Services.Core.ConfigCartaConducaoService.Specifications;
 using CliCloud.Domain.Entities.Common.Configurations;
+using CliCloud.Domain.Entities.CartaConducao;
 
 
 namespace CliCloud.Application.Services.Atestados.AtestadoService
 {
   public class AtestadoService : IAtestadoService
   {
+    private static readonly HashSet<string> CategoriasExcecaoBBe = new(StringComparer.OrdinalIgnoreCase) { "B", "BE" };
     private readonly IRepositoryAsync _repository;
     private readonly IMapper _mapper;
     private readonly ISpmsCartaConducaoService _spmsCartaConducaoService;
@@ -99,6 +101,8 @@ namespace CliCloud.Application.Services.Atestados.AtestadoService
 
       try
       {
+        await NormalizarCategoriasBBeAsync(request);
+
         _ = await _repository.CreateAsync<Atestado, Guid>(atestado);
 
         foreach (var item in request.Categorias)
@@ -169,6 +173,20 @@ namespace CliCloud.Application.Services.Atestados.AtestadoService
       catch (Exception ex)
       {
         return ResponseFactory.Fail<Guid>(ex.Message);
+      }
+    }
+
+    private async Task NormalizarCategoriasBBeAsync(CreateAtestadoRequest request)
+    {
+      foreach (var categoria in request.Categorias)
+      {
+        var carta = await _repository.GetByIdAsync<CartaConducao, Guid>(categoria.CartaConducaoId);
+        var codigo = carta?.CodigoCarta?.Trim();
+        if (string.IsNullOrWhiteSpace(codigo) || !CategoriasExcecaoBBe.Contains(codigo))
+          continue;
+
+        if (categoria.Apto == 0 && categoria.AptoGrupo2 == 1)
+          categoria.Apto = 1;
       }
     }
 
@@ -287,21 +305,54 @@ namespace CliCloud.Application.Services.Atestados.AtestadoService
 
       if (!spms.Success)
       {
-        atestado.EstadoEnvio = 2;
-        atestado.MensagemErro = spms.Message;
-        _ = await _repository.UpdateAsync<Atestado, Guid>(atestado);
-        await _repository.SaveChangesAsync();
-        return (false, $"Falha na comunicação SPMS: {spms.Message}");
+        await AtualizarEstadoComunicacaoAsync(
+          atestado,
+          sucesso: false,
+          isTransientFailure: spms.IsTransientFailure,
+          mensagem: spms.Message
+        );
+        
+        var prefix = spms.IsTransientFailure
+          ? "Comunicação SPMS indisponível (pendente para reenvio): "
+          : "Falha funcional na comunicação SPMS: ";
+        return (false, $"{prefix}{spms.Message}");
       }
 
-      atestado.EstadoEnvio = 1;
-      atestado.DataEnvio = DateTime.Now;
-      atestado.NumeroSPMS = spms.NumeroAtestadoMedico;
-      atestado.MensagemErro = null;
-      _ = await _repository.UpdateAsync<Atestado, Guid>(atestado);
-      await _repository.SaveChangesAsync();
+      await AtualizarEstadoComunicacaoAsync(
+        atestado,
+        sucesso: true,
+        isTransientFailure: false,
+        mensagem: null,
+        numeroSpms: spms.NumeroAtestadoMedico
+      );
 
       return (true, null);
+    }
+
+    private async Task AtualizarEstadoComunicacaoAsync(
+      Atestado atestado,
+      bool sucesso, 
+      bool isTransientFailure,
+      string? mensagem,
+      string? numeroSpms = null
+    )
+    {
+      if (sucesso)
+      {
+        atestado.EstadoEnvio = 1;
+        atestado.DataEnvio = DateTime.Now;
+        atestado.NumeroSPMS = numeroSpms;
+        atestado.MensagemErro = null;
+      }
+      else
+      {
+        atestado.EstadoEnvio = isTransientFailure ? 0 : 2;
+        atestado.DataEnvio = null;
+        atestado.MensagemErro = mensagem;
+      }
+
+      _ = await _repository.UpdateAsync<Atestado, Guid>(atestado);
+      await _repository.SaveChangesAsync();
     }
   }
 }

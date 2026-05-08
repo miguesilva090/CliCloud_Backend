@@ -9,7 +9,7 @@ public class AtestadoPendentesForSpmsSpec : Specification<Atestado>
   {
     _ = Query
       .Where(x => x.ClinicaId == clinicaId)
-      .Where(x => x.EstadoEnvio == 0 || x.EstadoEnvio == 2)
+      .Where(x => x.EstadoEnvio == 0)
       .Include(x => x.CodigoPostal)
       .Include(x => x.Utente)
         .ThenInclude(u => u!.Sexo)

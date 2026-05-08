@@ -100,28 +100,50 @@ public class SpmsCartaConducaoService : ISpmsCartaConducaoService
 
         var endpoint = NormalizeWsdlToEndpoint(targetUrl);
 
-        using var http = new HttpClient();
-        var authBytes = Encoding.UTF8.GetBytes($"{config.Utilizador}:{config.Password}");
-        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(authBytes));
+        try
+        {
+            using var http = new HttpClient();
+            var authBytes = Encoding.UTF8.GetBytes($"{config.Utilizador}:{config.Password}");
+            http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(authBytes));
 
-        var softwareCode = ResolveSoftwareCode(clinica.CodSb);
-        var xml = BuildSoapEnvelope(atestado, utente, medico, clinica, config, categorias, restricoes, restricoesAnteriores, softwareCode);
-        using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
-        request.Content = new StringContent(xml, Encoding.UTF8, "text/xml");
-        _ = request.Headers.TryAddWithoutValidation("SOAPAction", "regista");
+            var softwareCode = ResolveSoftwareCode(clinica.CodSb);
+            var xml = BuildSoapEnvelope(atestado, utente, medico, clinica, config, categorias, restricoes, restricoesAnteriores, softwareCode);
+            using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
+            request.Content = new StringContent(xml, Encoding.UTF8, "text/xml");
+            _ = request.Headers.TryAddWithoutValidation("SOAPAction", "regista");
 
-        var response = await http.SendAsync(request);
-        var body = await response.Content.ReadAsStringAsync();
+            var response = await http.SendAsync(request);
+            var body = await response.Content.ReadAsStringAsync();
 
-        if(!response.IsSuccessStatusCode)
+            if(!response.IsSuccessStatusCode)
+            {
+                var code = (int)response.StatusCode;
+                return new SpmsRegistoAtestadoResult
+                {
+                    Success = false,
+                    IsTransientFailure = IsTransientHttpStatus(code),
+                    Message = BuildHttpErrorMessage(code, body)
+                };
+            }
+
+            return ParseResponse(body);
+        }
+        catch (Exception ex)
+        {
             return new SpmsRegistoAtestadoResult
             {
                 Success = false,
-                Message = BuildHttpErrorMessage((int)response.StatusCode, body)
+                IsTransientFailure = IsTransientException(ex),
+                Message = $"Falha na comunicação SPMS: {ex.Message}"
             };
-        
-        return ParseResponse(body);
+        }
     }
+
+    private static bool IsTransientHttpStatus(int statusCode)
+        => statusCode == 408 || statusCode == 429 || statusCode >= 500;
+
+    private static bool IsTransientException(Exception ex)
+        => ex is HttpRequestException || ex is TaskCanceledException || ex is TimeoutException;
 
     private static string NormalizeWsdlToEndpoint(string url)
         => url.Replace("?wsdl", "", StringComparison.OrdinalIgnoreCase)
@@ -259,7 +281,12 @@ public class SpmsCartaConducaoService : ISpmsCartaConducaoService
             var doc = XDocument.Parse(xml);
             var fault = doc.Descendants().FirstOrDefault(x => x.Name.LocalName == "faultstring")?.Value;
             if (!string.IsNullOrWhiteSpace(fault))
-                return new SpmsRegistoAtestadoResult { Success = false, Message = fault };
+                return new SpmsRegistoAtestadoResult
+                {
+                    Success = false,
+                    IsTransientFailure = false,
+                    Message = fault
+                };
 
             var mensagens = doc.Descendants()
                 .Where(x => x.Name.LocalName is "mensagem" or "resultado")
@@ -275,20 +302,20 @@ public class SpmsCartaConducaoService : ISpmsCartaConducaoService
                 .ToList();
 
             if (erros.Count > 0)
-                return new SpmsRegistoAtestadoResult { Success = false, Message = string.Join(" | ", erros) };
+                return new SpmsRegistoAtestadoResult { Success = false, IsTransientFailure = false, Message = string.Join(" | ", erros) };
 
             var numero = doc.Descendants().FirstOrDefault( x => x.Name.LocalName == "numAtestadoMedico")?.Value;
             var chavePedidoId = doc.Descendants().FirstOrDefault(x => x.Name.LocalName == "chavePedidoId")?.Value;
             if (string.IsNullOrWhiteSpace(numero))
                 numero = chavePedidoId;
             if(string.IsNullOrWhiteSpace(numero))
-                return new SpmsRegistoAtestadoResult { Success = false, Message = "SPMS sem número de atestado no retorno"};
+                return new SpmsRegistoAtestadoResult { Success = false, IsTransientFailure = false, Message = "SPMS sem número de atestado no retorno"};
             
             return new SpmsRegistoAtestadoResult { Success = true, NumeroAtestadoMedico = numero};
         }
         catch ( Exception ex)
         {
-            return new SpmsRegistoAtestadoResult {Success = false, Message = $"Resposta SPMS inválida: {ex.Message}"};
+            return new SpmsRegistoAtestadoResult {Success = false, IsTransientFailure = false, Message = $"Resposta SPMS inválida: {ex.Message}"};
         }
     }
 

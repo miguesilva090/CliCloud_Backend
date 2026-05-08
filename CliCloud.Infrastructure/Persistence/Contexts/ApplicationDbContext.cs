@@ -55,6 +55,7 @@ using CliCloud.Domain.Entities.Core.ConfigReferenciaMB;
 using CliCloud.Domain.Entities.Core.Email;
 using CliCloud.Domain.Entities.Faturacao;
 using CliCloud.Domain.Entities.Notificacoes;
+using CliCloud.Domain.Entities.Sinistros;
 using Microsoft.EntityFrameworkCore;
 
 //---------------------------------- CLI COMMANDS --------------------------------------------------
@@ -92,6 +93,7 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     public DbSet<EntidadePessoa> EntidadePessoas { get; set; }
     public DbSet<EntidadeContacto> EntidadeContactos { get; set; }
     public DbSet<Feriado> Feriados { get; set; }
+    public DbSet<TipoCarta> TiposCarta { get; set; }
     
     // DbSets - Utentes
     public DbSet<Utente> Utentes { get; set; }
@@ -216,6 +218,13 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     public DbSet<ServicoConsulta> ServicosConsultas { get; set; }
     public DbSet<ConsultaFaturacao> ConsultasFaturacao { get; set; }
     public DbSet<TipoConsultaItem> TiposConsulta { get; set; }
+    public DbSet<Sala> Salas { get; set; }
+    public DbSet<MotivoConsulta> MotivosConsulta { get; set; }
+    
+    // DbSets - Sinistrados
+    public DbSet<EstadoSinistroItem> EstadosSinistro { get; set; }
+    public DbSet<Sinistrado> Sinistrados { get; set; }
+    public DbSet<SinistradoLinhaServico> SinistradosLinhasServico { get; set; }
     
     // DbSets - Tratamentos
     public DbSet<Tratamento> Tratamentos { get; set; }
@@ -438,6 +447,7 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
       _ = modelBuilder.ApplyConfiguration(new EntidadeConfiguration());
       _ = modelBuilder.ApplyConfiguration(new EntidadePessoaConfiguration());
       _ = modelBuilder.ApplyConfiguration(new FeriadoConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new TipoCartaConfiguration());
       _ = modelBuilder.ApplyConfiguration(new UtenteConfiguration());
       _ = modelBuilder.ApplyConfiguration(new FuncionarioConfiguration());
       
@@ -540,9 +550,14 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
       // Consultas configurations
       _ = modelBuilder.ApplyConfiguration(new ConsultaConfiguration());
       _ = modelBuilder.ApplyConfiguration(new MarcacaoConsultaConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new SalaConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new MotivoConsultaConfiguration());
       _ = modelBuilder.ApplyConfiguration(new TeleconsultaSessaoConfiguration());
       _ = modelBuilder.ApplyConfiguration(new TeleconsultaAcessoLogConfiguration());
       _ = modelBuilder.ApplyConfiguration(new ServicoConsultaConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new EstadoSinistroItemConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new SinistradoConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new SinistradoLinhaServicoConfiguration());
       
       // Tratamentos configurations
       _ = modelBuilder.ApplyConfiguration(new TratamentoConfiguration());

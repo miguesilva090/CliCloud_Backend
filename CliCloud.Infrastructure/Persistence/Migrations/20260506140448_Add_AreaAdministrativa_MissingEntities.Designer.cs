@@ -4,6 +4,7 @@ using CliCloud.Infrastructure.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CliCloud.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260506140448_Add_AreaAdministrativa_MissingEntities")]
+    partial class Add_AreaAdministrativa_MissingEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -8001,203 +8004,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.ToTable("Sexo", "Utility");
                 });
 
-            modelBuilder.Entity("CliCloud.Domain.Entities.Sinistros.EstadoSinistroItem", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("DeletedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("DeletedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Designacao")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("nvarchar(80)");
-
-                    b.Property<Guid?>("LastModifiedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("LastModifiedOn")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Designacao");
-
-                    b.ToTable("EstadoSinistro", "Sinistros");
-                });
-
-            modelBuilder.Entity("CliCloud.Domain.Entities.Sinistros.Sinistrado", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("CodigoSinistro")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DataAcidente")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DataAlta")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DataParticipacao")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DataPrimeiraObservacao")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DataUltimoTratamento")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("DeletedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("DeletedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Diagnostico")
-                        .HasMaxLength(120)
-                        .HasColumnType("nvarchar(120)");
-
-                    b.Property<Guid?>("EstadoSinistroId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("Historico")
-                        .HasColumnType("bit");
-
-                    b.Property<Guid?>("LastModifiedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("LastModifiedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("NumeroProcesso")
-                        .HasMaxLength(120)
-                        .HasColumnType("nvarchar(120)");
-
-                    b.Property<string>("Observacoes")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Relatorio")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Responsabilidade")
-                        .HasMaxLength(80)
-                        .HasColumnType("nvarchar(80)");
-
-                    b.Property<string>("TipoAcidente")
-                        .HasMaxLength(80)
-                        .HasColumnType("nvarchar(80)");
-
-                    b.Property<Guid>("UtenteId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CodigoSinistro")
-                        .IsUnique();
-
-                    b.HasIndex("EstadoSinistroId");
-
-                    b.HasIndex("Historico");
-
-                    b.HasIndex("UtenteId");
-
-                    b.ToTable("Sinistrado", "Sinistros");
-                });
-
-            modelBuilder.Entity("CliCloud.Domain.Entities.Sinistros.SinistradoLinhaServico", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("AdmissaoId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("CodigoServico")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DataFatura")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DataServico")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("DeletedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("DeletedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("DesignacaoServico")
-                        .HasMaxLength(160)
-                        .HasColumnType("nvarchar(160)");
-
-                    b.Property<Guid?>("LastModifiedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("LastModifiedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("NumeroFaturaInterno")
-                        .HasColumnType("int");
-
-                    b.Property<string>("NumeroTFatura")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Quantidade")
-                        .HasColumnType("int");
-
-                    b.Property<Guid>("SinistradoId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("TratamentoId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal?>("ValorContratado")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("ValorServico")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CodigoServico");
-
-                    b.HasIndex("SinistradoId");
-
-                    b.ToTable("SinistradoLinhaServico", "Sinistros");
-                });
-
             modelBuilder.Entity("CliCloud.Domain.Entities.TaxasIva.MotivoIsencao", b =>
                 {
                     b.Property<Guid>("Id")
@@ -12993,27 +12799,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Navigation("Servico");
                 });
 
-            modelBuilder.Entity("CliCloud.Domain.Entities.Sinistros.Sinistrado", b =>
-                {
-                    b.HasOne("CliCloud.Domain.Entities.Sinistros.EstadoSinistroItem", "EstadoSinistro")
-                        .WithMany()
-                        .HasForeignKey("EstadoSinistroId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("EstadoSinistro");
-                });
-
-            modelBuilder.Entity("CliCloud.Domain.Entities.Sinistros.SinistradoLinhaServico", b =>
-                {
-                    b.HasOne("CliCloud.Domain.Entities.Sinistros.Sinistrado", "Sinistrado")
-                        .WithMany("LinhasServico")
-                        .HasForeignKey("SinistradoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Sinistrado");
-                });
-
             modelBuilder.Entity("CliCloud.Domain.Entities.Tecnicos.FolgasTecnico", b =>
                 {
                     b.HasOne("CliCloud.Domain.Entities.Tecnicos.Tecnico", "Tecnico")
@@ -13843,11 +13628,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("CliCloud.Domain.Entities.Servicos.TipoServico", b =>
                 {
                     b.Navigation("Servicos");
-                });
-
-            modelBuilder.Entity("CliCloud.Domain.Entities.Sinistros.Sinistrado", b =>
-                {
-                    b.Navigation("LinhasServico");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.Tecnicos.HorarioTecnico", b =>
