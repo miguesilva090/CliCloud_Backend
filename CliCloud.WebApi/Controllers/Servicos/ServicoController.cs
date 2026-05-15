@@ -68,7 +68,7 @@ namespace CliCloud.WebApi.Controllers.Servicos
         // create
         [Authorize(Roles = "client")]
         [HttpPost]
-        public async Task<IActionResult> CreateServicoAsync(CreateServicoRequest request)
+        public async Task<IActionResult> CreateServicoAsync([FromBody] CreateServicoRequest request)
         {
             try
             {
@@ -84,7 +84,7 @@ namespace CliCloud.WebApi.Controllers.Servicos
         // update
         [Authorize(Roles = "client")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateServicoAsync(UpdateServicoRequest request, Guid id)
+        public async Task<IActionResult> UpdateServicoAsync([FromBody] UpdateServicoRequest request, Guid id)
         {
             try
             {

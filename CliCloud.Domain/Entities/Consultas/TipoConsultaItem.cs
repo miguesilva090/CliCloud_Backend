@@ -8,7 +8,6 @@ namespace CliCloud.Domain.Entities.Consultas
 {
     /// <summary>
     /// Tipo de consulta (ex: 1ª Consulta, AV. Final, Feriado, Teleconsulta).
-    /// Permite ver e editar; inserções via seed ou import.
     /// </summary>
     [Table("TiposConsulta", Schema = "Consultas")]
     public class TipoConsultaItem : AuditableEntityWithSoftDelete

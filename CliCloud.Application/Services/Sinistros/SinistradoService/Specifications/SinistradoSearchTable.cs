@@ -9,32 +9,31 @@ namespace CliCloud.Application.Services.Sinistros.SinistradoService.Specificatio
     {
         public SinistradoSearchTable(List<TableFilter> filters, string? dynamicOrder = "")
         {
-            Query.Include(x => x.EstadoSinistro);
+            Query.Include(x => x.EstadoSinistro)
+                 .Include(x => x.Utente);
 
-            foreach (var filter in filters ?? [])
+            foreach( var filter in filters ?? [])
             {
-                switch ((filter.Id ?? "").ToLowerInvariant())
+                switch((filter.Id ?? "").ToLowerInvariant())
                 {
                     case "codigosinistro":
-                        if (!string.IsNullOrWhiteSpace(filter.Value))
+                        if(!string.IsNullOrWhiteSpace(filter.Value))
                             Query.Where(x => x.CodigoSinistro.Contains(filter.Value));
                         break;
                     case "utenteid":
-                        if (Guid.TryParse(filter.Value, out var utenteId))
+                        if(Guid.TryParse(filter.Value, out var utenteId))
                             Query.Where(x => x.UtenteId == utenteId);
                         break;
-                    case "historico":
-                        if (bool.TryParse(filter.Value, out var historico))
+                    case "historico": 
+                        if(bool.TryParse(filter.Value, out var historico))
                             Query.Where(x => x.Historico == historico);
-                        break;
-                    default:
                         break;
                 }
             }
 
-            if (string.IsNullOrEmpty(dynamicOrder))
+            if(string.IsNullOrEmpty(dynamicOrder))
                 Query.OrderByDescending(x => x.CreatedOn);
-            else
+            else 
                 Query.OrderBy(dynamicOrder);
         }
     }

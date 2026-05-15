@@ -7,6 +7,9 @@ namespace CliCloud.Application.Services.Sinistros.SinistradoService.DTOs
         public Guid Id { get; set; }
         public string CodigoSinistro { get; set; } = string.Empty;
         public Guid UtenteId { get; set; }
+        public string? UtenteNumero { get; set; }
+        public string? UtenteNome { get; set; }
+        public string? TipoAcidente { get; set; }
         public DateTime? DataAcidente { get; set; }
         public string? EstadoSinistroDesignacao { get; set; }
         public bool Historico { get; set; }

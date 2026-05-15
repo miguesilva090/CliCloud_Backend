@@ -12,6 +12,7 @@ using CliCloud.Domain.Entities.Tecnicos;
 using CliCloud.Domain.Entities.Tratamentos;
 using CliCloud.Domain.Entities.Utentes;
 using CliCloud.Domain.Enums;
+using CliCloud.Domain.Entities.Doencas;
 
 namespace CliCloud.Domain.Entities.Consultas
 {
@@ -74,6 +75,18 @@ namespace CliCloud.Domain.Entities.Consultas
     
     public Guid? ConsultaMarcacaoId { get; set; }
     public ConsultaMarcacao? ConsultaMarcacao { get; set; }
+
+    public Guid? AdmissaoId { get; set; }
+    public Admissao? Admissao { get; set; }
+
+    public Guid? TipoAdmissaoId { get; set; }
+    public TipoAdmissao? TipoAdmissao { get; set; }
+
+    public Guid? DoencaPrincipalId { get; set; }
+    public Doenca? DoencaPrincipal { get; set; }
+    public Guid? DoencaSecundariaId { get; set; }
+    public Doenca? DoencaSecundaria { get; set; }
+
     
     public ICollection<ServicoConsulta> Servicos { get; set; } = [];
   }

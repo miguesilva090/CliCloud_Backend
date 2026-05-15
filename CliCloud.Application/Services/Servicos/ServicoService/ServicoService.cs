@@ -7,6 +7,7 @@ using CliCloud.Application.Services.Servicos.ServicoService.Filters;
 using CliCloud.Application.Services.Servicos.ServicoService.Specifications;
 using CliCloud.Application.Utility;
 using CliCloud.Domain.Entities.Servicos;
+using CliCloud.Domain.Entities.TaxasIva;
 
 namespace CliCloud.Application.Services.Servicos.ServicoService
 {
@@ -75,7 +76,16 @@ namespace CliCloud.Application.Services.Servicos.ServicoService
 
     public async Task<Response<Guid>> CreateServicoAsync(CreateServicoRequest request)
     {
+      MotivoIsencao? motivoResolvido = null;
+      if (request.MotivoIsencaoId is { } mid && mid != Guid.Empty)
+      {
+        motivoResolvido = await _repository.GetByIdAsync<MotivoIsencao, Guid>(mid);
+        if (motivoResolvido == null) return ResponseFactory.Fail<Guid>("Motivo de isenção não encontrado.");
+      }
+
       var entity = _mapper.Map<Servico>(request);
+      ApplyMotivoIsencaoFields(entity, motivoResolvido, request.CodigoMotivoIsencao);
+
       try
       {
         var created = await _repository.CreateAsync<Servico, Guid>(entity);
@@ -90,10 +100,18 @@ namespace CliCloud.Application.Services.Servicos.ServicoService
 
     public async Task<Response<Guid>> UpdateServicoAsync(UpdateServicoRequest request, Guid id)
     {
+      MotivoIsencao? motivoResolvido = null;
+      if (request.MotivoIsencaoId is { } mid && mid != Guid.Empty)
+      {
+        motivoResolvido = await _repository.GetByIdAsync<MotivoIsencao, Guid>(mid);
+        if (motivoResolvido == null) return ResponseFactory.Fail<Guid>("Motivo de isenção não encontrado.");
+      }
+
       var existing = await _repository.GetByIdAsync<Servico, Guid>(id);
       if (existing == null) return ResponseFactory.Fail<Guid>("Serviço não encontrado.");
 
       _ = _mapper.Map(request, existing);
+      ApplyMotivoIsencaoFields(existing, motivoResolvido, request.CodigoMotivoIsencao);
 
       try
       {
@@ -148,6 +166,19 @@ namespace CliCloud.Application.Services.Servicos.ServicoService
       if (ok.Count > 0) return ResponseFactory.PartialSuccess<IEnumerable<Guid>>(ok, $"Eliminados {ok.Count} de {list.Count}.");
       return ResponseFactory.Fail<IEnumerable<Guid>>(string.Join("; ", fail));
     }
+
+    private static void ApplyMotivoIsencaoFields(Servico entity, MotivoIsencao? motivoResolvido, int? codigoMotivoIsencaoRequest)
+    {
+      if (motivoResolvido != null)
+      {
+        entity.MotivoIsencaoId = motivoResolvido.Id;
+        entity.CodigoMotivoIsencao = CodigoMotivoIsencaoLegadoResolver.FromMotivoCodigo(motivoResolvido.Codigo);
+      }
+      else
+      {
+        entity.MotivoIsencaoId = null;
+        entity.CodigoMotivoIsencao = codigoMotivoIsencaoRequest;
+      }
+    }
   }
 }
-

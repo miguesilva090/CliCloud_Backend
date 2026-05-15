@@ -3,10 +3,11 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using CliCloud.Domain.Entities.Common;
+using CliCloud.Domain.Entities.Utentes;
 
 namespace CliCloud.Domain.Entities.Sinistros
 {
-    [Table("Sinistrado", Schema = "Consultas")]
+    [Table("Sinistrado", Schema = "Sinistros")]
     public class Sinistrado : AuditableEntityWithSoftDelete
     {
         [Key]
@@ -40,6 +41,7 @@ namespace CliCloud.Domain.Entities.Sinistros
         public string? Observacoes { get; set; }
         public string? Relatorio { get; set; }
         public EstadoSinistroItem? EstadoSinistro { get; set; }
+        public Utente? Utente { get; set; }
         public ICollection<SinistradoLinhaServico> LinhasServico { get; set; } = new List<SinistradoLinhaServico>();
     }
 }

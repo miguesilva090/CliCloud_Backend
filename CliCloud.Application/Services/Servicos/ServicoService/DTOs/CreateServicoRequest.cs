@@ -14,6 +14,7 @@ namespace CliCloud.Application.Services.Servicos.ServicoService.DTOs
     public string? EAN { get; set; }
     public Guid? TipoAparelhoId { get; set; }
     public bool TratDentario { get; set; }
+    public Guid? MotivoIsencaoId { get; set; }
     public int? CodigoMotivoIsencao { get; set; }
     public bool Inativo { get; set; }
   }

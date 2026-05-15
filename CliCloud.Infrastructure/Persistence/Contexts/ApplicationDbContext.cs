@@ -56,6 +56,7 @@ using CliCloud.Domain.Entities.Core.Email;
 using CliCloud.Domain.Entities.Faturacao;
 using CliCloud.Domain.Entities.Notificacoes;
 using CliCloud.Domain.Entities.Sinistros;
+using CliCloud.Domain.Entities.Credenciais;
 using Microsoft.EntityFrameworkCore;
 
 //---------------------------------- CLI COMMANDS --------------------------------------------------
@@ -220,11 +221,9 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     public DbSet<TipoConsultaItem> TiposConsulta { get; set; }
     public DbSet<Sala> Salas { get; set; }
     public DbSet<MotivoConsulta> MotivosConsulta { get; set; }
-    
-    // DbSets - Sinistrados
-    public DbSet<EstadoSinistroItem> EstadosSinistro { get; set; }
-    public DbSet<Sinistrado> Sinistrados { get; set; }
-    public DbSet<SinistradoLinhaServico> SinistradosLinhasServico { get; set; }
+    public DbSet<Admissao> Admissoes { get; set; }
+    public DbSet<AdmissaoServico> AdmissoesServicos { get; set; }
+    public DbSet<TipoAdmissao> TiposAdmissao { get; set; }
     
     // DbSets - Tratamentos
     public DbSet<Tratamento> Tratamentos { get; set; }
@@ -428,6 +427,21 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     // DbSets - LicencaUserClinicaMap
     public DbSet<LicencaUserClinicaMap> LicencaUserClinicaMap { get; set; }
 
+    // DbSets - Sinistros
+    public DbSet<Sinistrado> Sinistrados { get; set; }
+    public DbSet<SinistradoLinhaServico> SinistradoLinhasServico { get; set; }
+    public DbSet<EstadoSinistroItem> EstadoSinistroItens { get; set; }
+
+    // DbSets - LoteDirect
+    public DbSet<LoteDirect> LotesDirect { get; set; }
+    public DbSet<TipoLote> TiposLote { get; set; }
+
+    public DbSet<LoteDirectLinha> LotesDirectLinha { get; set; }
+    public DbSet<LoteDirectLinha789> LotesDirectLinha789 { get; set; }
+    public DbSet<LoteDirectAgregado> LotesDirectAgregado { get; set; }
+    public DbSet<LoteDirectDetalhe> LotesDirectDetalhe { get; set; }
+
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
       base.OnModelCreating(modelBuilder);
@@ -555,9 +569,8 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
       _ = modelBuilder.ApplyConfiguration(new TeleconsultaSessaoConfiguration());
       _ = modelBuilder.ApplyConfiguration(new TeleconsultaAcessoLogConfiguration());
       _ = modelBuilder.ApplyConfiguration(new ServicoConsultaConfiguration());
-      _ = modelBuilder.ApplyConfiguration(new EstadoSinistroItemConfiguration());
-      _ = modelBuilder.ApplyConfiguration(new SinistradoConfiguration());
-      _ = modelBuilder.ApplyConfiguration(new SinistradoLinhaServicoConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new AdmissaoConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new AdmissaoServicoConfiguration());
       
       // Tratamentos configurations
       _ = modelBuilder.ApplyConfiguration(new TratamentoConfiguration());
@@ -716,6 +729,21 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
       // Notificacoes configurations
       _ = modelBuilder.ApplyConfiguration(new NotificacaoTipoConfiguration());
       _ = modelBuilder.ApplyConfiguration(new NotificacaoConfiguration());
+
+      // Sinistros configurations
+      _ = modelBuilder.ApplyConfiguration(new SinistradoConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new SinistradoLinhaServicoConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new EstadoSinistroItemConfiguration());
+
+      // LoteDirect configurations
+      _ = modelBuilder.ApplyConfiguration(new LoteDirectConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new TipoLoteConfiguration());
+
+      // LoteDirectLinha configurations
+      _ = modelBuilder.ApplyConfiguration(new LoteDirectLinhaConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new LoteDirectLinha789Configuration());
+      _ = modelBuilder.ApplyConfiguration(new LoteDirectAgregadoConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new LoteDirectDetalheConfiguration());
 
       // Odontologia - chaves alternativas e FKs por código
       modelBuilder.Entity<EstadosDentarios>(b =>

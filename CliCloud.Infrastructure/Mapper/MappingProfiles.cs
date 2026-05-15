@@ -37,8 +37,9 @@ using TipoConsultaDtos = CliCloud.Application.Services.TiposConsulta.TipoConsult
 using CliCloud.Domain.Entities.ProcessoClinico.Estomatologia;
 using CliCloud.Domain.Entities.ProcessoClinico.Odontologia;
 using CliCloud.Domain.Entities.Notificacoes;
-using CliCloud.Domain.Entities.Sinistros;
 using CliCloud.Domain.Entities.Common;
+using CliCloud.Domain.Entities.Sinistros;
+using CliCloud.Domain.Entities.Credenciais;
 
 // TipoAparelho, MarcaAparelho, ModeloAparelho, Exame, Aparelho, Clinica, Seguradora, Recibo — Fase 0 services
 using TipoAparelhoDtos = CliCloud.Application.Services.Tratamentos.TipoAparelhoService.DTOs;
@@ -54,6 +55,8 @@ using AcordosDtos = CliCloud.Application.Services.Exames.AcordosService.DTOs;
 using CategoriaProcedimentoDtos = CliCloud.Application.Services.Exames.CategoriaProcedimentoService.DTOs;
 using AnalisesDtos = CliCloud.Application.Services.Exames.AnalisesService.DTOs;
 using ConsultaDtos = CliCloud.Application.Services.Consultas.ConsultaService.DTOs;
+using HistoricoConsultaAdministrativoDtos =
+  CliCloud.Application.Services.Consultas.HistoricoConsultasAdministrativoService.DTOs;
 using MarcacaoConsultaDtos = CliCloud.Application.Services.Consultas.MarcacaoConsultaService.DTOs;
 using ServicoConsultaDtos = CliCloud.Application.Services.Consultas.ServicoConsultaService.DTOs;
 using TipoServicoDtos = CliCloud.Application.Services.Servicos.TipoServicoService.DTOs;
@@ -122,8 +125,6 @@ using GoniometriasDtos = CliCloud.Application.Services.Tratamentos.GoniometriasS
 using EstadosDentariosDtos = CliCloud.Application.Services.ProcessoClinico.Odontologia.EstadosDentariosService.DTOs;
 using OdontogramaDefinitivoDtos = CliCloud.Application.Services.ProcessoClinico.Odontologia.OdontogramaDefinitivoService.DTOs;
 using TiposTratamentoDentarioDtos = CliCloud.Application.Services.ProcessoClinico.Odontologia.TiposTratamentoDentarioService.DTOs;
-using SinistradoDtos = CliCloud.Application.Services.Sinistros.SinistradoService.DTOs;
-using EstadoSinistroDtos = CliCloud.Application.Services.Sinistros.EstadoSinistroService.DTOs;
 using FraquezasMuscularesDtos = CliCloud.Application.Services.Tratamentos.FraquezasMuscularesService.DTOs;
 using MotivoAltaDtos = CliCloud.Application.Services.Tratamentos.MotivoAltaService.DTOs;
 using MotivosDesmarcacaoDtos = CliCloud.Application.Services.Tratamentos.MotivosDesmarcacaoService.DTOs;
@@ -521,6 +522,29 @@ namespace CliCloud.Infrastructure.Mapper
           o => o.MapFrom(s => s.HoraInicio.HasValue ? s.HoraInicio.Value.ToString(@"hh\:mm", CultureInfo.InvariantCulture) : null))
         .ForMember(d => d.HoraFim,
           o => o.MapFrom(s => s.HoraFim.HasValue ? s.HoraFim.Value.ToString(@"hh\:mm", CultureInfo.InvariantCulture) : null));
+      _ = CreateMap<Consulta, HistoricoConsultaAdministrativoDtos.HistoricoConsultaAdministrativoRowDTO>()
+        .ForMember(d => d.UtenteNumero,
+          o => o.MapFrom(s => s.Utente != null ? s.Utente.NumeroUtente : null))
+        .ForMember(d => d.UtenteNome,
+          o => o.MapFrom(s => s.Utente != null ? s.Utente.Nome : null))
+        .ForMember(d => d.OrganismoNome,
+          o => o.MapFrom(s => s.Organismo != null ? s.Organismo.Nome : null))
+        .ForMember(d => d.MedicoNome,
+          o => o.MapFrom(s => s.Medico != null ? s.Medico.Nome : null))
+        .ForMember(d => d.EspecialidadeDesignacao,
+          o => o.MapFrom(s =>
+            s.Especialidade != null
+              ? s.Especialidade.Nome
+              : s.ConsultaMarcacao != null && s.ConsultaMarcacao.TipoAdmissao != null
+                ? s.ConsultaMarcacao.TipoAdmissao.Designacao
+                : null))
+        .ForMember(d => d.HoraInic,
+          o => o.MapFrom(s => s.HoraInicio.HasValue ? s.HoraInicio.Value.ToString(@"hh\:mm", CultureInfo.InvariantCulture) : null))
+        .ForMember(d => d.StatusConsulta, o => o.MapFrom(s => (int?)s.StatusConsulta))
+        .ForMember(d => d.StatusConsultaLabel,
+          o => o.MapFrom(s => s.StatusConsulta.HasValue ? EnumDisplayHelper.GetDisplayName(s.StatusConsulta.Value) : null))
+        .ForMember(d => d.Pago, o => o.Ignore())
+        .ForMember(d => d.Faturado, o => o.Ignore());
       _ = CreateMap<ConsultaDtos.CreateConsultaRequest, Consulta>();
       _ = CreateMap<ConsultaDtos.UpdateConsultaRequest, Consulta>();
 
@@ -633,10 +657,14 @@ namespace CliCloud.Infrastructure.Mapper
         .ForMember(d => d.TipoServicoDescricao, o => o.MapFrom(s => s.TipoServico != null ? s.TipoServico.Descricao : null));
       _ = CreateMap<ServicoDtos.CreateServicoRequest, Servico>()
         .ForMember(d => d.TipoServico, o => o.Ignore())
-        .ForMember(d => d.TipoAparelho, o => o.Ignore());
+        .ForMember(d => d.TipoAparelho, o => o.Ignore())
+        .ForMember(d => d.TaxaIva, o => o.Ignore())
+        .ForMember(d => d.MotivoIsencao, o => o.Ignore());
       _ = CreateMap<ServicoDtos.UpdateServicoRequest, Servico>()
         .ForMember(d => d.TipoServico, o => o.Ignore())
-        .ForMember(d => d.TipoAparelho, o => o.Ignore());
+        .ForMember(d => d.TipoAparelho, o => o.Ignore())
+        .ForMember(d => d.TaxaIva, o => o.Ignore())
+        .ForMember(d => d.MotivoIsencao, o => o.Ignore());
 
       // ---- SubsistemaServico ----
       _ = CreateMap<SubsistemaServico, SubsistemaServicoDtos.SubsistemaServicoDTO>();
@@ -780,7 +808,11 @@ namespace CliCloud.Infrastructure.Mapper
       _ = CreateMap<TaxaIvaDtos.UpdateTaxaIvaRequest, CliCloud.Domain.Entities.TaxasIva.TaxaIva>();
 
       // ---- MotivoIsencao ----
+      _ = CreateMap<CliCloud.Domain.Entities.TaxasIva.MotivoIsencao, MotivoIsencaoDtos.MotivoIsencaoDTO>();
       _ = CreateMap<CliCloud.Domain.Entities.TaxasIva.MotivoIsencao, MotivoIsencaoDtos.MotivoIsencaoLightDTO>();
+      _ = CreateMap<CliCloud.Domain.Entities.TaxasIva.MotivoIsencao, MotivoIsencaoDtos.MotivoIsencaoTableDTO>();
+      _ = CreateMap<MotivoIsencaoDtos.CreateMotivoIsencaoRequest, CliCloud.Domain.Entities.TaxasIva.MotivoIsencao>();
+      _ = CreateMap<MotivoIsencaoDtos.UpdateMotivoIsencaoRequest, CliCloud.Domain.Entities.TaxasIva.MotivoIsencao>();
 
       // ---- ProvenienciaUtente ----
       _ = CreateMap<CliCloud.Domain.Entities.ProvenienciasUtente.ProvenienciaUtente, ProvenienciaUtenteDtos.ProvenienciaUtenteDTO>();
@@ -1735,9 +1767,17 @@ namespace CliCloud.Infrastructure.Mapper
         .ForMember(d => d.DeletedOn, o => o.Ignore())
         .ForMember(d => d.DeletedBy, o => o.Ignore());
 
-      // ---- TipoConsulta (ver/editar, sem criar) ----
+      // ---- TipoConsulta ----
       _ = CreateMap<TipoConsultaItem, TipoConsultaDtos.TipoConsultaDTO>();
       _ = CreateMap<TipoConsultaItem, TipoConsultaDtos.TipoConsultaTableDTO>();
+      _ = CreateMap<TipoConsultaDtos.CreateTipoConsultaRequest, TipoConsultaItem>()
+        .ForMember(d => d.Id, o => o.Ignore())
+        .ForMember(d => d.CreatedBy, o => o.Ignore())
+        .ForMember(d => d.CreatedOn, o => o.Ignore())
+        .ForMember(d => d.LastModifiedBy, o => o.Ignore())
+        .ForMember(d => d.LastModifiedOn, o => o.Ignore())
+        .ForMember(d => d.DeletedOn, o => o.Ignore())
+        .ForMember(d => d.DeletedBy, o => o.Ignore());
       _ = CreateMap<TipoConsultaDtos.UpdateTipoConsultaRequest, TipoConsultaItem>()
         .ForMember(d => d.Id, o => o.Ignore())
         .ForMember(d => d.CreatedBy, o => o.Ignore())
@@ -1749,6 +1789,34 @@ namespace CliCloud.Infrastructure.Mapper
 
       // ---- TipoAdmissao ----
       _ = CreateMap<TipoAdmissao, CliCloud.Application.Services.Consultas.TipoAdmissaoService.DTOs.TipoAdmissaoDTO>();
+
+      // ---- Admissao administrativa ----
+      _ = CreateMap<AdmissaoServico, CliCloud.Application.Services.Consultas.AdmissaoAdministrativoService.DTOs.AdmissaoServicoDTO>();
+      _ = CreateMap<CliCloud.Application.Services.Consultas.AdmissaoAdministrativoService.DTOs.AdmissaoServicoDTO, AdmissaoServico>()
+        .ForMember(d => d.Id, o => o.Ignore())
+        .ForMember(d => d.AdmissaoId, o => o.Ignore())
+        .ForMember(d => d.Admissao, o => o.Ignore());
+      _ = CreateMap<Admissao, CliCloud.Application.Services.Consultas.AdmissaoAdministrativoService.DTOs.AdmissaoDTO>()
+        .ForMember(d => d.UtenteNumero, o => o.MapFrom(s => s.Utente != null ? s.Utente.NumeroUtente : null))
+        .ForMember(d => d.UtenteNome, o => o.MapFrom(s => s.Utente != null ? s.Utente.Nome : null))
+        .ForMember(d => d.DoencaPrincipalCodigo, o => o.MapFrom(s => s.DoencaPrincipal != null ? s.DoencaPrincipal.Code : null))
+        .ForMember(d => d.DoencaPrincipalTitulo, o => o.MapFrom(s => s.DoencaPrincipal != null ? s.DoencaPrincipal.Title : null))
+        .ForMember(d => d.DoencaSecundariaCodigo, o => o.MapFrom(s => s.DoencaSecundaria != null ? s.DoencaSecundaria.Code : null))
+        .ForMember(d => d.DoencaSecundariaTitulo, o => o.MapFrom(s => s.DoencaSecundaria != null ? s.DoencaSecundaria.Title : null));
+      _ = CreateMap<Admissao, CliCloud.Application.Services.Consultas.AdmissaoAdministrativoService.DTOs.AdmissaoTableDTO>()
+        .ForMember(d => d.UtenteNumero, o => o.MapFrom(s => s.Utente != null ? s.Utente.NumeroUtente : null))
+        .ForMember(d => d.UtenteNome, o => o.MapFrom(s => s.Utente != null ? s.Utente.Nome : null))
+        .ForMember(d => d.MedicoNome, o => o.MapFrom(s => s.Medico != null ? s.Medico.Nome : null))
+        .ForMember(d => d.EspecialidadeDesignacao, o => o.MapFrom(s => s.Especialidade != null ? s.Especialidade.Nome : null))
+        .ForMember(d => d.OrganismoNome, o => o.MapFrom(s => s.Organismo != null ? s.Organismo.Nome : null))
+        .ForMember(d => d.SalaNome, o => o.MapFrom(s => s.Sala != null ? s.Sala.Nome : null))
+        .ForMember(d => d.TipoAdmissaoDesignacao, o => o.MapFrom(s => s.TipoAdmissao != null ? s.TipoAdmissao.Designacao : null));
+      _ = CreateMap<CliCloud.Application.Services.Consultas.AdmissaoAdministrativoService.DTOs.CreateAdmissaoRequest, Admissao>()
+        .ForMember(d => d.Id, o => o.Ignore())
+        .ForMember(d => d.Consulta, o => o.Ignore());
+      _ = CreateMap<CliCloud.Application.Services.Consultas.AdmissaoAdministrativoService.DTOs.UpdateAdmissaoRequest, Admissao>()
+        .ForMember(d => d.Id, o => o.Ignore())
+        .ForMember(d => d.Consulta, o => o.Ignore());
 
       // ---- MotivoConsulta ----
       _ = CreateMap<MotivoConsulta, CliCloud.Application.Services.Consultas.MotivoConsultaService.DTOs.MotivoConsultaDTO>();
@@ -2188,31 +2256,62 @@ namespace CliCloud.Infrastructure.Mapper
         .ForMember(d => d.DataLeitura, o => o.Ignore())
         .ForMember(d => d.LeituraPor, o => o.Ignore());
 
+
       // ---- EstadoSinistro ----
-      _ = CreateMap<EstadoSinistroItem, EstadoSinistroDtos.EstadoSinistroDTO>();
-      _ = CreateMap<EstadoSinistroDtos.CreateEstadoSinistroRequest, EstadoSinistroItem>()
-        .ForMember(d => d.Id, o => o.Ignore());
-      _ = CreateMap<EstadoSinistroDtos.UpdateEstadoSinistroRequest, EstadoSinistroItem>()
-        .ForMember(d => d.Id, o => o.Ignore());
+
+      _ = CreateMap<EstadoSinistroItem, CliCloud.Application.Services.Sinistros.EstadoSinistroService.DTOs.EstadoSinistroDTO>();
+      _ = CreateMap<CliCloud.Application.Services.Sinistros.EstadoSinistroService.DTOs.CreateEstadoSinistroRequest, EstadoSinistroItem>();
+      _ = CreateMap<CliCloud.Application.Services.Sinistros.EstadoSinistroService.DTOs.UpdateEstadoSinistroRequest, EstadoSinistroItem>();
 
       // ---- Sinistrado ----
-      _ = CreateMap<SinistradoLinhaServico, SinistradoDtos.SinistradoLinhaServicoDTO>();
-      _ = CreateMap<SinistradoDtos.SinistradoLinhaServicoDTO, SinistradoLinhaServico>()
-        .ForMember(d => d.Id, o => o.Ignore());
-      _ = CreateMap<Sinistrado, SinistradoDtos.SinistradoDTO>()
-        .ForMember(
-          d => d.EstadoSinistroDesignacao,
-          o => o.MapFrom(s => s.EstadoSinistro != null ? s.EstadoSinistro.Designacao : null));
-      _ = CreateMap<Sinistrado, SinistradoDtos.SinistradoTableDTO>()
-        .ForMember(
-          d => d.EstadoSinistroDesignacao,
-          o => o.MapFrom(s => s.EstadoSinistro != null ? s.EstadoSinistro.Designacao : null));
-      _ = CreateMap<SinistradoDtos.CreateSinistradoRequest, Sinistrado>()
-        .ForMember(d => d.Id, o => o.Ignore());
-      _ = CreateMap<SinistradoDtos.UpdateSinistradoRequest, Sinistrado>()
-        .ForMember(d => d.Id, o => o.Ignore());
+      _ = CreateMap<SinistradoLinhaServico, CliCloud.Application.Services.Sinistros.SinistradoService.DTOs.SinistradoLinhaServicoDTO>();
+      _ = CreateMap<Sinistrado, CliCloud.Application.Services.Sinistros.SinistradoService.DTOs.SinistradoDTO>()
+        .ForMember(d => d.EstadoSinistroDesignacao, o => o.MapFrom(s => s.EstadoSinistro != null ? s.EstadoSinistro.Designacao : null));
+      _ = CreateMap<Sinistrado, CliCloud.Application.Services.Sinistros.SinistradoService.DTOs.SinistradoTableDTO>()
+        .ForMember(d => d.EstadoSinistroDesignacao, o => o.MapFrom(s => s.EstadoSinistro != null ? s.EstadoSinistro.Designacao : null))
+        .ForMember(d => d.UtenteNumero, o => o.MapFrom(s => s.Utente != null ? s.Utente.NumeroUtente : null))
+        .ForMember(d => d.UtenteNome, o => o.MapFrom(s => s.Utente != null ? s.Utente.Nome : null));
+      _ = CreateMap<CliCloud.Application.Services.Sinistros.SinistradoService.DTOs.CreateSinistradoRequest, Sinistrado>();
+      _ = CreateMap<CliCloud.Application.Services.Sinistros.SinistradoService.DTOs.UpdateSinistradoRequest, Sinistrado>();
 
-      
+      // ---- LoteDirect ----
+      _ = CreateMap<LoteDirect, CliCloud.Application.Services.Credenciais.LoteDirectService.DTOs.LoteDirectDTO>()
+        .ForMember(d => d.UtenteNome, o => o.MapFrom(s => s.Utente != null ? s.Utente.Nome : null))
+        .ForMember(d => d.MedicoNome, o => o.MapFrom(s => s.Medico != null ? s.Medico.Nome : null))
+        .ForMember(d => d.MedicoExternoNome, o => o.MapFrom(s => s.MedicoExterno != null ? s.MedicoExterno.Nome : null))
+        .ForMember(
+            d => d.TipoServicoRegistoDescricao,
+            o => o.MapFrom(s => s.TipoServicoRegisto != null ? s.TipoServicoRegisto.Descricao : null))
+        .ForMember(
+            d => d.ServicoConsultaDesignacao,
+            o => o.MapFrom(s => s.ServicoConsultaRegisto != null ? s.ServicoConsultaRegisto.Designacao : null))
+        .ForMember(d => d.OrganismoSigla, o => o.Ignore());
+      _ = CreateMap<LoteDirect, CliCloud.Application.Services.Credenciais.LoteDirectService.DTOs.LoteDirectTableDTO>()
+        .ForMember(d => d.UtenteNumero, o => o.MapFrom(s => s.Utente != null ? s.Utente.NumeroUtente : null))
+        .ForMember(d => d.UtenteNome, o => o.MapFrom(s => s.Utente != null ? s.Utente.Nome : null))
+        .ForMember(d => d.MesAno, o => o.MapFrom(s => s.Mes.HasValue && s.Ano.HasValue ? $"{s.Mes:00}/{s.Ano}" : null))
+        .ForMember(d => d.OrganismoSigla, o => o.Ignore());
+      // Linhas / Linhas789 vêm em DTOs de upsert e são gravadas por ILoteDirectLinhasSyncRepository (não mapear para a entidade).
+      _ = CreateMap<CliCloud.Application.Services.Credenciais.LoteDirectService.DTOs.CreateLoteDirectRequest, LoteDirect>()
+        .ForMember(d => d.Linhas, o => o.Ignore())
+        .ForMember(d => d.Linhas789, o => o.Ignore())
+        .ForMember(d => d.Utente, o => o.Ignore())
+        .ForMember(d => d.Medico, o => o.Ignore())
+        .ForMember(d => d.MedicoExterno, o => o.Ignore())
+        .ForMember(d => d.TipoServicoRegisto, o => o.Ignore())
+        .ForMember(d => d.ServicoConsultaRegisto, o => o.Ignore());
+      _ = CreateMap<CliCloud.Application.Services.Credenciais.LoteDirectService.DTOs.UpdateLoteDirectRequest, LoteDirect>()
+        .ForMember(d => d.Linhas, o => o.Ignore())
+        .ForMember(d => d.Linhas789, o => o.Ignore())
+        .ForMember(d => d.Utente, o => o.Ignore())
+        .ForMember(d => d.Medico, o => o.Ignore())
+        .ForMember(d => d.MedicoExterno, o => o.Ignore())
+        .ForMember(d => d.TipoServicoRegisto, o => o.Ignore())
+        .ForMember(d => d.ServicoConsultaRegisto, o => o.Ignore());
+      _ = CreateMap<TipoLote, CliCloud.Application.Services.Credenciais.LoteDirectService.DTOs.TipoLoteLightDTO>()
+        .ForMember(d => d.Codigo, o => o.MapFrom(s => s.Id));
+
+
     }
 
     /// <summary>Garante que o DTO da linha do subsistema tenha sempre Empresa (Id + Nome) quando existir EmpresaId, mesmo que o Include não tenha carregado a navegação.</summary>

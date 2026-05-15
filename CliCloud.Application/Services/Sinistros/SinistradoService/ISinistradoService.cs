@@ -14,6 +14,7 @@ namespace CliCloud.Application.Services.Sinistros.SinistradoService
         Task<Response<Guid>> MoveToHistoryAsync(Guid id);
         Task<Response<Guid>> RestoreFromHistoryAsync(Guid id);
         Task<Response<Guid>> DeleteAsync(Guid id);
+        Task<Response<string>> GetNextCodigoSinistroAsync();
         Task<Response<List<SinistradoLinhaServicoDTO>>> GetUnbilledServicesByUtenteIdAsync(Guid utenteId);
     }
 }

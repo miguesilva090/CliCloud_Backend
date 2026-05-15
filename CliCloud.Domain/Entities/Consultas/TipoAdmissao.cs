@@ -12,5 +12,7 @@ namespace CliCloud.Domain.Entities.Consultas
     [Required]
     [StringLength(80)]
     public string Designacao { get; set; } = string.Empty;
+
+    public int? CodigoLegado { get; set; }
   }
 }

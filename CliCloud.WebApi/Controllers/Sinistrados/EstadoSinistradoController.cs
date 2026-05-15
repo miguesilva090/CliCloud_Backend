@@ -36,6 +36,5 @@ namespace CliCloud.WebApi.Controllers.Sinistrados
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
             => Ok(await _service.DeleteAsync(id));
-
     }
 }

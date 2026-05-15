@@ -18,6 +18,11 @@ namespace CliCloud.Infrastructure.Persistence.Configurations
                 .WithMany()
                 .HasForeignKey(x => x.EstadoSinistroId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(x => x.Utente)
+                .WithMany()
+                .HasForeignKey(x => x.UtenteId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

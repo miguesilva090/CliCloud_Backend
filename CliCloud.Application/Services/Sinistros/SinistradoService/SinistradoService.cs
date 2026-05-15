@@ -15,6 +15,8 @@ namespace CliCloud.Application.Services.Sinistros.SinistradoService
     {
         private readonly IRepositoryAsync _repository = repository;
         private readonly IMapper _mapper = mapper;
+        private const int CodigoServicoMaxLength = 30;
+        private const int DesignacaoServicoMaxLength = 160;
 
         public Task<PaginatedResponse<SinistradoTableDTO>> GetPaginatedAsync(SinistradoTableFilter filter)
         {
@@ -34,6 +36,7 @@ namespace CliCloud.Application.Services.Sinistros.SinistradoService
         {
             var entity = _mapper.Map<Sinistrado>(request);
             entity.Id = Guid.NewGuid();
+            NormalizeServiceLines(entity.LinhasServico);
 
             foreach(var linha in entity.LinhasServico)
                 linha.Id = Guid.NewGuid();
@@ -48,6 +51,7 @@ namespace CliCloud.Application.Services.Sinistros.SinistradoService
             var entity = await _repository.GetByIdAsync<Sinistrado, Guid>(id);
             
             _mapper.Map(request, entity);
+            NormalizeServiceLines(entity.LinhasServico);
             await _repository.UpdateAsync<Sinistrado, Guid>(entity);
             await _repository.SaveChangesAsync();
             return ResponseFactory.Success(entity.Id);
@@ -74,6 +78,22 @@ namespace CliCloud.Application.Services.Sinistros.SinistradoService
             await _repository.RemoveByIdAsync<Sinistrado, Guid>(id);
             await _repository.SaveChangesAsync();
             return ResponseFactory.Success(id);
+        }
+
+        public async Task<Response<string>> GetNextCodigoSinistroAsync()
+        {
+            var all = await _repository.GetListAsync<Sinistrado, Guid>();
+            int maxCodigo = 0;
+
+            foreach (var item in all)
+            {
+                if (int.TryParse(item.CodigoSinistro?.Trim(), out var codigo) && codigo > maxCodigo)
+                {
+                    maxCodigo = codigo;
+                }
+            }
+
+            return ResponseFactory.Success((maxCodigo + 1).ToString());
         }
 
         public async Task<Response<List<SinistradoLinhaServicoDTO>>> GetUnbilledServicesByUtenteIdAsync(Guid utenteId)
@@ -170,6 +190,26 @@ namespace CliCloud.Application.Services.Sinistros.SinistradoService
             return ResponseFactory.Success(linhas
                 .OrderByDescending(x => x.DataServico ?? DateTime.MinValue)
                 .ToList());
+        }
+
+        private static void NormalizeServiceLines(IEnumerable<SinistradoLinhaServico> linhas)
+        {
+            foreach (var linha in linhas)
+            {
+                var sourceCode = string.IsNullOrWhiteSpace(linha.CodigoServico)
+                    ? $"SERV-{Guid.NewGuid():N}"
+                    : linha.CodigoServico.Trim();
+
+                linha.CodigoServico = sourceCode.Length > CodigoServicoMaxLength
+                    ? sourceCode[..CodigoServicoMaxLength]
+                    : sourceCode;
+
+                if (!string.IsNullOrWhiteSpace(linha.DesignacaoServico) &&
+                    linha.DesignacaoServico.Length > DesignacaoServicoMaxLength)
+                {
+                    linha.DesignacaoServico = linha.DesignacaoServico[..DesignacaoServicoMaxLength];
+                }
+            }
         }
     }
 }

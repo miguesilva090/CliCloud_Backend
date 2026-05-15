@@ -6,7 +6,7 @@ using CliCloud.Domain.Entities.Common;
 
 namespace CliCloud.Domain.Entities.Sinistros
 {
-    [Table("EstadoSinistro", Schema = "Sinistros")]
+    [Table("EstadoSinistroItem", Schema = "Sinistros")]
     public class EstadoSinistroItem : AuditableEntityWithSoftDelete
     {
         [Key]

@@ -8,7 +8,7 @@ using CliCloud.Application.Common.Wrapper;
 namespace CliCloud.WebApi.Controllers.Consultas
 {
     /// <summary>
-    /// API para Tipos de Consulta. Permite ver e editar. Sem modal de inserção.
+    /// API para tipos de consulta (listar, criar, editar, eliminar).
     /// </summary>
     [Route("client/consultas/[controller]")]
     [ApiController]
@@ -38,6 +38,21 @@ namespace CliCloud.WebApi.Controllers.Consultas
         {
             Response<TipoConsultaDTO> result = await _tipoConsultaService.GetTipoConsultaAsync(id);
             return Ok(result);
+        }
+
+        [Authorize(Roles = "client")]
+        [HttpPost]
+        public async Task<IActionResult> CreateTipoConsultaAsync([FromBody] CreateTipoConsultaRequest request)
+        {
+            try
+            {
+                Response<Guid> result = await _tipoConsultaService.CreateTipoConsultaAsync(request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [Authorize(Roles = "client")]

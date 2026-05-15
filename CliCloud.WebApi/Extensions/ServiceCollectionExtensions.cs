@@ -33,6 +33,8 @@ using CliCloud.Application.Services.ProcessoClinico.SeparadorVinculoService;
 using CliCloud.Application.Services.Consultas.TeleconsultaService;
 using CliCloud.Application.Services.Core.TeleconsultaService;
 using CliCloud.Application.Services.Utentes.UtenteRnuService;
+using CliCloud.Application.Services.Credenciais.LoteDirectService;
+using CliCloud.Infrastructure.Persistence.Credenciais;
 
 namespace CliCloud.WebApi.Extensions
 {
@@ -147,6 +149,7 @@ namespace CliCloud.WebApi.Extensions
       _ = services.AddTransient<IChamadaUtentesService, ChamadaUtentesService>();
       _ = services.AddTransient<ISpmsCartaConducaoService, SpmsCartaConducaoService>();
       _ = services.AddTransient<IUtenteRnuService, UtenteRnuService>();
+      _ = services.AddTransient<ILoteDirectCorrecaoLotesExecutor, LoteDirectCorrecaoLotesExecutor>();
 
       #endregion
 

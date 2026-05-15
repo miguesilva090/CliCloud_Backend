@@ -10,7 +10,6 @@ namespace CliCloud.Infrastructure.Persistence.Configurations
     {
       builder.ToTable("Consulta", "Consultas");
 
-      // Relacionamentos N:1
       builder.HasOne(c => c.Utente)
         .WithMany()
         .HasForeignKey(c => c.UtenteId)
@@ -30,6 +29,16 @@ namespace CliCloud.Infrastructure.Persistence.Configurations
         .WithMany()
         .HasForeignKey(c => c.TecnicoId)
         .OnDelete(DeleteBehavior.SetNull);
+
+      builder.HasOne(c => c.MedicoExterno)
+        .WithMany()
+        .HasForeignKey(c => c.MedicoExternoId)
+        .OnDelete(DeleteBehavior.NoAction);
+
+      builder.HasOne(c => c.Sala)
+        .WithMany()
+        .HasForeignKey(c => c.SalaId)
+        .OnDelete(DeleteBehavior.NoAction);
 
       builder.HasOne(c => c.Documento)
         .WithMany()
@@ -64,6 +73,30 @@ namespace CliCloud.Infrastructure.Persistence.Configurations
       builder.HasOne(c => c.Seguradora)
         .WithMany()
         .HasForeignKey(c => c.SeguradoraId)
+        .OnDelete(DeleteBehavior.NoAction);
+
+      builder.HasOne(c => c.Admissao)
+        .WithOne(a => a.Consulta)
+        .HasForeignKey<Consulta>(c => c.AdmissaoId)
+        .OnDelete(DeleteBehavior.SetNull);
+
+      builder.HasIndex(c => c.AdmissaoId)
+        .IsUnique()
+        .HasFilter("[AdmissaoId] IS NOT NULL");
+
+      builder.HasOne(c => c.TipoAdmissao)
+        .WithMany()
+        .HasForeignKey(c => c.TipoAdmissaoId)
+        .OnDelete(DeleteBehavior.NoAction);
+
+      builder.HasOne(c => c.DoencaPrincipal)
+        .WithMany()
+        .HasForeignKey(c => c.DoencaPrincipalId)
+        .OnDelete(DeleteBehavior.NoAction);
+
+      builder.HasOne(c => c.DoencaSecundaria)
+        .WithMany()
+        .HasForeignKey(c => c.DoencaSecundariaId)
         .OnDelete(DeleteBehavior.NoAction);
 
       builder.HasMany(c => c.Servicos)

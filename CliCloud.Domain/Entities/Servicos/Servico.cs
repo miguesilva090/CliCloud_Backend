@@ -35,7 +35,10 @@ namespace CliCloud.Domain.Entities.Servicos
     // Flags
     public bool TratDentario { get; set; }
     
-    // Motivo isenção (código legado, futura FK)
+    public Guid? MotivoIsencaoId { get; set; }
+    public MotivoIsencao? MotivoIsencao { get; set; }
+
+    /// <summary>Código numérico legado (int32), derivado do motivo ou enviado por clientes antigos.</summary>
     public int? CodigoMotivoIsencao { get; set; }
  
     // Estado

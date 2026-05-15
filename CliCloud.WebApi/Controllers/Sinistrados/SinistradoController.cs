@@ -22,6 +22,11 @@ namespace CliCloud.WebApi.Controllers.Sinistrados
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetById(Guid id)
             => Ok(await _service.GetByIdAsync(id));
+
+        [Authorize(Roles = "client")]
+        [HttpGet("next-codigo")]
+        public async Task<IActionResult> GetNextCodigo()
+            => Ok(await _service.GetNextCodigoSinistroAsync());
         
         [Authorize(Roles = "client")]
         [HttpPost]

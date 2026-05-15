@@ -10,6 +10,7 @@ namespace CliCloud.Application.Services.TiposConsulta.TipoConsultaService
         Task<PaginatedResponse<TipoConsultaTableDTO>> GetTipoConsultaPaginatedAsync(TipoConsultaTableFilter filter);
         Task<Response<IEnumerable<TipoConsultaTableDTO>>> GetAllTipoConsultaAsync(TipoConsultaAllFilter? filter);
         Task<Response<TipoConsultaDTO>> GetTipoConsultaAsync(Guid id);
+        Task<Response<Guid>> CreateTipoConsultaAsync(CreateTipoConsultaRequest request);
         Task<Response<Guid>> UpdateTipoConsultaAsync(UpdateTipoConsultaRequest request, Guid id);
         Task<Response<Guid>> DeleteTipoConsultaAsync(Guid id);
     }

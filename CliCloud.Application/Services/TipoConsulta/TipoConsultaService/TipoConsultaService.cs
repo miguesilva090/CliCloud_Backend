@@ -62,11 +62,43 @@ namespace CliCloud.Application.Services.TiposConsulta.TipoConsultaService
             }
         }
 
+        public async Task<Response<Guid>> CreateTipoConsultaAsync(CreateTipoConsultaRequest request)
+        {
+            try
+            {
+                TipoConsultaMatchDesignacao matchSpec = new(request.Designacao ?? string.Empty);
+                if (await _repository.ExistsAsync<TipoConsultaItem, Guid>(matchSpec))
+                {
+                    return ResponseFactory.Fail<Guid>("Já existe um tipo de consulta com esta designação.");
+                }
+
+                TipoConsultaItem entity = _mapper.Map<TipoConsultaItem>(request);
+                entity.Id = Guid.NewGuid();
+
+                TipoConsultaItem created = await _repository.CreateAsync<TipoConsultaItem, Guid>(entity);
+                _ = await _repository.SaveChangesAsync();
+                return ResponseFactory.Success(created.Id);
+            }
+            catch (Exception ex)
+            {
+                return ResponseFactory.Fail<Guid>(ex.Message);
+            }
+        }
+
         public async Task<Response<Guid>> UpdateTipoConsultaAsync(UpdateTipoConsultaRequest request, Guid id)
         {
             try
             {
                 TipoConsultaItem entity = await _repository.GetByIdAsync<TipoConsultaItem, Guid>(id);
+                if (!string.Equals(entity.Designacao, request.Designacao, StringComparison.Ordinal))
+                {
+                    TipoConsultaMatchDesignacao matchSpec = new(request.Designacao ?? string.Empty);
+                    if (await _repository.ExistsAsync<TipoConsultaItem, Guid>(matchSpec))
+                    {
+                        return ResponseFactory.Fail<Guid>("Já existe um tipo de consulta com esta designação.");
+                    }
+                }
+
                 _ = _mapper.Map(request, entity);
                 await _repository.SaveChangesAsync();
                 return ResponseFactory.Success<Guid>(entity.Id);

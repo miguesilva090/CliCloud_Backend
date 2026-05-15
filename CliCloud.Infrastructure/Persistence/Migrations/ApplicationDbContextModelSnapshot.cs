@@ -1048,10 +1048,281 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.ToTable("TiposCarta", "Comum");
                 });
 
+            modelBuilder.Entity("CliCloud.Domain.Entities.Consultas.Admissao", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool?>("Confirmado")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid?>("ConsultaMarcacaoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Credencial")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CredencialExterna")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("Data")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DataHoraMarcacao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Diagnostico")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("DoencaPrincipalId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("DoencaSecundariaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool?>("Efetuado")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid?>("EspecialidadeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("FuncionarioId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<TimeSpan?>("HoraChegada")
+                        .HasColumnType("time");
+
+                    b.Property<TimeSpan?>("HoraFim")
+                        .HasColumnType("time");
+
+                    b.Property<TimeSpan?>("HoraInicio")
+                        .HasColumnType("time");
+
+                    b.Property<int?>("Justificacao")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("MedicoExternoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("MedicoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("MotivoConsultaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("MotivoJustificacao")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NumDestacavel")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Obs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Ordem")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("OrganismoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Origem")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("SalaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("SeguradoraId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("Sinistrado")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("StatusConsulta")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("TecnicoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("TipoAdmissaoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("TipoConsultaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("TratamentoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UtenteId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConsultaMarcacaoId")
+                        .IsUnique()
+                        .HasFilter("[ConsultaMarcacaoId] IS NOT NULL");
+
+                    b.HasIndex("Data");
+
+                    b.HasIndex("DoencaPrincipalId");
+
+                    b.HasIndex("DoencaSecundariaId");
+
+                    b.HasIndex("EspecialidadeId");
+
+                    b.HasIndex("FuncionarioId");
+
+                    b.HasIndex("MedicoExternoId");
+
+                    b.HasIndex("MedicoId");
+
+                    b.HasIndex("MotivoConsultaId");
+
+                    b.HasIndex("OrganismoId");
+
+                    b.HasIndex("SalaId");
+
+                    b.HasIndex("SeguradoraId");
+
+                    b.HasIndex("TecnicoId");
+
+                    b.HasIndex("TipoAdmissaoId");
+
+                    b.HasIndex("TipoConsultaId");
+
+                    b.HasIndex("TratamentoId");
+
+                    b.HasIndex("UtenteId");
+
+                    b.HasIndex("Data", "UtenteId");
+
+                    b.ToTable("Admissao", "Consultas");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Consultas.AdmissaoServico", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AdmissaoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CodigoArtigo")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Dente")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("DescCli")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("DescInst")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("Electrocardiograma")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("ExameId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Linha")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("MargemIns")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("MargemMed")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("NCheque")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NomeArtigo")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Ordem")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("Quantidade")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("RecInst")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("RecMed")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid?>("ServicoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("ValorArtigo")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("ValorDesc")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("ValorServico")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("ValorUt")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExameId");
+
+                    b.HasIndex("ServicoId");
+
+                    b.HasIndex("AdmissaoId", "Linha")
+                        .IsUnique();
+
+                    b.ToTable("AdmissaoServico", "Consultas");
+                });
+
             modelBuilder.Entity("CliCloud.Domain.Entities.Consultas.Consulta", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("AdmissaoId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("ConsultaMarcacaoId")
@@ -1082,6 +1353,12 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid?>("DocumentoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("DoencaPrincipalId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("DoencaSecundariaId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("EspecialidadeId")
@@ -1135,6 +1412,9 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("TecnicoId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("TipoAdmissaoId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid?>("TipoConsultaId")
                         .HasColumnType("uniqueidentifier");
 
@@ -1149,11 +1429,19 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AdmissaoId")
+                        .IsUnique()
+                        .HasFilter("[AdmissaoId] IS NOT NULL");
+
                     b.HasIndex("ConsultaMarcacaoId")
                         .IsUnique()
                         .HasFilter("[ConsultaMarcacaoId] IS NOT NULL");
 
                     b.HasIndex("DocumentoId");
+
+                    b.HasIndex("DoencaPrincipalId");
+
+                    b.HasIndex("DoencaSecundariaId");
 
                     b.HasIndex("EspecialidadeId");
 
@@ -1170,6 +1458,8 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.HasIndex("SeguradoraId");
 
                     b.HasIndex("TecnicoId");
+
+                    b.HasIndex("TipoAdmissaoId");
 
                     b.HasIndex("TipoConsultaId");
 
@@ -1830,6 +2120,9 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("CodigoLegado")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("CreatedBy")
                         .HasColumnType("uniqueidentifier");
@@ -3505,6 +3798,457 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.HasIndex("ClinicaId");
 
                     b.ToTable("ConfiguracaoTratamentos", "Core");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Credenciais.LoteDirect", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("Ano")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CentroSaude")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("CodigoMedico")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int?>("CodigoOrganismo")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CodigoServicoConsulta")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("CodigoSubsistemaConsulta")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Credencial")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<bool>("CredencialExterna")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("DataFim")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DataInicio")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Especialidade")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<bool>("Historico")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("IndiceLote")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Isencao")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("MedicoExternoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("MedicoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("Mes")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("NumeroLote")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("ProcedimentosEfetuados")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Proveniencia")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<int?>("QuantidadeConsulta")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ServicoConsulta")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<Guid?>("ServicoConsultaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Servicos")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<decimal?>("Subtotal")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("TaxaConsulta")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("TipoLote")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TipoServico")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("TipoServicoRegistoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("UtenteId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("ValorConsulta")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("ValorTaxas")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("ValorTaxasLinhas")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("ValorTotal")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("ValorTotalV2")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("ValorTotalV3")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CodigoOrganismo");
+
+                    b.HasIndex("Credencial");
+
+                    b.HasIndex("Historico");
+
+                    b.HasIndex("MedicoExternoId");
+
+                    b.HasIndex("MedicoId");
+
+                    b.HasIndex("NumeroLote");
+
+                    b.HasIndex("ServicoConsultaId");
+
+                    b.HasIndex("TipoServicoRegistoId");
+
+                    b.HasIndex("UtenteId");
+
+                    b.ToTable("LoteDirect", "Credenciais");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Credenciais.LoteDirectAgregado", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Ano")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CodigoOrganismo")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DataLote")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Indice")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Indice"));
+
+                    b.Property<int?>("Isencao")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Mes")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NumeroLote")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NumeroRequisicoes")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantidade")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TipoLote")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TipoServico")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Valor")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("ValorTaxa")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Ano", "Mes");
+
+                    b.HasIndex("Ano", "Mes", "CodigoOrganismo", "TipoLote", "TipoServico", "NumeroLote")
+                        .IsUnique();
+
+                    b.ToTable("LoteDirectAgregado", "Credenciais");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Credenciais.LoteDirectDetalhe", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Ano")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CodigoOrganismo")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Credencial")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("Data")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Indice")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Isencao")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("LoteDirectAgregadoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("LoteDirectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Mes")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NumeroLote")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantidade")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TipoLote")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TipoServico")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Valor")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("ValorTaxa")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LoteDirectAgregadoId");
+
+                    b.HasIndex("LoteDirectId");
+
+                    b.HasIndex("Ano", "Mes");
+
+                    b.ToTable("LoteDirectDetalhe", "Credenciais");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Credenciais.LoteDirectLinha", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("LoteDirectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Quantidade")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ServicoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("ValorInstituicao")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("ValorInstituicaoOriginal")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("ValorUnitario")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("ValorUtente")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("ValorUtenteOriginal")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LoteDirectId");
+
+                    b.HasIndex("ServicoId");
+
+                    b.ToTable("LoteDirectLinha", "Credenciais");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Credenciais.LoteDirectLinha789", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("LoteDirectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Quantidade")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ServicoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("ValorInstituicao")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("ValorInstituicaoOriginal")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("ValorUnitario")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("ValorUtente")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("ValorUtenteOriginal")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LoteDirectId");
+
+                    b.HasIndex("ServicoId");
+
+                    b.ToTable("LoteDirectLinha789", "Credenciais");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Credenciais.TipoLote", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Designa")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int?>("Valor")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TipoLotes", "Credenciais");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.Documentos.Documento", b =>
@@ -7839,6 +8583,9 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("LastModifiedOn")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid?>("MotivoIsencaoId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<decimal?>("Preco")
                         .HasColumnType("decimal(18,2)");
 
@@ -7857,6 +8604,8 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Designacao");
+
+                    b.HasIndex("MotivoIsencaoId");
 
                     b.HasIndex("TaxaIvaId");
 
@@ -11863,8 +12612,154 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("CliCloud.Domain.Entities.Consultas.Admissao", b =>
+                {
+                    b.HasOne("CliCloud.Domain.Entities.Consultas.ConsultaMarcacao", "ConsultaMarcacao")
+                        .WithOne()
+                        .HasForeignKey("CliCloud.Domain.Entities.Consultas.Admissao", "ConsultaMarcacaoId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("CliCloud.Domain.Entities.Doencas.Doenca", "DoencaPrincipal")
+                        .WithMany()
+                        .HasForeignKey("DoencaPrincipalId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("CliCloud.Domain.Entities.Doencas.Doenca", "DoencaSecundaria")
+                        .WithMany()
+                        .HasForeignKey("DoencaSecundariaId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("CliCloud.Domain.Entities.Especialidades.Especialidade", "Especialidade")
+                        .WithMany()
+                        .HasForeignKey("EspecialidadeId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("CliCloud.Domain.Entities.Funcionarios.Funcionario", "Funcionario")
+                        .WithMany()
+                        .HasForeignKey("FuncionarioId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("CliCloud.Domain.Entities.Medicos.MedicoExterno", "MedicoExterno")
+                        .WithMany()
+                        .HasForeignKey("MedicoExternoId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("CliCloud.Domain.Entities.Medicos.Medico", "Medico")
+                        .WithMany()
+                        .HasForeignKey("MedicoId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("CliCloud.Domain.Entities.Consultas.MotivoConsulta", "MotivoConsulta")
+                        .WithMany()
+                        .HasForeignKey("MotivoConsultaId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("CliCloud.Domain.Entities.Organismos.Organismo", "Organismo")
+                        .WithMany()
+                        .HasForeignKey("OrganismoId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("CliCloud.Domain.Entities.Consultas.Sala", "Sala")
+                        .WithMany()
+                        .HasForeignKey("SalaId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("CliCloud.Domain.Entities.Seguradoras.Seguradora", "Seguradora")
+                        .WithMany()
+                        .HasForeignKey("SeguradoraId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("CliCloud.Domain.Entities.Tecnicos.Tecnico", "Tecnico")
+                        .WithMany()
+                        .HasForeignKey("TecnicoId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("CliCloud.Domain.Entities.Consultas.TipoAdmissao", "TipoAdmissao")
+                        .WithMany()
+                        .HasForeignKey("TipoAdmissaoId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("CliCloud.Domain.Entities.Consultas.TipoConsultaItem", "TipoConsultaItem")
+                        .WithMany()
+                        .HasForeignKey("TipoConsultaId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("CliCloud.Domain.Entities.Tratamentos.Tratamento", "Tratamento")
+                        .WithMany()
+                        .HasForeignKey("TratamentoId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("CliCloud.Domain.Entities.Utentes.Utente", "Utente")
+                        .WithMany()
+                        .HasForeignKey("UtenteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ConsultaMarcacao");
+
+                    b.Navigation("DoencaPrincipal");
+
+                    b.Navigation("DoencaSecundaria");
+
+                    b.Navigation("Especialidade");
+
+                    b.Navigation("Funcionario");
+
+                    b.Navigation("Medico");
+
+                    b.Navigation("MedicoExterno");
+
+                    b.Navigation("MotivoConsulta");
+
+                    b.Navigation("Organismo");
+
+                    b.Navigation("Sala");
+
+                    b.Navigation("Seguradora");
+
+                    b.Navigation("Tecnico");
+
+                    b.Navigation("TipoAdmissao");
+
+                    b.Navigation("TipoConsultaItem");
+
+                    b.Navigation("Tratamento");
+
+                    b.Navigation("Utente");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Consultas.AdmissaoServico", b =>
+                {
+                    b.HasOne("CliCloud.Domain.Entities.Consultas.Admissao", "Admissao")
+                        .WithMany("Servicos")
+                        .HasForeignKey("AdmissaoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CliCloud.Domain.Entities.Exames.Exame", "Exame")
+                        .WithMany()
+                        .HasForeignKey("ExameId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("CliCloud.Domain.Entities.Servicos.Servico", "Servico")
+                        .WithMany()
+                        .HasForeignKey("ServicoId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Admissao");
+
+                    b.Navigation("Exame");
+
+                    b.Navigation("Servico");
+                });
+
             modelBuilder.Entity("CliCloud.Domain.Entities.Consultas.Consulta", b =>
                 {
+                    b.HasOne("CliCloud.Domain.Entities.Consultas.Admissao", "Admissao")
+                        .WithOne("Consulta")
+                        .HasForeignKey("CliCloud.Domain.Entities.Consultas.Consulta", "AdmissaoId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("CliCloud.Domain.Entities.Consultas.ConsultaMarcacao", "ConsultaMarcacao")
                         .WithOne("Consulta")
                         .HasForeignKey("CliCloud.Domain.Entities.Consultas.Consulta", "ConsultaMarcacaoId")
@@ -11873,6 +12768,16 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.HasOne("CliCloud.Domain.Entities.Documentos.Documento", "Documento")
                         .WithMany()
                         .HasForeignKey("DocumentoId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("CliCloud.Domain.Entities.Doencas.Doenca", "DoencaPrincipal")
+                        .WithMany()
+                        .HasForeignKey("DoencaPrincipalId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("CliCloud.Domain.Entities.Doencas.Doenca", "DoencaSecundaria")
+                        .WithMany()
+                        .HasForeignKey("DoencaSecundariaId")
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("CliCloud.Domain.Entities.Especialidades.Especialidade", "Especialidade")
@@ -11915,6 +12820,11 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .HasForeignKey("TecnicoId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("CliCloud.Domain.Entities.Consultas.TipoAdmissao", "TipoAdmissao")
+                        .WithMany()
+                        .HasForeignKey("TipoAdmissaoId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("CliCloud.Domain.Entities.Consultas.TipoConsultaItem", "TipoConsultaItem")
                         .WithMany()
                         .HasForeignKey("TipoConsultaId")
@@ -11935,9 +12845,15 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .HasForeignKey("UtenteId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.Navigation("Admissao");
+
                     b.Navigation("ConsultaMarcacao");
 
                     b.Navigation("Documento");
+
+                    b.Navigation("DoencaPrincipal");
+
+                    b.Navigation("DoencaSecundaria");
 
                     b.Navigation("Especialidade");
 
@@ -11954,6 +12870,8 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Navigation("Seguradora");
 
                     b.Navigation("Tecnico");
+
+                    b.Navigation("TipoAdmissao");
 
                     b.Navigation("TipoConsultaItem");
 
@@ -12280,6 +13198,101 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Clinica");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Credenciais.LoteDirect", b =>
+                {
+                    b.HasOne("CliCloud.Domain.Entities.Medicos.MedicoExterno", "MedicoExterno")
+                        .WithMany()
+                        .HasForeignKey("MedicoExternoId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CliCloud.Domain.Entities.Medicos.Medico", "Medico")
+                        .WithMany()
+                        .HasForeignKey("MedicoId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CliCloud.Domain.Entities.Servicos.Servico", "ServicoConsultaRegisto")
+                        .WithMany()
+                        .HasForeignKey("ServicoConsultaId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CliCloud.Domain.Entities.Servicos.TipoServico", "TipoServicoRegisto")
+                        .WithMany()
+                        .HasForeignKey("TipoServicoRegistoId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CliCloud.Domain.Entities.Utentes.Utente", "Utente")
+                        .WithMany()
+                        .HasForeignKey("UtenteId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Medico");
+
+                    b.Navigation("MedicoExterno");
+
+                    b.Navigation("ServicoConsultaRegisto");
+
+                    b.Navigation("TipoServicoRegisto");
+
+                    b.Navigation("Utente");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Credenciais.LoteDirectDetalhe", b =>
+                {
+                    b.HasOne("CliCloud.Domain.Entities.Credenciais.LoteDirectAgregado", "LoteDirectAgregado")
+                        .WithMany()
+                        .HasForeignKey("LoteDirectAgregadoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CliCloud.Domain.Entities.Credenciais.LoteDirect", "LoteDirect")
+                        .WithMany()
+                        .HasForeignKey("LoteDirectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("LoteDirect");
+
+                    b.Navigation("LoteDirectAgregado");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Credenciais.LoteDirectLinha", b =>
+                {
+                    b.HasOne("CliCloud.Domain.Entities.Credenciais.LoteDirect", "LoteDirect")
+                        .WithMany("Linhas")
+                        .HasForeignKey("LoteDirectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CliCloud.Domain.Entities.Servicos.Servico", "Servico")
+                        .WithMany()
+                        .HasForeignKey("ServicoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("LoteDirect");
+
+                    b.Navigation("Servico");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Credenciais.LoteDirectLinha789", b =>
+                {
+                    b.HasOne("CliCloud.Domain.Entities.Credenciais.LoteDirect", "LoteDirect")
+                        .WithMany("Linhas789")
+                        .HasForeignKey("LoteDirectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CliCloud.Domain.Entities.Servicos.Servico", "Servico")
+                        .WithMany()
+                        .HasForeignKey("ServicoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("LoteDirect");
+
+                    b.Navigation("Servico");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.Documentos.Documento", b =>
@@ -12959,6 +13972,11 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("CliCloud.Domain.Entities.Servicos.Servico", b =>
                 {
+                    b.HasOne("CliCloud.Domain.Entities.TaxasIva.MotivoIsencao", "MotivoIsencao")
+                        .WithMany()
+                        .HasForeignKey("MotivoIsencaoId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CliCloud.Domain.Entities.TaxasIva.TaxaIva", "TaxaIva")
                         .WithMany()
                         .HasForeignKey("TaxaIvaId")
@@ -12974,6 +13992,8 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .HasForeignKey("TipoServicoId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("MotivoIsencao");
 
                     b.Navigation("TaxaIva");
 
@@ -13000,7 +14020,15 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .HasForeignKey("EstadoSinistroId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("CliCloud.Domain.Entities.Utentes.Utente", "Utente")
+                        .WithMany()
+                        .HasForeignKey("UtenteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("EstadoSinistro");
+
+                    b.Navigation("Utente");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.Sinistros.SinistradoLinhaServico", b =>
@@ -13783,6 +14811,13 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Navigation("RestricoesAnteriores");
                 });
 
+            modelBuilder.Entity("CliCloud.Domain.Entities.Consultas.Admissao", b =>
+                {
+                    b.Navigation("Consulta");
+
+                    b.Navigation("Servicos");
+                });
+
             modelBuilder.Entity("CliCloud.Domain.Entities.Consultas.Consulta", b =>
                 {
                     b.Navigation("Servicos");
@@ -13791,6 +14826,13 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("CliCloud.Domain.Entities.Consultas.ConsultaMarcacao", b =>
                 {
                     b.Navigation("Consulta");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Credenciais.LoteDirect", b =>
+                {
+                    b.Navigation("Linhas");
+
+                    b.Navigation("Linhas789");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.Doencas.Doenca", b =>

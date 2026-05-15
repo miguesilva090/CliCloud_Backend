@@ -21,6 +21,11 @@ namespace CliCloud.Infrastructure.Persistence.Configurations
         .HasForeignKey(s => s.TipoAparelhoId)
         .OnDelete(DeleteBehavior.NoAction);
 
+      builder.HasOne(s => s.MotivoIsencao)
+        .WithMany()
+        .HasForeignKey(s => s.MotivoIsencaoId)
+        .OnDelete(DeleteBehavior.Restrict);
+
       // Índice na Designacao para pesquisas (não único)
       builder.HasIndex(s => s.Designacao);
     }
