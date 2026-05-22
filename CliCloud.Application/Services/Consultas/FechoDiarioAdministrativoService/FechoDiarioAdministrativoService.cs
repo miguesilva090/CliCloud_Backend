@@ -7,58 +7,91 @@ using CliCloud.Domain.Entities.Consultas;
 
 namespace CliCloud.Application.Services.Consultas.FechoDiarioAdministrativoService;
 
-public class FechoDiarioAdministrativoService(IRepositoryAsync repository) : IFechoDiarioAdministrativoService
+public class FechoDiarioAdministrativoService(
+  IRepositoryAsync repository,
+  ICurrentClinicaService currentClinicaService,
+  IRequisicaoEspFechoUpdater requisicaoEspFechoUpdater
+) : IFechoDiarioAdministrativoService
 {
   private readonly IRepositoryAsync _repository = repository;
+  private readonly ICurrentClinicaService _currentClinicaService = currentClinicaService;
+  private readonly IRequisicaoEspFechoUpdater _requisicaoEspFechoUpdater = requisicaoEspFechoUpdater;
 
   public async Task<Response<FechoDiarioResultDTO>> ExecutarFechoAsync(FechoDiarioRequest request)
   {
     DateTime data = request.Data!.Value.Date;
+    Guid clinicaId = await ObterClinicaAtualIdAsync();
+
     List<Admissao> admissoes = (
-      await _repository.GetListAsync<Admissao, Guid>(new AdmissoesParaFechoSpec(data))
+      await _repository.GetListAsync<Admissao, Guid>(new AdmissoesParaFechoSpec(data, clinicaId))
     ).ToList();
 
-    var result = new FechoDiarioResultDTO();
-    List<Consulta> consultasExistentes = (await _repository.GetListAsync<Consulta, Guid>()).ToList();
+    var result = new FechoDiarioResultDTO { TotalElegiveis = admissoes.Count };
 
-    foreach (Admissao admissao in admissoes)
+    if (admissoes.Count == 0)
     {
-      result.TotalProcessadas++;
-      try
+      return ResponseFactory.Success(result);
+    }
+
+    HashSet<Guid> admissaoIds = admissoes.Select(a => a.Id).ToHashSet();
+    HashSet<Guid> idsJaPromovidas = (
+      await _repository.GetListAsync<Consulta, Guid>(new ConsultasPromovidasPorAdmissoesSpec(admissaoIds))
+    )
+      .Where(c => c.AdmissaoId.HasValue)
+      .Select(c => c.AdmissaoId!.Value)
+      .ToHashSet();
+
+    try
+    {
+      foreach (Admissao admissao in admissoes)
       {
-        if (consultasExistentes.Any(c => c.AdmissaoId == admissao.Id && c.DeletedOn == null))
+        result.TotalProcessadas++;
+
+        if (idsJaPromovidas.Contains(admissao.Id))
         {
-          result.Erros.Add($"Admissão {admissao.Id}: já promovida.");
+          result.TotalIgnoradas++;
+          result.Avisos.Add($"Admissão {admissao.Id}: já promovida (ignorada).");
           continue;
         }
 
-        Consulta consulta = AdmissaoPromocaoHelper.CriarConsultaDesdeAdmissao(admissao);
-        Consulta created = await _repository.CreateAsync<Consulta, Guid>(consulta);
-
-        foreach (ServicoConsulta servico in AdmissaoPromocaoHelper.MapearServicos(admissao, created.Id))
-        {
-          servico.Id = Guid.NewGuid();
-          _ = await _repository.CreateAsync<ServicoConsulta, Guid>(servico);
-        }
-
-        if (admissao.ConsultaMarcacaoId.HasValue)
-        {
-          ConsultaMarcacao marcacao =
-            await _repository.GetByIdAsync<ConsultaMarcacao, Guid>(admissao.ConsultaMarcacaoId.Value);
-          marcacao.ConsultaId = created.Id;
-          _ = await _repository.UpdateAsync<ConsultaMarcacao, Guid>(marcacao);
-        }
-
-        await _repository.RemoveByIdAsync<Admissao, Guid>(admissao.Id);
+        _ = await AdmissaoPromocaoRunner.PromoverAsync(
+          admissao,
+          _repository,
+          _requisicaoEspFechoUpdater
+        );
         result.TotalConsultasCriadas++;
       }
-      catch (Exception ex)
-      {
-        result.Erros.Add($"Admissão {admissao.Id}: {ex.Message}");
-      }
+
+      _ = await _repository.SaveChangesAsync();
+      return ResponseFactory.Success(result);
+    }
+    catch (Exception ex)
+    {
+      _repository.ClearChangeTracker();
+      return ResponseFactory.Fail<FechoDiarioResultDTO>($"Fecho diário cancelado: {ex.Message}");
+    }
+  }
+
+  public async Task<Response<int>> ContarElegiveisAsync(DateTime data)
+  {
+    Guid clinicaId = await ObterClinicaAtualIdAsync();
+    List<Admissao> admissoes = (
+      await _repository.GetListAsync<Admissao, Guid>(new AdmissoesParaFechoSpec(data.Date, clinicaId))
+    ).ToList();
+    return ResponseFactory.Success(admissoes.Count);
+  }
+
+  private async Task<Guid> ObterClinicaAtualIdAsync()
+  {
+    await _currentClinicaService.SetClinicaAsync();
+    if (
+      Guid.TryParse(_currentClinicaService.ClinicaId, out Guid clinicaId)
+      && clinicaId != Guid.Empty
+    )
+    {
+      return clinicaId;
     }
 
-    _ = await _repository.SaveChangesAsync();
-    return ResponseFactory.Success(result);
+    throw new InvalidOperationException("Clínica atual inválida.");
   }
 }

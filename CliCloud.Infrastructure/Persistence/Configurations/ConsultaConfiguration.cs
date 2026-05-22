@@ -103,6 +103,9 @@ namespace CliCloud.Infrastructure.Persistence.Configurations
         .WithOne(s => s.Consulta)
         .HasForeignKey(s => s.ConsultaId)
         .OnDelete(DeleteBehavior.Cascade);
+
+      // BD legada (testeApp): Sinistrado é bit; CredencialExterna e Justificacao são int
+      builder.Property(c => c.Sinistrado).HasConversion(LegacyValueConverters.NullableIntFromBool);
     }
   }
 }

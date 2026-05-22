@@ -441,6 +441,13 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     public DbSet<LoteDirectAgregado> LotesDirectAgregado { get; set; }
     public DbSet<LoteDirectDetalhe> LotesDirectDetalhe { get; set; }
 
+    // DbSets - ListaEsperaConsulta
+    public DbSet<ListaEsperaConsulta> ListaEsperaConsultas { get; set; }
+
+    // DbSets - GlobalBooking (tabelas legado dbo)
+    public DbSet<PedidoConsulta> PedidosConsulta { get; set; }
+    public DbSet<PedidoConsultaUtente> PedidosConsultaUtentes { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -745,6 +752,11 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
       _ = modelBuilder.ApplyConfiguration(new LoteDirectAgregadoConfiguration());
       _ = modelBuilder.ApplyConfiguration(new LoteDirectDetalheConfiguration());
 
+      // ListaEsperaConsulta configurations
+      _ = modelBuilder.ApplyConfiguration(new ListaEsperaConsultaConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new PedidoConsultaConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new PedidoConsultaUtenteConfiguration());
+
       // Odontologia - chaves alternativas e FKs por código
       modelBuilder.Entity<EstadosDentarios>(b =>
       {
@@ -770,6 +782,7 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
       });
 
       modelBuilder.SeedStaticData();
+
     }
 
     public override async Task<int> SaveChangesAsync(

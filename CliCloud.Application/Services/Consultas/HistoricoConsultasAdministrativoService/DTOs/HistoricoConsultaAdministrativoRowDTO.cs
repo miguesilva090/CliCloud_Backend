@@ -15,6 +15,9 @@ public class HistoricoConsultaAdministrativoRowDTO : IDto
   public string? EspecialidadeDesignacao { get; set; }
   public int? StatusConsulta { get; set; }
   public string? StatusConsultaLabel { get; set; }
+  public bool? Confirmado { get; set; }
+  public bool? Efetuado { get; set; }
+  public bool? Faltou { get; set; }
   public bool? Pago { get; set; }
   public bool? Faturado { get; set; }
 }

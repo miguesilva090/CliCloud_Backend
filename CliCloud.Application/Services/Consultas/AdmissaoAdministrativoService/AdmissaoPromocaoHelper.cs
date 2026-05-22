@@ -19,13 +19,16 @@ internal static class AdmissaoPromocaoHelper
       Data = admissao.Data,
       HoraInicio = admissao.HoraInicio,
       HoraFim = admissao.HoraFim,
-      StatusConsulta = admissao.StatusConsulta ?? StatusConsulta.Concluida,
+      StatusConsulta = AdmissaoPromocaoEstadoHelper.ResolverStatusConsultaHistorico(admissao),
+      Confirmado = admissao.Confirmado,
+      Efetuado = admissao.Efetuado,
+      Faltou = AdmissaoPromocaoEstadoHelper.DerivarFaltou(admissao),
       OrganismoId = admissao.OrganismoId,
       Credencial = admissao.Credencial,
       CredencialExterna = admissao.CredencialExterna,
       SeguradoraId = admissao.SeguradoraId,
-      Sinistrado = admissao.Sinistrado,
-      Justificacao = admissao.Justificacao,
+      Sinistrado = admissao.Sinistrado ?? 0,
+      Justificacao = admissao.Justificacao ?? 0,
       MotivoJustificacao = admissao.MotivoJustificacao,
       TratamentoId = admissao.TratamentoId,
       Obs = admissao.Obs,
@@ -39,34 +42,127 @@ internal static class AdmissaoPromocaoHelper
     };
   }
 
+  /// <summary>
+  /// Cenário A: consulta clínica já existe (marcação → atendimento); fecho funde dados da receção.
+  /// Não altera o estado clínico já definido (Em atendimento / Concluída).
+  /// </summary>
+  public static void MesclarAdmissaoEmConsultaExistente(Consulta consulta, Admissao admissao)
+  {
+    consulta.AdmissaoId ??= admissao.Id;
+    consulta.ConsultaMarcacaoId ??= admissao.ConsultaMarcacaoId;
+
+    consulta.OrganismoId ??= admissao.OrganismoId;
+    consulta.SeguradoraId ??= admissao.SeguradoraId;
+    consulta.TratamentoId ??= admissao.TratamentoId;
+    consulta.TipoAdmissaoId ??= admissao.TipoAdmissaoId;
+    consulta.TipoConsultaId ??= admissao.TipoConsultaId;
+    consulta.DoencaPrincipalId ??= admissao.DoencaPrincipalId;
+    consulta.DoencaSecundariaId ??= admissao.DoencaSecundariaId;
+
+    if (string.IsNullOrWhiteSpace(consulta.Credencial) && !string.IsNullOrWhiteSpace(admissao.Credencial))
+    {
+      consulta.Credencial = admissao.Credencial;
+    }
+
+    if (!consulta.CredencialExterna.HasValue && admissao.CredencialExterna.HasValue)
+    {
+      consulta.CredencialExterna = admissao.CredencialExterna;
+    }
+
+    if (!consulta.Sinistrado.HasValue || consulta.Sinistrado == 0)
+    {
+      consulta.Sinistrado = admissao.Sinistrado ?? 0;
+    }
+
+    if (!consulta.Justificacao.HasValue || consulta.Justificacao == 0)
+    {
+      consulta.Justificacao = admissao.Justificacao ?? 0;
+    }
+
+    if (string.IsNullOrWhiteSpace(consulta.MotivoJustificacao))
+    {
+      consulta.MotivoJustificacao = admissao.MotivoJustificacao;
+    }
+
+    if (string.IsNullOrWhiteSpace(consulta.Obs))
+    {
+      consulta.Obs = admissao.Obs;
+    }
+
+    if (string.IsNullOrWhiteSpace(consulta.Diagnostico))
+    {
+      consulta.Diagnostico = admissao.Diagnostico;
+    }
+
+    consulta.MedicoId ??= admissao.MedicoId;
+    consulta.EspecialidadeId ??= admissao.EspecialidadeId;
+    consulta.TecnicoId ??= admissao.TecnicoId;
+    consulta.FuncionarioId ??= admissao.FuncionarioId;
+    consulta.MedicoExternoId ??= admissao.MedicoExternoId;
+    consulta.SalaId ??= admissao.SalaId;
+    consulta.Data ??= admissao.Data;
+    consulta.HoraInicio ??= admissao.HoraInicio;
+    consulta.HoraFim ??= admissao.HoraFim;
+
+    AdmissaoPromocaoEstadoHelper.AplicarEstadosRecepcao(consulta, admissao, preservarExistentes: true);
+
+    if (!consulta.StatusConsulta.HasValue)
+    {
+      StatusConsulta? resolvido = AdmissaoPromocaoEstadoHelper.ResolverStatusConsultaHistorico(admissao);
+      if (resolvido.HasValue)
+      {
+        consulta.StatusConsulta = resolvido;
+      }
+    }
+  }
+
   public static List<ServicoConsulta> MapearServicos(Admissao admissao, Guid consultaId)
   {
     return admissao.Servicos
       .OrderBy(s => s.Linha)
-      .Select(s => new ServicoConsulta
-      {
-        ConsultaId = consultaId,
-        ServicoId = s.ServicoId,
-        ValorServico = s.ValorServico,
-        CodigoArtigo = s.CodigoArtigo,
-        NomeArtigo = s.NomeArtigo,
-        ValorArtigo = s.ValorArtigo,
-        Quantidade = s.Quantidade,
-        MargemMed = s.MargemMed,
-        MargemIns = s.MargemIns,
-        RecMed = s.RecMed,
-        RecInst = s.RecInst,
-        DescInst = s.DescInst,
-        DescCli = s.DescCli,
-        ValorDesc = s.ValorDesc,
-        Ordem = s.Ordem,
-        Dente = s.Dente,
-        ExameId = s.ExameId,
-        Linha = s.Linha,
-        NCheque = s.NCheque,
-        Electrocardiograma = s.Electrocardiograma,
-        ValorUt = s.ValorUt,
-      })
+      .Select(s => MapearServico(s, consultaId))
       .ToList();
+  }
+
+  public static List<ServicoConsulta> MapearServicosNovos(
+    Admissao admissao,
+    Guid consultaId,
+    IReadOnlyCollection<int> linhasExistentes
+  )
+  {
+    HashSet<int> linhas = linhasExistentes.ToHashSet();
+    return admissao.Servicos
+      .Where(s => !linhas.Contains(s.Linha))
+      .OrderBy(s => s.Linha)
+      .Select(s => MapearServico(s, consultaId))
+      .ToList();
+  }
+
+  private static ServicoConsulta MapearServico(AdmissaoServico s, Guid consultaId)
+  {
+    return new ServicoConsulta
+    {
+      ConsultaId = consultaId,
+      ServicoId = s.ServicoId,
+      ValorServico = s.ValorServico,
+      CodigoArtigo = s.CodigoArtigo,
+      NomeArtigo = s.NomeArtigo,
+      ValorArtigo = s.ValorArtigo,
+      Quantidade = s.Quantidade,
+      MargemMed = s.MargemMed,
+      MargemIns = s.MargemIns,
+      RecMed = s.RecMed,
+      RecInst = s.RecInst,
+      DescInst = s.DescInst,
+      DescCli = s.DescCli,
+      ValorDesc = s.ValorDesc,
+      Ordem = s.Ordem,
+      Dente = s.Dente,
+      ExameId = s.ExameId,
+      Linha = s.Linha,
+      NCheque = s.NCheque,
+      Electrocardiograma = s.Electrocardiograma,
+      ValorUt = s.ValorUt,
+    };
   }
 }

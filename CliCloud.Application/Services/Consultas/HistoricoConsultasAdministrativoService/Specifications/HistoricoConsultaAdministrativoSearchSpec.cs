@@ -165,11 +165,11 @@ public sealed class HistoricoConsultaAdministrativoSearchSpec : Specification<Co
           case "efectuado":
             if (bool.TryParse(val, out bool ef) && ef)
             {
-              _ = Query.Where(x => x.StatusConsulta == StatusConsulta.Concluida);
+              _ = Query.Where(x => x.Efetuado == true);
             }
             else if (bool.TryParse(val, out bool efFalse) && !efFalse)
             {
-              _ = Query.Where(x => x.StatusConsulta != StatusConsulta.Concluida);
+              _ = Query.Where(x => x.Efetuado != true);
             }
 
             break;
@@ -177,7 +177,8 @@ public sealed class HistoricoConsultaAdministrativoSearchSpec : Specification<Co
             if (bool.TryParse(val, out bool fl) && fl)
             {
               _ = Query.Where(x =>
-                x.StatusConsulta == StatusConsulta.Faltou
+                x.Faltou == true
+                || x.StatusConsulta == StatusConsulta.Faltou
                 || x.StatusConsulta == StatusConsulta.FaltouJustificada);
             }
 
@@ -185,7 +186,11 @@ public sealed class HistoricoConsultaAdministrativoSearchSpec : Specification<Co
           case "confirmado":
             if (bool.TryParse(val, out bool cf) && cf)
             {
-              _ = Query.Where(x => x.StatusConsulta == StatusConsulta.EmAtendimento);
+              _ = Query.Where(x => x.Confirmado == true);
+            }
+            else if (bool.TryParse(val, out bool cfFalse) && !cfFalse)
+            {
+              _ = Query.Where(x => x.Confirmado != true);
             }
 
             break;

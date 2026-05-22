@@ -1,7 +1,6 @@
 using CliCloud.Domain.Entities.Consultas;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
 namespace CliCloud.Infrastructure.Persistence.Configurations
 {
     public class AdmissaoServicoConfiguration : IEntityTypeConfiguration<AdmissaoServico>

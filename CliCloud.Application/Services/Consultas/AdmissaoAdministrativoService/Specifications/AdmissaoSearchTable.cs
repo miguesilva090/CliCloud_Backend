@@ -10,6 +10,7 @@ public sealed class AdmissaoSearchTable : Specification<Admissao>
 {
   public AdmissaoSearchTable(
     ModoListagemAdmissao modo,
+    DateTime dataReferencia,
     List<TableFilter> filters,
     string? dynamicOrder = ""
   )
@@ -20,16 +21,21 @@ public sealed class AdmissaoSearchTable : Specification<Admissao>
       .Include(x => x.Especialidade)
       .Include(x => x.Organismo)
       .Include(x => x.Sala)
-      .Include(x => x.TipoAdmissao);
+      .Include(x => x.TipoAdmissao)
+      .Include(x => x.TipoConsultaItem);
 
-    DateTime hoje = DateTime.Today;
-    if (modo == ModoListagemAdmissao.Pendentes)
+    _ = Query.Where(x =>
+      x.StatusConsulta == null || x.StatusConsulta != StatusConsulta.Desmarcada
+    );
+
+    DateTime refDate = dataReferencia.Date;
+    if(modo == ModoListagemAdmissao.Pendentes)
     {
-      _ = Query.Where(x => x.Data.HasValue && x.Data.Value.Date < hoje);
+      _ = Query.Where(x => x.Data.HasValue && x.Data.Value.Date < refDate);
     }
     else
     {
-      _ = Query.Where(x => x.Data.HasValue && x.Data.Value.Date == hoje);
+      _ = Query.Where(x => x.Data.HasValue && x.Data.Value.Date == refDate);
     }
 
     foreach (TableFilter filter in filters ?? [])
@@ -89,6 +95,22 @@ public sealed class AdmissaoSearchTable : Specification<Admissao>
           if (bool.TryParse(val, out bool efetuado))
           {
             _ = Query.Where(x => x.Efetuado == efetuado);
+          }
+
+          break;
+        case "confirmaconsulta":
+        case "confirma_consulta":
+          if (bool.TryParse(val, out bool confirmaConsulta))
+          {
+            _ = Query.Where(x => x.ConfirmaConsulta == confirmaConsulta);
+          }
+
+          break;
+        case "emtratamento":
+        case "em_tratamento":
+          if (bool.TryParse(val, out bool emTratamento))
+          {
+            _ = Query.Where(x => x.EmTratamento == emTratamento);
           }
 
           break;

@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using CliCloud.Application.Common;
 using CliCloud.Application.Common.Logging;
 using CliCloud.Application.Common.Wrapper;
 using CliCloud.Application.Services.Core.VozService;
@@ -13,6 +14,7 @@ using CliCloud.Infrastructure.Encryption;
 using CliCloud.Infrastructure.Images;
 using CliCloud.Infrastructure.Mailer;
 using CliCloud.Infrastructure.Mapper;
+using CliCloud.Infrastructure.Persistence;
 using CliCloud.Infrastructure.Persistence.Contexts;
 using CliCloud.Infrastructure.Persistence.Extensions;
 using CliCloud.WebApi.Middleware;
@@ -34,6 +36,8 @@ using CliCloud.Application.Services.Consultas.TeleconsultaService;
 using CliCloud.Application.Services.Core.TeleconsultaService;
 using CliCloud.Application.Services.Utentes.UtenteRnuService;
 using CliCloud.Application.Services.Credenciais.LoteDirectService;
+using CliCloud.Application.Services.Consultas.FechoDiarioAdministrativoService;
+using CliCloud.Infrastructure.Persistence.Consultas;
 using CliCloud.Infrastructure.Persistence.Credenciais;
 
 namespace CliCloud.WebApi.Extensions
@@ -150,6 +154,8 @@ namespace CliCloud.WebApi.Extensions
       _ = services.AddTransient<ISpmsCartaConducaoService, SpmsCartaConducaoService>();
       _ = services.AddTransient<IUtenteRnuService, UtenteRnuService>();
       _ = services.AddTransient<ILoteDirectCorrecaoLotesExecutor, LoteDirectCorrecaoLotesExecutor>();
+      _ = services.AddScoped<IRequisicaoEspFechoUpdater, RequisicaoEspFechoUpdater>();
+      _ = services.AddScoped<IUtilizadorDisplayNameResolver, UtilizadorDisplayNameResolver>();
 
       #endregion
 

@@ -43,12 +43,66 @@ public class AdmissaoAdministrativoController(IAdmissaoAdministrativoService ser
     => Ok(await _service.ConfirmarAsync(id, confirmado));
 
   [Authorize(Roles = "client")]
+  [HttpPost("{id:guid}/confirma-consulta")]
+  public async Task<IActionResult> SetConfirmaConsulta(Guid id, [FromBody] bool confirmaConsulta)
+    => Ok(await _service.SetConfirmaConsultaAsync(id, confirmaConsulta));
+
+  [Authorize(Roles = "client")]
+  [HttpPost("{id:guid}/em-tratamento")]
+  public async Task<IActionResult> SetEmTratamento(Guid id, [FromBody] bool emTratamento)
+    => Ok(await _service.SetEmTratamentoAsync(id, emTratamento));
+
+  [Authorize(Roles = "client")]
   [HttpPost("{id:guid}/efetuado")]
   public async Task<IActionResult> SetEfetuado(Guid id, [FromBody] bool efetuado)
     => Ok(await _service.SetEfetuadoAsync(id, efetuado));
 
   [Authorize(Roles = "client")]
+  [HttpPost("{id:guid}/desmarcar")]
+  public async Task<IActionResult> Desmarcar(Guid id, [FromBody] DesmarcarAdmissaoRequest request)
+    => Ok(await _service.DesmarcarAsync(id, request));
+
+  [Authorize(Roles = "client")]
+  [HttpPost("promover-lote")]
+  public async Task<IActionResult> PromoverLote([FromBody] PromoverAdmissaoLoteRequest request)
+    => Ok(await _service.PromoverLoteAsync(request));
+
+  [Authorize(Roles = "client")]
   [HttpPost("{id:guid}/promover-consulta")]
   public async Task<IActionResult> PromoverParaConsulta(Guid id)
     => Ok(await _service.PromoverParaConsultaAsync(id));
+
+  [Authorize(Roles = "client")]
+  [HttpGet("{id:guid}/observacoes")]
+  public async Task<IActionResult> GetObservacoes(Guid id)
+    => Ok(await _service.GetObservacoesAsync(id));
+
+  [Authorize(Roles = "client")]
+  [HttpPost("{id:guid}/observacoes")]
+  public async Task<IActionResult> AppendObservacao(
+    Guid id,
+    [FromBody] AppendAdmissaoObservacaoRequest request
+  )
+    => Ok(await _service.AppendObservacaoAsync(id, request));
+
+  [Authorize(Roles = "client")]
+  [HttpPost("ordem-entrada/paginated")]
+  public async Task<IActionResult> GetOrdemEntradaPaginated([FromBody] OrdemEntradaTableFilter filter)
+    => Ok(await _service.GetOrdemEntradaPaginatedAsync(filter));
+
+  [Authorize(Roles = "client")]
+  [HttpPost("{id:guid}/ordem-entrada/ordem")]
+  public async Task<IActionResult> DefinirOrdemEntrada(
+    Guid id, 
+    [FromBody] DefinirOrdemEntradaRequest request 
+  )
+    => Ok(await _service.DefinirOrdemEntradaAsync(id, request));
+
+  [Authorize(Roles = "client")]
+  [HttpPost("{id:guid}/ordem-entrada/anular")]
+  public async Task<IActionResult> AnularOrdemEntrada(
+    Guid id, 
+    [FromBody] AnularOrdemEntradaRequest request
+  )
+    => Ok(await _service.AnularOrdemEntradaAsync(id, request));
 }

@@ -9,6 +9,11 @@ public class AdmissaoDTO : IDto
   public Guid UtenteId { get; set; }
   public string? UtenteNumero { get; set; }
   public string? UtenteNome { get; set; }
+  public string? MedicoNome { get; set; }
+  public string? OrganismoNome { get; set; }
+  public string? SalaNome { get; set; }
+  public string? EspecialidadeNome { get; set; }
+  public string? MedicoExternoNome { get; set; }
   public Guid? ConsultaMarcacaoId { get; set; }
   public Guid? MedicoId { get; set; }
   public Guid? EspecialidadeId { get; set; }
@@ -29,7 +34,11 @@ public class AdmissaoDTO : IDto
   public StatusConsulta? StatusConsulta { get; set; }
   public OrigemAdmissao Origem { get; set; }
   public bool? Confirmado { get; set; }
+  public bool? ConfirmaConsulta { get; set; }
+  public bool EmTratamento { get; set; }
   public bool? Efetuado { get; set; }
+  public bool? Pago { get; set; }
+  public bool? Faturado { get; set; }
   public string? Credencial { get; set; }
   public int? CredencialExterna { get; set; }
   public string? NumDestacavel { get; set; }

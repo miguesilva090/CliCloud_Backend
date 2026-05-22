@@ -12,6 +12,11 @@ public class FechoDiarioAdministrativoController(IFechoDiarioAdministrativoServi
   private readonly IFechoDiarioAdministrativoService _service = service;
 
   [Authorize(Roles = "client")]
+  [HttpGet("contagem")]
+  public async Task<IActionResult> Contar([FromQuery] DateTime data)
+    => Ok(await _service.ContarElegiveisAsync(data.Date));
+
+  [Authorize(Roles = "client")]
   [HttpPost]
   public async Task<IActionResult> Executar([FromBody] FechoDiarioRequest request)
     => Ok(await _service.ExecutarFechoAsync(request));

@@ -129,6 +129,7 @@ namespace CliCloud.Infrastructure.Persistence.Repository
 
       TDto? result = await query
         .Where(x => x.Id!.Equals(id))
+        .AsSingleQuery()
         .ProjectTo<TDto>(_mapper.ConfigurationProvider)
         .FirstOrDefaultAsync(cancellationToken);
 

@@ -27,7 +27,11 @@ public class CreateAdmissaoRequest : IDto
   public StatusConsulta? StatusConsulta { get; set; }
   public OrigemAdmissao Origem { get; set; } = OrigemAdmissao.Manual;
   public bool? Confirmado { get; set; }
+  public bool? ConfirmaConsulta { get; set; }
+  public bool EmTratamento { get; set; }
   public bool? Efetuado { get; set; }
+  public bool? Pago { get; set; }
+  public bool? Faturado { get; set; }
   public string? Credencial { get; set; }
   public int? CredencialExterna { get; set; }
   public string? NumDestacavel { get; set; }

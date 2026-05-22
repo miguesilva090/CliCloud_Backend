@@ -31,4 +31,15 @@ public class HistoricoConsultasAdministrativoController(IHistoricoConsultasAdmin
     PaginatedResponse<HistoricoConsultaAdministrativoRowDTO> result = await _service.GetPaginatedAsync(filter);
     return Ok(result);
   }
+
+  [Authorize(Roles = "client")]
+  [HttpGet("{id:guid}")]
+  public async Task<IActionResult> GetConsultaForEdit(Guid id)
+    => Ok(await _service.GetConsultaHistoricoForEditAsync(id));
+
+  [Authorize(Roles = "client")]
+  [HttpPut("{id:guid}")]
+  public async Task<IActionResult> UpdateConsultaHistorico(Guid id, [FromBody] UpdateConsultaHistoricoRequest request)
+    => Ok(await _service.UpdateConsultaHistoricoAsync(id, request));
+
 }

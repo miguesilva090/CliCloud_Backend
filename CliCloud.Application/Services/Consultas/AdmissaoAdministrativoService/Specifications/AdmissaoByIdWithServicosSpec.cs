@@ -13,6 +13,7 @@ public sealed class AdmissaoByIdWithServicosSpec : Specification<Admissao>
       .Include(x => x.Medico)
       .Include(x => x.DoencaPrincipal)
       .Include(x => x.DoencaSecundaria)
+      .Include(x => x.TipoAdmissao)
       .Include(x => x.Servicos);
   }
 }

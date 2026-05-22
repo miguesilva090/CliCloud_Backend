@@ -42,6 +42,15 @@ namespace CliCloud.Domain.Entities.Consultas
     public TimeSpan? HoraInicio { get; set; }
     public TimeSpan? HoraFim { get; set; }
     public StatusConsulta? StatusConsulta { get; set; }
+
+    /// <summary>Presente na receção (legado ADMISS/HIST confirmado).</summary>
+    public bool? Confirmado { get; set; }
+
+    /// <summary>Consulta efetuada (legado efectuado).</summary>
+    public bool? Efetuado { get; set; }
+
+    /// <summary>Utente faltou (legado faltou).</summary>
+    public bool? Faltou { get; set; }
     
     // Documentos
     public Guid? DocumentoId { get; set; }

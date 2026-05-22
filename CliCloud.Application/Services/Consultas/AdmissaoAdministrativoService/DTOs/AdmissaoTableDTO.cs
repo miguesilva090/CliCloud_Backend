@@ -19,7 +19,12 @@ public class AdmissaoTableDTO : IDto
   public string? TipoAdmissaoDesignacao { get; set; }
   public StatusConsulta? StatusConsulta { get; set; }
   public bool? Confirmado { get; set; }
+  public bool? ConfirmaConsulta { get; set; }
+  public bool EmTratamento { get; set; }
+  public string? TipoConsultaDesignacao { get; set; }
   public bool? Efetuado { get; set; }
+  public bool? Pago { get; set; }
+  public bool? Faturado { get; set; }
   public int? Ordem { get; set; }
   public OrigemAdmissao Origem { get; set; }
 }

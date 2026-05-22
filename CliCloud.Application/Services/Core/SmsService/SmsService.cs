@@ -298,7 +298,10 @@ namespace CliCloud.Application.Services.Core.SmsService
                 }
 
                 var idMensagem = Guid.NewGuid();
-                var numeroNormalizado = NormalizarNumeroTelemovel(request.NumeroDestinatario);
+                var numeroNormalizado = TruncateHistoricoCampo(
+                    NormalizarNumeroTelemovel(request.NumeroDestinatario),
+                    30
+                );
 
                 var historico = new HistoricoSms
                 {
@@ -308,9 +311,14 @@ namespace CliCloud.Application.Services.Core.SmsService
                     NumeroDestinatario = numeroNormalizado,
                     Status = "Pendente",
                     DataHoraCriacao = DateTime.Now,
-                    Modulo = string.IsNullOrWhiteSpace(request.Modulo) ? "TesteSMS" : request.Modulo.Trim(),
+                    Modulo = TruncateHistoricoCampo(
+                        string.IsNullOrWhiteSpace(request.Modulo) ? "TesteSMS" : request.Modulo.Trim(),
+                        20
+                    ),
                     CodigoUtente = request.CodigoUtente,
-                    CodigoMedico = string.IsNullOrWhiteSpace(request.CodigoMedico) ? null : request.CodigoMedico.Trim(),
+                    CodigoMedico = string.IsNullOrWhiteSpace(request.CodigoMedico)
+                        ? null
+                        : TruncateHistoricoCampo(request.CodigoMedico.Trim(), 50),
                     CodigoFisioterapeuta = request.CodigoFisioterapeuta,
                     CodigoConsulta = request.CodigoConsulta,
                     CodigoTratamento = request.CodigoTratamento,
@@ -475,6 +483,16 @@ namespace CliCloud.Application.Services.Core.SmsService
 
                 ControloSmsAutomaticos = entidade.ControloSmsAutomaticos,
             };
+        }
+
+        private static string TruncateHistoricoCampo(string value, int maxLength)
+        {
+            if (string.IsNullOrEmpty(value) || maxLength <= 0)
+            {
+                return value;
+            }
+
+            return value.Length <= maxLength ? value : value[..maxLength];
         }
 
         private static string NormalizarNumeroTelemovel(string numero)

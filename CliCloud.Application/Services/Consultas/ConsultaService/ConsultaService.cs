@@ -192,6 +192,7 @@ namespace CliCloud.Application.Services.Consultas.ConsultaService
           return ResponseFactory.Fail<Guid>("Consulta não encontrada.");
 
         consulta.StatusConsulta = StatusConsulta.Concluida;
+        consulta.Efetuado = true;
         consulta.HoraFim = horaFim;
         _ = await _repository.UpdateAsync<Consulta, Guid>(consulta);
 

@@ -72,7 +72,21 @@ namespace CliCloud.Domain.Entities.Consultas
         public OrigemAdmissao Origem { get; set; }
 
         public bool? Confirmado { get; set; }
+
+        /// <summary>Confirmação na receção (legado ADMISS.ConfirmaConsulta).</summary>
+        public bool? ConfirmaConsulta { get; set; }
+
+        /// <summary>Utente em tratamento no balcão (legado ADMISS.EmTratamento).</summary>
+        public bool EmTratamento { get; set; }
+
         public bool? Efetuado { get; set; }
+
+        /// <summary>Pagamento registado na receção (legado ADMISS.pago).</summary>
+        public bool? Pago { get; set; }
+
+        /// <summary>Faturação registada na receção (legado ADMISS.faturado).</summary>
+        public bool? Faturado { get; set; }
+
         public string? Credencial { get; set; }
         public int? CredencialExterna { get; set; }
         public string? NumDestacavel { get; set; }

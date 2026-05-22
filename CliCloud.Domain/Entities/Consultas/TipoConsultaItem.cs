@@ -18,5 +18,8 @@ namespace CliCloud.Domain.Entities.Consultas
         [Required]
         [StringLength(80)]
         public string Designacao { get; set; } = string.Empty;
+
+        /// <summary>Código do tipo no legado (TIPOS_CONSULTA); ex.: 1 = 1ª consulta.</summary>
+        public int? CodigoLegado { get; set; }
     }
 }

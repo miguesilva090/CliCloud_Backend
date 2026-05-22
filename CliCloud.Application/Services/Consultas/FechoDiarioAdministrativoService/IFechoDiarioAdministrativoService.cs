@@ -7,4 +7,6 @@ namespace CliCloud.Application.Services.Consultas.FechoDiarioAdministrativoServi
 public interface IFechoDiarioAdministrativoService : ITransientService
 {
   Task<Response<FechoDiarioResultDTO>> ExecutarFechoAsync(FechoDiarioRequest request);
+
+  Task<Response<int>> ContarElegiveisAsync(DateTime data);
 }
