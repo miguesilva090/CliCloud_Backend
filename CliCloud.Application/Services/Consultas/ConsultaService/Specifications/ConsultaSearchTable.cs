@@ -10,6 +10,7 @@ namespace CliCloud.Application.Services.Consultas.ConsultaService.Specifications
     public ConsultaSearchTable(List<TableFilter> filters, string? dynamicOrder = "")
     {
       _ = Query.Include(x => x.TipoConsultaItem)
+        .Include(x => x.MotivoConsulta)
         .Include(x => x.Utente)
         .Include(x => x.Organismo)
         .Include(x => x.Sala)
@@ -64,6 +65,22 @@ namespace CliCloud.Application.Services.Consultas.ConsultaService.Specifications
               if (Guid.TryParse(val, out var uId))
                 _ = Query.Where(x => x.UtenteId == uId);
               break;
+            case "utente_numero_de":
+            case "c_utente_de":
+              if (int.TryParse(val, out var utenteNumeroDe))
+                _ = Query.Where(x =>
+                  x.Utente != null
+                  && x.Utente.NumeroUtente != null
+                  && Convert.ToInt32(x.Utente.NumeroUtente) >= utenteNumeroDe);
+              break;
+            case "utente_numero_ate":
+            case "c_utente_ate":
+              if (int.TryParse(val, out var utenteNumeroAte))
+                _ = Query.Where(x =>
+                  x.Utente != null
+                  && x.Utente.NumeroUtente != null
+                  && Convert.ToInt32(x.Utente.NumeroUtente) <= utenteNumeroAte);
+              break;
             case "medicoid":
               if (Guid.TryParse(val, out var mId))
                 _ = Query.Where(x => x.MedicoId == mId);
@@ -99,6 +116,11 @@ namespace CliCloud.Application.Services.Consultas.ConsultaService.Specifications
             case "credencial":
               _ = Query.Where(x => x.Credencial != null && x.Credencial.Contains(val));
               break;
+            case "efectuado":
+            case "efetuado":
+              if (bool.TryParse(val, out var efetuado))
+                _ = Query.Where(x => x.Efetuado == efetuado);
+              break;
           }
         }
 
@@ -132,11 +154,13 @@ namespace CliCloud.Application.Services.Consultas.ConsultaService.Specifications
         bool desc = s.StartsWith('-');
         string field = desc ? s[1..] : s;
 
-        string mapped = field.Equals("horaInic", StringComparison.OrdinalIgnoreCase)
-          ? nameof(Consulta.HoraInicio)
-          : field.Equals("horaFim", StringComparison.OrdinalIgnoreCase)
-            ? nameof(Consulta.HoraFim)
-            : field;
+        string mapped = field.Equals("data", StringComparison.OrdinalIgnoreCase)
+          ? nameof(Consulta.Data)
+          : field.Equals("horaInic", StringComparison.OrdinalIgnoreCase)
+            ? nameof(Consulta.HoraInicio)
+            : field.Equals("horaFim", StringComparison.OrdinalIgnoreCase)
+              ? nameof(Consulta.HoraFim)
+              : field;
 
         segments[i] = desc ? "-" + mapped : mapped;
       }

@@ -659,9 +659,6 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
       // HabitosEVicios configurations
       _ = modelBuilder.ApplyConfiguration(new HabitosEViciosConfiguration());
 
-      // HistoriaClinica configurations
-      _ = modelBuilder.ApplyConfiguration(new HistoriaClinicaConfiguration());
-
       // Periocidade Tratamento configurations
       _ = modelBuilder.ApplyConfiguration(new PeriocidadeTratamentoConfiguration());
 

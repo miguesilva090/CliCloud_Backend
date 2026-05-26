@@ -111,7 +111,9 @@ namespace CliCloud.Application.Services.Tratamentos.TratamentoService.Specificat
       _ = Query
         .Include(x => x.Organismo)
         .Include(x => x.LocalTratamento)
-        .Include(x => x.Medico);
+        .Include(x => x.Medico)
+        .Include(x => x.Sessoes)
+        .Include(x => x.Servicos);
 
       if (string.IsNullOrEmpty(dynamicOrder))
       {

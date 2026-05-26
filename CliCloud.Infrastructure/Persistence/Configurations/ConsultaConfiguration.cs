@@ -70,6 +70,11 @@ namespace CliCloud.Infrastructure.Persistence.Configurations
         .HasForeignKey(c => c.FuncionarioId)
         .OnDelete(DeleteBehavior.NoAction);
 
+      builder.HasOne(c => c.MotivoConsulta)
+        .WithMany()
+        .HasForeignKey(c => c.MotivoConsultaId)
+        .OnDelete(DeleteBehavior.NoAction);
+
       builder.HasOne(c => c.Seguradora)
         .WithMany()
         .HasForeignKey(c => c.SeguradoraId)

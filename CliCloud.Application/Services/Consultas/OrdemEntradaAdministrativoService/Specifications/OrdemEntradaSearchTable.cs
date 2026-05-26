@@ -1,11 +1,11 @@
 using Ardalis.Specification;
 using CliCloud.Application.Common.Filter;
 using CliCloud.Application.Common.Specification;
-using CliCloud.Application.Services.Consultas.AdmissaoAdministrativoService.Filters;
+using CliCloud.Application.Services.Consultas.OrdemEntradaAdministrativoService.Filters;
 using CliCloud.Domain.Entities.Consultas;
 using CliCloud.Domain.Enums;
 
-namespace CliCloud.Application.Services.Consultas.AdmissaoAdministrativoService.Specifications;
+namespace CliCloud.Application.Services.Consultas.OrdemEntradaAdministrativoService.Specifications;
 
 public sealed class OrdemEntradaSearchTable : Specification<Admissao>
 {
@@ -26,6 +26,7 @@ public sealed class OrdemEntradaSearchTable : Specification<Admissao>
       .Include(x => x.Consulta);
 
     _ = Query.Where(x => x.DeletedOn == null);
+    _ = Query.Where(x => x.Origem == OrigemAdmissao.Marcacao);
     _ = Query.Where(x =>
       x.Data.HasValue && x.Data.Value.Date >= dataDe && x.Data.Value.Date <= dataAte
     );
@@ -112,7 +113,7 @@ public sealed class OrdemEntradaSearchTable : Specification<Admissao>
 
     if (string.IsNullOrWhiteSpace(dynamicOrder))
     {
-      _ = Query.OrderBy(x => x.Ordem).ThenBy(x => x.HoraInicio);
+      _ = Query.OrderBy(x => x.Data).ThenBy(x => x.HoraInicio);
     }
     else
     {

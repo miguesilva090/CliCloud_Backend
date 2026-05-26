@@ -59,8 +59,10 @@ public class ListaEsperaAdministrativoService(
 
   public async Task<Response<ListaEsperaDTO>> GetByIdAsync(Guid id)
   {
-    ListaEsperaConsulta? entity = await _repository.GetByIdAsync<ListaEsperaConsulta, Guid>(id);
-    if (entity == null || entity.DeletedOn != null)
+    ListaEsperaConsulta? entity = (
+      await _repository.GetListAsync<ListaEsperaConsulta, Guid>(new ListaEsperaByIdSpec(id))
+    ).FirstOrDefault();
+    if (entity == null)
     {
       return ResponseFactory.Fail<ListaEsperaDTO>("Registo de lista de espera não encontrado.");
     }
@@ -139,7 +141,14 @@ public class ListaEsperaAdministrativoService(
 
   public async Task<Response<ListaEsperaObservacoesDTO>> GetObservacoesAsync(Guid id)
   {
-    ListaEsperaConsulta entity = await _repository.GetByIdAsync<ListaEsperaConsulta, Guid>(id);
+    ListaEsperaConsulta? entity = await _repository.GetByIdAsync<ListaEsperaConsulta, Guid>(id);
+    if (entity == null || entity.DeletedOn != null)
+    {
+      return ResponseFactory.Fail<ListaEsperaObservacoesDTO>(
+        "Registo de lista de espera não encontrado."
+      );
+    }
+
     return ResponseFactory.Success(
       new ListaEsperaObservacoesDTO { Observacoes = entity.Obs ?? string.Empty }
     );
@@ -155,7 +164,12 @@ public class ListaEsperaAdministrativoService(
       return ResponseFactory.Fail<Guid>("Indique o texto da observação.");
     }
 
-    ListaEsperaConsulta entity = await _repository.GetByIdAsync<ListaEsperaConsulta, Guid>(id);
+    ListaEsperaConsulta? entity = await _repository.GetByIdAsync<ListaEsperaConsulta, Guid>(id);
+    if (entity == null || entity.DeletedOn != null)
+    {
+      return ResponseFactory.Fail<Guid>("Registo de lista de espera não encontrado.");
+    }
+
     string nomeAutor = await _utilizadorDisplayNameResolver.ResolveAsync();
     entity.Obs = AdmissaoObservacoesHelper.FormatarObservacaoAppend(
       request.Texto,
@@ -210,7 +224,7 @@ public class ListaEsperaAdministrativoService(
       {
         OrganismoId = entity.OrganismoId,
         Credencial = entity.Credencial,
-        HoraFim = entity.HoraFim,
+        HoraFim = request.HoraFim ?? entity.HoraFim,
       }
     );
 

@@ -11,8 +11,10 @@ namespace CliCloud.Application.Services.Consultas.ConsultaService
         Task<Response<IEnumerable<ConsultaLightDTO>>> GetConsultaLightAsync(string keyword = "");
         Task<PaginatedResponse<ConsultaTableDTO>> GetConsultaPaginatedAsync(ConsultaTableFilter filter);
         Task<Response<IEnumerable<ConsultaTableDTO>>> GetAllConsultaAsync(ConsultaAllFilter? filter);
+        Task<Response<IEnumerable<ConsultaDoDiaDTO>>> GetConsultasDoDiaAsync(DateTime data, bool desmarcadas = false);
         Task<Response<ConsultaDTO>> GetConsultaAsync(Guid id);
         Task<Response<Guid>> CreateConsultaAsync(CreateConsultaRequest request);
+        Task<Response<IniciarAtendimentoConsultaDTO>> IniciarAtendimentoAsync(IniciarAtendimentoConsultaRequest request);
         Task<Response<Guid>> CreateConsultaFromMarcacaoAsync(Guid marcacaoId);
         Task<Response<Guid>> UpdateConsultaAsync(UpdateConsultaRequest request, Guid id);
         Task<Response<Guid>> DeleteConsultaAsync(Guid id);

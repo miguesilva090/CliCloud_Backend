@@ -10,6 +10,7 @@ public sealed class MarcacaoAdministrativoCalendarioSpec : Specification<Consult
     Guid medicoId,
     DateTime dataDe,
     DateTime dataAte,
+    Guid? salaId,
     Guid? especialidadeId
   )
   {
@@ -22,6 +23,8 @@ public sealed class MarcacaoAdministrativoCalendarioSpec : Specification<Consult
       .Include(x => x.Sala)
       .Include(x => x.TipoConsultaItem)
       .Where(x =>
+        x.DeletedOn == null
+        &&
         x.MedicoId == medicoId
         && x.Data.HasValue
         && x.Data.Value.Date >= de
@@ -31,6 +34,7 @@ public sealed class MarcacaoAdministrativoCalendarioSpec : Specification<Consult
           || (
             x.StatusConsulta != StatusConsulta.Desmarcada
             && x.StatusConsulta != StatusConsulta.Suspensa
+            && x.StatusConsulta != StatusConsulta.Concluida
           )
         )
       );
@@ -38,6 +42,11 @@ public sealed class MarcacaoAdministrativoCalendarioSpec : Specification<Consult
     if (especialidadeId.HasValue)
     {
       _ = Query.Where(x => x.EspecialidadeId == especialidadeId.Value);
+    }
+
+    if (salaId.HasValue)
+    {
+      _ = Query.Where(x => x.SalaId == salaId.Value);
     }
 
     _ = Query.OrderBy(x => x.Data).ThenBy(x => x.HoraMarcacao);

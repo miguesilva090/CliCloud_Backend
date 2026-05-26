@@ -1,4 +1,5 @@
 using AutoMapper;
+using CliCloud.Application.Services.Tratamentos;
 using CliCloud.Application.Services.Tratamentos.EvolucaoTratamentoService.DTOs;
 using CliCloud.Application.Common.Wrapper;
 using CliCloud.Application.Common.Filter;
@@ -127,7 +128,29 @@ namespace CliCloud.Application.Services.Tratamentos.EvolucaoTratamentoService
 
             try
             {
+                string? erroContexto = await ValidarContextoTratamentoAsync(request.TratamentoId, request.UtenteId);
+                if (!string.IsNullOrWhiteSpace(erroContexto))
+                {
+                    return ResponseFactory.Fail<Guid>(erroContexto);
+                }
+
+                EvolucaoTratamento? existente = (
+                    await _repository.GetListAsync<EvolucaoTratamento, Guid>(
+                        new EvolucoesTratamentoByTratamentoIdSpec(request.TratamentoId)
+                    )
+                ).FirstOrDefault(x => x.UtenteId == request.UtenteId);
+
+                if (existente != null)
+                {
+                    _ = _mapper.Map(request, existente);
+                    EvolucaoTratamento atualizada = await _repository.UpdateAsync<EvolucaoTratamento, Guid>(existente);
+                    await SincronizarAltaTratamentoAsync(atualizada.TratamentoId, false);
+                    _ = await _repository.SaveChangesAsync();
+                    return ResponseFactory.Success<Guid>(atualizada.Id);
+                }
+
                 EvolucaoTratamento response = await _repository.CreateAsync<EvolucaoTratamento, Guid>(newEvolucaoTratamento); // create new entity 
+                await SincronizarAltaTratamentoAsync(response.TratamentoId, false);
                 _ = await _repository.SaveChangesAsync(); // save changes to db
                 return ResponseFactory.Success<Guid>(response.Id); // return id
             }
@@ -146,11 +169,25 @@ namespace CliCloud.Application.Services.Tratamentos.EvolucaoTratamentoService
                 return ResponseFactory.Fail<Guid>("Not Found");
             }
 
+            Guid tratamentoAnteriorId = EvolucaoTratamentoInDb.TratamentoId;
+            bool tinhaAltaAntes = EvolucaoTratamentoInDb.DataAlta.HasValue;
+
+            string? erroContexto = await ValidarContextoTratamentoAsync(request.TratamentoId, request.UtenteId);
+            if (!string.IsNullOrWhiteSpace(erroContexto))
+            {
+                return ResponseFactory.Fail<Guid>(erroContexto);
+            }
+
             EvolucaoTratamento updatedEvolucaoTratamento = _mapper.Map(request, EvolucaoTratamentoInDb); // map dto to domain entity
 
             try
             {
                 EvolucaoTratamento response = await _repository.UpdateAsync<EvolucaoTratamento, Guid>(updatedEvolucaoTratamento);  // update entity 
+                await SincronizarAltaTratamentoAsync(response.TratamentoId, tinhaAltaAntes);
+                if (tratamentoAnteriorId != response.TratamentoId)
+                {
+                    await SincronizarAltaTratamentoAsync(tratamentoAnteriorId, tinhaAltaAntes);
+                }
                 _ = await _repository.SaveChangesAsync(); // save changes to db
                 return ResponseFactory.Success<Guid>(response.Id); // return id
             }
@@ -165,7 +202,17 @@ namespace CliCloud.Application.Services.Tratamentos.EvolucaoTratamentoService
         {
             try
             {
+                EvolucaoTratamento? existente = await _repository.GetByIdAsync<EvolucaoTratamento, Guid>(id);
+                if (existente == null)
+                {
+                    return ResponseFactory.Fail<Guid>("Not Found");
+                }
+
+                Guid tratamentoId = existente.TratamentoId;
+                bool tinhaAlta = existente.DataAlta.HasValue;
+
                 EvolucaoTratamento? EvolucaoTratamento = await _repository.RemoveByIdAsync<EvolucaoTratamento, Guid>(id);
+                await SincronizarAltaTratamentoAsync(tratamentoId, tinhaAlta);
                 _ = await _repository.SaveChangesAsync();
 
                 return ResponseFactory.Success<Guid>(EvolucaoTratamento.Id);
@@ -196,9 +243,12 @@ namespace CliCloud.Application.Services.Tratamentos.EvolucaoTratamentoService
                             continue;
                         }
 
+                        Guid tratamentoId = entity.TratamentoId;
+                        bool tinhaAlta = entity.DataAlta.HasValue;
                         EvolucaoTratamento? deletedEntity = await _repository.RemoveByIdAsync<EvolucaoTratamento, Guid>(id);
                         if(deletedEntity != null)
                         {
+                            await SincronizarAltaTratamentoAsync(tratamentoId, tinhaAlta);
                             _ = await _repository.SaveChangesAsync();
                             successfullyDeletedIds.Add(id);
                         }
@@ -227,6 +277,56 @@ namespace CliCloud.Application.Services.Tratamentos.EvolucaoTratamentoService
             catch(Exception ex)
             {
                 return ResponseFactory.Fail<IEnumerable<Guid>>(ex.Message);
+            }
+        }
+
+        private async Task<string?> ValidarContextoTratamentoAsync(Guid tratamentoId, Guid utenteId)
+        {
+            Tratamento? tratamento = await _repository.GetByIdAsync<Tratamento, Guid>(tratamentoId);
+            if (tratamento == null || tratamento.DeletedOn != null)
+            {
+                return "Tratamento não encontrado.";
+            }
+
+            if (tratamento.UtenteId.HasValue && tratamento.UtenteId.Value != utenteId)
+            {
+                return "A evolução não pertence ao utente do tratamento selecionado.";
+            }
+
+            return null;
+        }
+
+        private async Task SincronizarAltaTratamentoAsync(Guid tratamentoId, bool limparAltaQuandoSemEvolucaoAlta)
+        {
+            Tratamento? tratamento = await _repository.GetByIdAsync<Tratamento, Guid>(tratamentoId);
+            if (tratamento == null || tratamento.DeletedOn != null)
+            {
+                return;
+            }
+
+            List<EvolucaoTratamento> evolucoes = (
+                await _repository.GetListAsync<EvolucaoTratamento, Guid>(
+                    new EvolucoesTratamentoByTratamentoIdSpec(tratamentoId)
+                )
+            ).ToList();
+
+            EvolucaoTratamento? evolucaoComAlta = evolucoes
+                .Where(x => x.DataAlta.HasValue)
+                .OrderByDescending(x => x.DataAlta)
+                .FirstOrDefault();
+
+            if (evolucaoComAlta?.DataAlta.HasValue == true)
+            {
+                tratamento.DataFim = evolucaoComAlta.DataAlta.Value;
+                TratamentoIntegridadeHelper.NormalizarTratamento(tratamento);
+                _ = await _repository.UpdateAsync<Tratamento, Guid>(tratamento);
+                return;
+            }
+
+            if (limparAltaQuandoSemEvolucaoAlta)
+            {
+                tratamento.DataFim = null;
+                _ = await _repository.UpdateAsync<Tratamento, Guid>(tratamento);
             }
         }
 

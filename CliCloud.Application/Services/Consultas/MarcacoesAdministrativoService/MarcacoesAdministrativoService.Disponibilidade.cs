@@ -82,6 +82,7 @@ public partial class MarcacoesAdministrativoService
           medico.Id,
           day,
           day,
+          null,
           request.EspecialidadeId
         );
         List<ConsultaMarcacao> marcacoes =

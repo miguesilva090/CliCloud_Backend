@@ -21,6 +21,10 @@ namespace CliCloud.Application.Services.Tratamentos.EvolucaoTratamentoService.Sp
                             if (!string.IsNullOrWhiteSpace(filter.Value) && Guid.TryParse(filter.Value, out Guid utenteId))
                                 _ = Query.Where(x => x.UtenteId == utenteId);
                             break;
+                        case "tratamentoid":
+                            if (!string.IsNullOrWhiteSpace(filter.Value) && Guid.TryParse(filter.Value, out Guid tratamentoId))
+                                _ = Query.Where(x => x.TratamentoId == tratamentoId);
+                            break;
                         // Neste contexto, usamos o campo de observação clínica
                         // como "descrição" pesquisável da evolução.
                         case "descricao":

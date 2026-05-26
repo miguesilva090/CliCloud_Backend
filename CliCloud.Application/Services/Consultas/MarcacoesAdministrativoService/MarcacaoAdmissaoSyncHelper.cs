@@ -19,16 +19,21 @@ public static class MarcacaoAdmissaoSyncHelper
     public Guid? SalaId { get; init; }
   }
 
-  public static async Task SyncAdmissaoFromMarcacaoAsync(
+  public static async Task<Admissao> SyncAdmissaoFromMarcacaoAsync(
     IRepositoryAsync repository,
     ConsultaMarcacao marcacao,
-    MarcacaoAdmissaoFields fields
+    MarcacaoAdmissaoFields fields,
+    Admissao? admissaoExistente = null
   )
   {
-    List<Admissao> existentes = (
-      await repository.GetListAsync<Admissao, Guid>(new AdmissaoByConsultaMarcacaoSpec(marcacao.Id))
-    ).ToList();
-    Admissao? admissao = existentes.FirstOrDefault();
+    Admissao? admissao = admissaoExistente;
+    if (admissao == null)
+    {
+      List<Admissao> existentes = (
+        await repository.GetListAsync<Admissao, Guid>(new AdmissaoByConsultaMarcacaoSpec(marcacao.Id))
+      ).ToList();
+      admissao = existentes.FirstOrDefault();
+    }
 
     if (admissao == null)
     {
@@ -39,14 +44,19 @@ public static class MarcacaoAdmissaoSyncHelper
         ConsultaMarcacaoId = marcacao.Id,
         MedicoId = marcacao.MedicoId,
         EspecialidadeId = marcacao.EspecialidadeId,
+        TecnicoId = marcacao.TecnicoId,
+        FuncionarioId = marcacao.FuncionarioId,
+        MedicoExternoId = marcacao.MedicoExternoId,
         SalaId = fields.SalaId ?? marcacao.SalaId,
         Data = marcacao.Data,
         HoraInicio = marcacao.HoraMarcacao,
         HoraFim = fields.HoraFim,
         OrganismoId = fields.OrganismoId,
+        MotivoConsultaId = marcacao.MotivoConsultaId,
         TipoConsultaId = marcacao.TipoConsultaId,
         TipoAdmissaoId = marcacao.TipoAdmissaoId,
         Credencial = fields.Credencial,
+        NumDestacavel = marcacao.NumDestacavel,
         Obs = marcacao.Obs,
         Origem = OrigemAdmissao.Marcacao,
         DataHoraMarcacao = DateTime.UtcNow,
@@ -57,12 +67,16 @@ public static class MarcacaoAdmissaoSyncHelper
       };
       await AdmissaoHoraCalculoHelper.AplicarHoraFimAsync(admissao, repository);
       _ = await repository.CreateAsync<Admissao, Guid>(admissao);
-      return;
+      return admissao;
     }
 
+    admissao.ConsultaMarcacaoId = marcacao.Id;
     admissao.UtenteId = marcacao.UtenteId;
     admissao.MedicoId = marcacao.MedicoId;
     admissao.EspecialidadeId = marcacao.EspecialidadeId;
+    admissao.TecnicoId = marcacao.TecnicoId;
+    admissao.FuncionarioId = marcacao.FuncionarioId;
+    admissao.MedicoExternoId = marcacao.MedicoExternoId;
     admissao.SalaId = fields.SalaId ?? marcacao.SalaId;
     admissao.Data = marcacao.Data;
     admissao.HoraInicio = marcacao.HoraMarcacao;
@@ -72,14 +86,17 @@ public static class MarcacaoAdmissaoSyncHelper
     }
 
     admissao.OrganismoId = fields.OrganismoId;
+    admissao.MotivoConsultaId = marcacao.MotivoConsultaId;
     admissao.TipoConsultaId = marcacao.TipoConsultaId;
     admissao.TipoAdmissaoId = marcacao.TipoAdmissaoId;
     admissao.Credencial = fields.Credencial;
+    admissao.NumDestacavel = marcacao.NumDestacavel;
     admissao.Obs = marcacao.Obs;
     admissao.EmTratamento = marcacao.EmTratamento;
     admissao.StatusConsulta = marcacao.StatusConsulta;
     await AdmissaoHoraCalculoHelper.AplicarHoraFimAsync(admissao, repository);
     _ = await repository.UpdateAsync<Admissao, Guid>(admissao);
+    return admissao;
   }
 
   public static async Task SyncDesmarcarFromMarcacaoAsync(

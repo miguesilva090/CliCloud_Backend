@@ -5,6 +5,7 @@ using CliCloud.Application.Services.Consultas.MarcacoesAdministrativoService.Fil
 using CliCloud.Application.Services.Consultas;
 using CliCloud.Application.Services.Consultas.AdmissaoAdministrativoService;
 using CliCloud.Application.Services.Consultas.AdmissaoAdministrativoService.Specifications;
+using CliCloud.Application.Services.Consultas.FechoDiarioAdministrativoService;
 using CliCloud.Application.Services.Consultas.MarcacoesAdministrativoService.Specifications;
 using CliCloud.Application.Services.Medicos.FolgasMedicoService.Specifications;
 using CliCloud.Application.Services.Medicos.HorarioMedicoService.Specifications;
@@ -13,8 +14,12 @@ using CliCloud.Domain.Entities.Medicos;
 using CliCloud.Domain.Entities.Consultas;
 using CliCloud.Domain.Entities.Utentes;
 using CliCloud.Domain.Entities.Especialidades;
+using CliCloud.Domain.Entities.Organismos;
 using CliCloud.Application.Services.Core.SmsService;
 using CliCloud.Application.Services.Medicos.MedicoService.Specifications;
+using CliCloud.Application.Services.Consultas.DisponibilidadeMedico;
+using CliCloud.Application.Services.Consultas.DisponibilidadeSala;
+using CliCloud.Domain.Entities.Core;
 using CliCloud.Domain.Enums;
 
 namespace CliCloud.Application.Services.Consultas.MarcacoesAdministrativoService;
@@ -22,11 +27,14 @@ namespace CliCloud.Application.Services.Consultas.MarcacoesAdministrativoService
 public partial class MarcacoesAdministrativoService(
   IRepositoryAsync repository,
   IServicoSms servicoSms,
+  IRequisicaoEspFechoUpdater? requisicaoEspFechoUpdater = null,
   ICurrentClinicaService? currentClinicaService = null
 ) : IMarcacoesAdministrativoService
 {
   private readonly IRepositoryAsync _repository = repository;
   private readonly IServicoSms _servicoSms = servicoSms;
+  private readonly IRequisicaoEspFechoUpdater? _requisicaoEspFechoUpdater =
+    requisicaoEspFechoUpdater;
   private readonly ICurrentClinicaService? _currentClinicaService = currentClinicaService;
 
   public async Task<PaginatedResponse<MarcacaoAdministrativoTableDTO>> GetPaginatedAsync(
@@ -37,22 +45,76 @@ public partial class MarcacoesAdministrativoService(
     int pageSize = filter.PageSize <= 0 ? 20 : filter.PageSize;
 
     var spec = new MarcacaoAdministrativoSearchTable(filter);
-    IEnumerable<ConsultaMarcacao> list = await _repository.GetListAsync<ConsultaMarcacao, Guid>(spec);
+    List<ConsultaMarcacao> list = (
+      await _repository.GetListAsync<ConsultaMarcacao, Guid>(spec)
+    ).ToList();
+
+    List<Guid> marcacaoIds = list.Select(x => x.Id).ToList();
+    List<Admissao> admissoes = (
+      await _repository.GetListAsync<Admissao, Guid>()
+    )
+      .Where(a =>
+        a.DeletedOn == null
+        && a.ConsultaMarcacaoId.HasValue
+        && marcacaoIds.Contains(a.ConsultaMarcacaoId.Value)
+      )
+      .ToList();
+
+    if (filter.OrganismoId.HasValue)
+    {
+      list = list
+        .Where(x =>
+          admissoes.Any(a =>
+            a.ConsultaMarcacaoId == x.Id && a.OrganismoId == filter.OrganismoId.Value
+          )
+        )
+        .ToList();
+      marcacaoIds = list.Select(x => x.Id).ToList();
+      admissoes = admissoes
+        .Where(a => a.ConsultaMarcacaoId.HasValue && marcacaoIds.Contains(a.ConsultaMarcacaoId.Value))
+        .ToList();
+    }
+
+    Dictionary<Guid, Admissao> admissoesPorMarcacao = admissoes
+      .Where(a => a.ConsultaMarcacaoId.HasValue)
+      .GroupBy(a => a.ConsultaMarcacaoId!.Value)
+      .ToDictionary(g => g.Key, g => g.First());
+
+    List<Guid> organismoIds = admissoes
+      .Where(a => a.OrganismoId.HasValue)
+      .Select(a => a.OrganismoId!.Value)
+      .Distinct()
+      .ToList();
+
+    Dictionary<Guid, string?> organismosPorId = organismoIds.Count == 0
+      ? []
+      : (await _repository.GetListAsync<Organismo, Guid>())
+        .Where(o => organismoIds.Contains(o.Id))
+        .ToDictionary(o => o.Id, o => (string?)o.Nome);
 
     List<MarcacaoAdministrativoTableDTO> projected = list
-      .Select(x => new MarcacaoAdministrativoTableDTO
+      .Select(x =>
       {
-        Id = x.Id,
-        Data = x.Data,
-        HoraInicio = FormatHoraTimeSpan(x.HoraMarcacao),
-        HoraFim = null,
-        UtenteNumero = x.Utente?.NumeroUtente,
-        UtenteNome = x.Utente?.Nome,
-        MedicoNome = x.Medico?.Nome,
-        EspecialidadeDesignacao = x.Especialidade?.Nome,
-        OrganismoNome = null,
-        StatusConsulta = x.StatusConsulta.HasValue ? (int)x.StatusConsulta.Value : null,
-        StatusConsultaLabel = x.StatusConsulta?.ToString()
+        _ = admissoesPorMarcacao.TryGetValue(x.Id, out Admissao? admissao);
+        string? organismoNome = admissao?.OrganismoId is Guid organismoId
+          && organismosPorId.TryGetValue(organismoId, out string? nome)
+            ? nome
+            : null;
+
+        return new MarcacaoAdministrativoTableDTO
+        {
+          Id = x.Id,
+          Data = x.Data,
+          HoraInicio = FormatHoraTimeSpan(x.HoraMarcacao),
+          HoraFim = FormatHoraTimeSpan(admissao?.HoraFim),
+          UtenteNumero = x.Utente?.NumeroUtente,
+          UtenteNome = x.Utente?.Nome,
+          MedicoNome = x.Medico?.Nome,
+          EspecialidadeDesignacao = x.Especialidade?.Nome,
+          OrganismoNome = organismoNome,
+          StatusConsulta = x.StatusConsulta.HasValue ? (int)x.StatusConsulta.Value : null,
+          StatusConsultaLabel = x.StatusConsulta?.ToString()
+        };
       })
       .ToList();
 
@@ -110,11 +172,45 @@ public partial class MarcacoesAdministrativoService(
 
   public async Task<Response<Guid>> CreateAsync(CreateMarcacaoAdministrativoRequest request)
   {
+    DisponibilidadeMedicoResult disponibilidade = await DisponibilidadeMedicoHelper.ValidarAsync(
+      _repository,
+      new DisponibilidadeMedicoRequest
+      {
+        MedicoId = request.MedicoId,
+        TipoConsultaId = request.TipoConsultaId,
+        Data = request.Data,
+        HoraInicio = request.HoraInicio,
+        HoraFim = request.HoraFim,
+      }
+    );
+    if (!disponibilidade.Valido)
+    {
+      return ResponseFactory.Fail<Guid>(disponibilidade.Mensagem!);
+    }
+
+    Clinica? clinica = await ObterClinicaAtualAsync();
+    DisponibilidadeSalaResult sala = await DisponibilidadeSalaHelper.ValidarAsync(
+      _repository,
+      new DisponibilidadeSalaRequest
+      {
+        SalaId = request.SalaId,
+        Data = request.Data,
+        HoraInicio = request.HoraInicio,
+        HoraFim = disponibilidade.HoraFim ?? request.HoraFim,
+        RequerSala = clinica?.GestaoSalas == true,
+      }
+    );
+    if (!sala.Valido)
+    {
+      return ResponseFactory.Fail<Guid>(sala.Mensagem!);
+    }
+
     var entity = new ConsultaMarcacao
     {
       UtenteId = request.UtenteId,
       MedicoId = request.MedicoId,
       EspecialidadeId = request.EspecialidadeId,
+      SalaId = sala.SalaId,
       Data = request.Data.Date,
       HoraMarcacao = request.HoraInicio,
       TipoConsultaId = request.TipoConsultaId,
@@ -130,7 +226,8 @@ public partial class MarcacoesAdministrativoService(
       {
         OrganismoId = request.OrganismoId,
         Credencial = request.Credencial,
-        HoraFim = request.HoraFim,
+        HoraFim = disponibilidade.HoraFim ?? request.HoraFim,
+        SalaId = sala.SalaId,
       }
     );
     _ = await _repository.SaveChangesAsync();
@@ -146,9 +243,50 @@ public partial class MarcacoesAdministrativoService(
       return ResponseFactory.Fail<Guid>("Marcação não encontrada.");
     }
 
+    DisponibilidadeMedicoResult disponibilidade = await DisponibilidadeMedicoHelper.ValidarAsync(
+      _repository,
+      new DisponibilidadeMedicoRequest
+      {
+        MedicoId = request.MedicoId,
+        TipoConsultaId = request.TipoConsultaId,
+        Data = request.Data,
+        HoraInicio = request.HoraInicio,
+        HoraFim = request.HoraFim,
+        IgnorarMarcacaoId = entity.Id,
+      }
+    );
+    if (!disponibilidade.Valido)
+    {
+      return ResponseFactory.Fail<Guid>(disponibilidade.Mensagem!);
+    }
+
+    Admissao? admissao = (
+      await _repository.GetListAsync<Admissao, Guid>(new AdmissaoByConsultaMarcacaoSpec(id))
+    ).FirstOrDefault();
+    Clinica? clinica = await ObterClinicaAtualAsync();
+    Guid? salaId = request.SalaId ?? entity.SalaId ?? admissao?.SalaId;
+    DisponibilidadeSalaResult sala = await DisponibilidadeSalaHelper.ValidarAsync(
+      _repository,
+      new DisponibilidadeSalaRequest
+      {
+        SalaId = salaId,
+        Data = request.Data,
+        HoraInicio = request.HoraInicio,
+        HoraFim = disponibilidade.HoraFim ?? request.HoraFim,
+        IgnorarMarcacaoId = entity.Id,
+        IgnorarAdmissaoId = admissao?.Id,
+        RequerSala = clinica?.GestaoSalas == true,
+      }
+    );
+    if (!sala.Valido)
+    {
+      return ResponseFactory.Fail<Guid>(sala.Mensagem!);
+    }
+
     entity.UtenteId = request.UtenteId;
     entity.MedicoId = request.MedicoId;
     entity.EspecialidadeId = request.EspecialidadeId;
+    entity.SalaId = sala.SalaId;
     entity.Data = request.Data.Date;
     entity.HoraMarcacao = request.HoraInicio;
     entity.TipoConsultaId = request.TipoConsultaId;
@@ -163,9 +301,10 @@ public partial class MarcacoesAdministrativoService(
       {
         OrganismoId = request.OrganismoId,
         Credencial = request.Credencial,
-        HoraFim = request.HoraFim,
-        SalaId = entity.SalaId,
-      }
+        HoraFim = disponibilidade.HoraFim ?? request.HoraFim,
+        SalaId = sala.SalaId,
+      },
+      admissao
     );
     _ = await _repository.SaveChangesAsync();
     await MarcacaoConsultaSmsHelper.TentarDispararAsync(_repository, _servicoSms, entity, "6.2");
@@ -181,6 +320,24 @@ public partial class MarcacoesAdministrativoService(
     if(entity == null)
     {
       return ResponseFactory.Fail<Guid>("Marcação não encontrada.");
+    }
+
+    Admissao? admissao = (
+      await _repository.GetListAsync<Admissao, Guid>(new AdmissaoByConsultaMarcacaoSpec(id))
+    ).FirstOrDefault();
+    if (
+      admissao != null
+      && _requisicaoEspFechoUpdater != null
+      && !string.IsNullOrWhiteSpace(admissao.Credencial)
+    )
+    {
+      bool podeReverter = await _requisicaoEspFechoUpdater.ReverterAgendamentoSePossivelAsync(
+        admissao.Credencial.Trim()
+      );
+      if (!podeReverter)
+      {
+        return ResponseFactory.Fail<Guid>("A requisição já está efetivada e não pode ser anulada.");
+      }
     }
 
     entity.StatusConsulta = StatusConsulta.Desmarcada;
@@ -206,17 +363,75 @@ public partial class MarcacoesAdministrativoService(
       return ResponseFactory.Fail<Guid>("Marcação não encontrada.");
     }
 
+    DisponibilidadeMedicoResult disponibilidade = await DisponibilidadeMedicoHelper.ValidarAsync(
+      _repository,
+      new DisponibilidadeMedicoRequest
+      {
+        MedicoId = entity.MedicoId,
+        TipoConsultaId = entity.TipoConsultaId,
+        Data = request.Data,
+        HoraInicio = request.HoraInicio,
+        HoraFim = request.HoraFim,
+        IgnorarMarcacaoId = entity.Id,
+      }
+    );
+    if (!disponibilidade.Valido)
+    {
+      return ResponseFactory.Fail<Guid>(disponibilidade.Mensagem!);
+    }
+
+    Admissao? admissao = (
+      await _repository.GetListAsync<Admissao, Guid>(new AdmissaoByConsultaMarcacaoSpec(id))
+    ).FirstOrDefault();
+    Clinica? clinica = await ObterClinicaAtualAsync();
+    DisponibilidadeSalaResult sala = await DisponibilidadeSalaHelper.ValidarAsync(
+      _repository,
+      new DisponibilidadeSalaRequest
+      {
+        SalaId = entity.SalaId ?? admissao?.SalaId,
+        Data = request.Data,
+        HoraInicio = request.HoraInicio,
+        HoraFim = disponibilidade.HoraFim ?? request.HoraFim,
+        IgnorarMarcacaoId = entity.Id,
+        IgnorarAdmissaoId = admissao?.Id,
+        RequerSala = clinica?.GestaoSalas == true,
+      }
+    );
+    if (!sala.Valido)
+    {
+      return ResponseFactory.Fail<Guid>(sala.Mensagem!);
+    }
+
+    entity.SalaId = sala.SalaId;
     entity.Data = request.Data.Date;
     entity.HoraMarcacao = request.HoraInicio;
 
     _ = await _repository.UpdateAsync<ConsultaMarcacao, Guid>(entity);
-    Admissao? admissao = (
-      await _repository.GetListAsync<Admissao, Guid>(new AdmissaoByConsultaMarcacaoSpec(id))
-    ).FirstOrDefault();
     if (admissao != null)
     {
+      TimeSpan? duracaoExistente =
+        admissao.HoraInicio.HasValue
+        && admissao.HoraFim.HasValue
+        && admissao.HoraFim.Value > admissao.HoraInicio.Value
+          ? admissao.HoraFim.Value - admissao.HoraInicio.Value
+          : null;
+
       admissao.Data = entity.Data;
       admissao.HoraInicio = entity.HoraMarcacao;
+      admissao.SalaId = sala.SalaId;
+      if (disponibilidade.HoraFim.HasValue)
+      {
+        admissao.HoraFim = disponibilidade.HoraFim;
+      }
+      else if (request.HoraFim.HasValue)
+      {
+        admissao.HoraFim = request.HoraFim;
+      }
+      else if (duracaoExistente.HasValue && admissao.HoraInicio.HasValue)
+      {
+        admissao.HoraFim = admissao.HoraInicio.Value.Add(duracaoExistente.Value);
+      }
+
       await AdmissaoHoraCalculoHelper.AplicarHoraFimAsync(admissao, _repository);
       _ = await _repository.UpdateAsync<Admissao, Guid>(admissao);
     }
@@ -231,44 +446,43 @@ public partial class MarcacoesAdministrativoService(
   )
   {
     IEnumerable<Sala> salas = await _repository.GetListAsync<Sala, Guid>();
-    IEnumerable<ConsultaMarcacao> marcacoes = await _repository.GetListAsync<ConsultaMarcacao, Guid>();
-
-    HashSet<Guid> ocupadasNoSlot = marcacoes
-      .Where(x =>
-        x.SalaId.HasValue
-        && x.Data.HasValue
-        && x.Data.Value.Date == request.Data.Date
-        && x.HoraMarcacao.HasValue
-        && x.HoraMarcacao.Value == request.HoraInicio
-        && (
-          x.StatusConsulta == null
-          || (
-            x.StatusConsulta != StatusConsulta.Desmarcada
-            && x.StatusConsulta != StatusConsulta.Suspensa
-          )
-        )
-      )
-      .Select(x => x.SalaId!.Value)
-      .ToHashSet();
+    Clinica? clinica = await ObterClinicaAtualAsync();
+    Guid? clinicaId = request.ClinicaId ?? clinica?.Id;
 
     IEnumerable<Sala> baseSalas = salas.Where(s => s.Ativa);
-    if (request.ClinicaId.HasValue)
+    if (clinicaId.HasValue)
     {
-      baseSalas = baseSalas.Where(s => s.ClinicaId == request.ClinicaId.Value);
+      baseSalas = baseSalas.Where(s => s.ClinicaId == clinicaId.Value);
     }
 
-    List<SalaDisponivelDTO> result = baseSalas
-      .OrderBy(s => s.NumeroSala)
-      .Select(s => new SalaDisponivelDTO
-      {
-        Id = s.Id,
-        Nome = s.Nome,
-        NumeroSala = s.NumeroSala,
-        ClinicaId = s.ClinicaId,
-        Ativa = s.Ativa,
-        Disponivel = !ocupadasNoSlot.Contains(s.Id),
-      })
-      .ToList();
+    List<SalaDisponivelDTO> result = [];
+    foreach (Sala sala in baseSalas.OrderBy(s => s.NumeroSala))
+    {
+      DisponibilidadeSalaResult disponibilidadeSala = await DisponibilidadeSalaHelper.ValidarAsync(
+        _repository,
+        new DisponibilidadeSalaRequest
+        {
+          SalaId = sala.Id,
+          Data = request.Data,
+          HoraInicio = request.HoraInicio,
+          HoraFim = request.HoraFim,
+          IgnorarMarcacaoId = request.IgnorarMarcacaoId,
+          IgnorarAdmissaoId = request.IgnorarAdmissaoId,
+        }
+      );
+
+      result.Add(
+        new SalaDisponivelDTO
+        {
+          Id = sala.Id,
+          Nome = sala.Nome,
+          NumeroSala = sala.NumeroSala,
+          ClinicaId = sala.ClinicaId,
+          Ativa = sala.Ativa,
+          Disponivel = disponibilidadeSala.Valido,
+        }
+      );
+    }
 
     return ResponseFactory.Success<IEnumerable<SalaDisponivelDTO>>(result);
   }
@@ -281,41 +495,43 @@ public partial class MarcacoesAdministrativoService(
       return ResponseFactory.Fail<Guid>("Marcação não encontrada.");
     }
 
-    Sala? sala = await _repository.GetByIdAsync<Sala, Guid>(request.SalaId);
-    if(sala == null || !sala.Ativa)
-    {
-      return ResponseFactory.Fail<Guid>("Sala inválida ou inativa.");
-    }
-
     if(!marcacao.Data.HasValue || !marcacao.HoraMarcacao.HasValue)
     {
       return ResponseFactory.Fail<Guid>("Marcação não tem data e hora definida.");
     }
 
-    IEnumerable<ConsultaMarcacao> marcacoes = await _repository.GetListAsync<ConsultaMarcacao, Guid>();
-    bool conflito = marcacoes.Any(x =>
-      x.Id != marcacao.Id
-      && x.SalaId == request.SalaId
-      && x.Data.HasValue
-      && x.Data.Value.Date == marcacao.Data.Value.Date
-      && x.HoraMarcacao.HasValue
-      && x.HoraMarcacao.Value == marcacao.HoraMarcacao.Value
-      && (
-        x.StatusConsulta == null
-        || (
-          x.StatusConsulta != StatusConsulta.Desmarcada
-          && x.StatusConsulta != StatusConsulta.Suspensa
-        )
+    Admissao? admissao = (
+      await _repository.GetListAsync<Admissao, Guid>(
+        new AdmissaoByConsultaMarcacaoSpec(marcacao.Id)
       )
+    ).FirstOrDefault();
+    DisponibilidadeSalaResult disponibilidadeSala = await DisponibilidadeSalaHelper.ValidarAsync(
+      _repository,
+      new DisponibilidadeSalaRequest
+      {
+        SalaId = request.SalaId,
+        Data = marcacao.Data,
+        HoraInicio = marcacao.HoraMarcacao,
+        HoraFim = admissao?.HoraFim,
+        IgnorarMarcacaoId = marcacao.Id,
+        IgnorarAdmissaoId = admissao?.Id,
+        RequerSala = true,
+      }
     );
-
-    if (conflito)
+    if (!disponibilidadeSala.Valido)
     {
-      return ResponseFactory.Fail<Guid>("Sala já está ocupada para a data e hora da marcação");
+      return ResponseFactory.Fail<Guid>(disponibilidadeSala.Mensagem!);
     }
 
-    marcacao.SalaId = request.SalaId;
+    marcacao.SalaId = disponibilidadeSala.SalaId;
     _ = await _repository.UpdateAsync<ConsultaMarcacao, Guid>(marcacao);
+
+    if (admissao != null)
+    {
+      admissao.SalaId = disponibilidadeSala.SalaId;
+      _ = await _repository.UpdateAsync<Admissao, Guid>(admissao);
+    }
+
     _ = await _repository.SaveChangesAsync();
 
     return ResponseFactory.Success(marcacao.Id);
@@ -331,6 +547,18 @@ public partial class MarcacoesAdministrativoService(
 
     marcacao.SalaId = null;
     _ = await _repository.UpdateAsync<ConsultaMarcacao, Guid>(marcacao);
+
+    Admissao? admissao = (
+      await _repository.GetListAsync<Admissao, Guid>(
+        new AdmissaoByConsultaMarcacaoSpec(marcacao.Id)
+      )
+    ).FirstOrDefault();
+    if (admissao != null)
+    {
+      admissao.SalaId = null;
+      _ = await _repository.UpdateAsync<Admissao, Guid>(admissao);
+    }
+
     _ = await _repository.SaveChangesAsync();
 
     return ResponseFactory.Success(marcacao.Id);
@@ -618,6 +846,35 @@ public partial class MarcacoesAdministrativoService(
   private static int? ParseUtenteNumero(string? numeroUtente) =>
     int.TryParse(numeroUtente, out int numero) ? numero : null;
 
+  private async Task<string?> ValidarSlotMedicoAsync(
+    Guid? medicoId,
+    DateTime data,
+    TimeSpan horaInicio,
+    Guid? excluirMarcacaoId
+  )
+  {
+    if (!medicoId.HasValue)
+    {
+      return null;
+    }
+
+    IEnumerable<ConsultaMarcacao> marcacoes =
+      await _repository.GetListAsync<ConsultaMarcacao, Guid>();
+    bool existeConflito = marcacoes.Any(x =>
+      (!excluirMarcacaoId.HasValue || x.Id != excluirMarcacaoId.Value)
+      && x.MedicoId == medicoId.Value
+      && x.Data.HasValue
+      && x.Data.Value.Date == data.Date
+      && x.HoraMarcacao.HasValue
+      && x.HoraMarcacao.Value == horaInicio
+      && IsMarcacaoAtiva(x)
+    );
+
+    return existeConflito
+      ? "Já existe uma marcação ativa para este médico na mesma data e hora."
+      : null;
+  }
+
   private static bool IsMarcacaoAtiva(ConsultaMarcacao marcacao) =>
     marcacao.DeletedOn == null
     && (
@@ -625,6 +882,7 @@ public partial class MarcacoesAdministrativoService(
       || (
         marcacao.StatusConsulta != StatusConsulta.Desmarcada
         && marcacao.StatusConsulta != StatusConsulta.Suspensa
+        && marcacao.StatusConsulta != StatusConsulta.Concluida
       )
     );
 

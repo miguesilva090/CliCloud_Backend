@@ -1,4 +1,5 @@
 using AutoMapper;
+using System.Globalization;
 using CliCloud.Application.Common;
 using CliCloud.Application.Common.Filter;
 using CliCloud.Application.Common.Wrapper;
@@ -6,6 +7,8 @@ using CliCloud.Application.Utility;
 using CliCloud.Application.Services.Consultas.ConsultaService.DTOs;
 using CliCloud.Application.Services.Consultas.ConsultaService.Filters;
 using CliCloud.Application.Services.Consultas.ConsultaService.Specifications;
+using CliCloud.Application.Services.Consultas.AdmissaoAdministrativoService;
+using CliCloud.Application.Services.Consultas.AdmissaoAdministrativoService.Specifications;
 using CliCloud.Application.Services.Utentes.UtenteService.DTOs;
 using CliCloud.Application.Services.Utentes.UtenteService.Specifications;
 using CliCloud.Domain.Entities.Consultas;
@@ -57,7 +60,8 @@ namespace CliCloud.Application.Services.Consultas.ConsultaService
       if (filter.Filters != null && filter.Filters.Count > 0) filter.PageNumber = 1;
 
       var order = filter.Sorting != null ? GSHelpers.GenerateOrderByString(filter) : "";
-      var spec = new ConsultaSearchTable(filter.Filters ?? [], order);
+      List<TableFilter> filters = await ResolveConsultaContextFiltersAsync(filter.Filters ?? []);
+      var spec = new ConsultaSearchTable(filters, order);
       PaginatedResponse<ConsultaTableDTO> result = await _repository.GetPaginatedResultsAsync<
         Consulta,
         ConsultaTableDTO,
@@ -65,6 +69,44 @@ namespace CliCloud.Application.Services.Consultas.ConsultaService
       >(filter.PageNumber, filter.PageSize, spec);
       await HydrateConsultaUtenteNumerosAsync(result.Data);
       return result;
+    }
+
+    private async Task<List<TableFilter>> ResolveConsultaContextFiltersAsync(
+      List<TableFilter> filters
+    )
+    {
+      List<TableFilter> resolved = filters
+        .Where(f => !string.Equals(f.Id, "medico_logado", StringComparison.OrdinalIgnoreCase))
+        .ToList();
+
+      bool filtrarMedicoLogado = filters.Any(f =>
+        string.Equals(f.Id, "medico_logado", StringComparison.OrdinalIgnoreCase)
+        && bool.TryParse(f.Value, out bool value)
+        && value
+      );
+
+      if (!filtrarMedicoLogado)
+      {
+        return resolved;
+      }
+
+      string? userIdStr = _currentTenantUserService.UserId;
+      if (string.IsNullOrWhiteSpace(userIdStr) || !Guid.TryParse(userIdStr, out Guid userId))
+      {
+        resolved.Add(new TableFilter { Id = "id", Value = Guid.Empty.ToString() });
+        return resolved;
+      }
+
+      var medicoRes = await _medicoService.GetMedicoByIdUtilizadorAsync(userId);
+      Guid? medicoId = medicoRes.Data?.Id;
+      resolved.Add(
+        new TableFilter
+        {
+          Id = "medicoid",
+          Value = (medicoId ?? Guid.Empty).ToString()
+        }
+      );
+      return resolved;
     }
 
     // all (non-paginated)
@@ -86,6 +128,80 @@ namespace CliCloud.Application.Services.Consultas.ConsultaService
       {
         return ResponseFactory.Fail<IEnumerable<ConsultaTableDTO>>(ex.Message);
       }
+    }
+
+    public async Task<Response<IEnumerable<ConsultaDoDiaDTO>>> GetConsultasDoDiaAsync(
+      DateTime data,
+      bool desmarcadas = false
+    )
+    {
+      Guid? medicoId = await ResolveMedicoLogadoIdAsync();
+
+      List<Admissao> admissoes = (
+        await _repository.GetListAsync<Admissao, Guid>(
+          new ConsultasDoDiaAdmissoesSpec(data, medicoId, desmarcadas)
+        )
+      ).ToList();
+
+      List<Consulta> consultas = (
+        await _repository.GetListAsync<Consulta, Guid>(
+          new ConsultasDoDiaConsultasSpec(data, medicoId, desmarcadas)
+        )
+      ).ToList();
+
+      List<ConsultaMarcacao> marcacoes = (
+        await _repository.GetListAsync<ConsultaMarcacao, Guid>(
+          new ConsultasDoDiaMarcacoesSpec(data, medicoId, desmarcadas)
+        )
+      ).ToList();
+
+      HashSet<Guid> consultaIdsComAdmissaoAtiva = admissoes
+        .Select(a => a.Consulta?.Id)
+        .Where(id => id.HasValue)
+        .Select(id => id!.Value)
+        .ToHashSet();
+
+      HashSet<Guid> marcacaoIdsComAdmissaoAtiva = admissoes
+        .Select(a => a.ConsultaMarcacaoId)
+        .Where(id => id.HasValue)
+        .Select(id => id!.Value)
+        .ToHashSet();
+
+      HashSet<Guid> consultaIds = consultas
+        .Select(c => c.Id)
+        .Concat(consultaIdsComAdmissaoAtiva)
+        .ToHashSet();
+
+      HashSet<Guid> marcacaoIdsComConsulta = consultas
+        .Select(c => c.ConsultaMarcacaoId)
+        .Where(id => id.HasValue)
+        .Select(id => id!.Value)
+        .Concat(marcacaoIdsComAdmissaoAtiva)
+        .ToHashSet();
+
+      List<ConsultaDoDiaDTO> rows = admissoes
+        .Select(MapAdmissaoConsultaDoDia)
+        .Concat(
+          consultas
+            .Where(c =>
+              !consultaIdsComAdmissaoAtiva.Contains(c.Id)
+              && (
+                !c.ConsultaMarcacaoId.HasValue
+                || !marcacaoIdsComAdmissaoAtiva.Contains(c.ConsultaMarcacaoId.Value)))
+            .Select(MapConsultaDoDia)
+        )
+        .Concat(
+          marcacoes
+            .Where(m =>
+              !marcacaoIdsComConsulta.Contains(m.Id)
+              && (!m.ConsultaId.HasValue || !consultaIds.Contains(m.ConsultaId.Value)))
+            .Select(MapMarcacaoConsultaDoDia)
+        )
+        .OrderBy(x => x.Data ?? DateTime.MaxValue)
+        .ThenBy(x => x.HoraInicio)
+        .ToList();
+
+      return ResponseFactory.Success<IEnumerable<ConsultaDoDiaDTO>>(rows);
     }
 
     // single by id
@@ -122,63 +238,149 @@ namespace CliCloud.Application.Services.Consultas.ConsultaService
     // create from ConsultaMarcacao (agenda -> ato clínico)
     public async Task<Response<Guid>> CreateConsultaFromMarcacaoAsync(Guid marcacaoId)
     {
+      Response<IniciarAtendimentoConsultaDTO> result = await IniciarAtendimentoAsync(
+        new IniciarAtendimentoConsultaRequest { ConsultaMarcacaoId = marcacaoId }
+      );
+
+      return result.Status == ResponseStatus.Success && result.Data != null
+        ? ResponseFactory.Success(result.Data.ConsultaId)
+        : ResponseFactory.Fail<Guid>(FirstMessage(result.Messages) ?? "Não foi possível iniciar o atendimento.");
+    }
+
+    public async Task<Response<IniciarAtendimentoConsultaDTO>> IniciarAtendimentoAsync(
+      IniciarAtendimentoConsultaRequest request
+    )
+    {
       try
       {
-        var marcacao = await _repository.GetByIdAsync<ConsultaMarcacao, Guid>(marcacaoId);
-        if (marcacao == null)
+        if (!request.ConsultaId.HasValue
+          && !request.ConsultaMarcacaoId.HasValue
+          && !request.AdmissaoId.HasValue)
         {
-          return ResponseFactory.Fail<Guid>("Marcação de consulta não encontrada.");
+          return ResponseFactory.Fail<IniciarAtendimentoConsultaDTO>(
+            "Indique a consulta, admissão ou marcação a atender."
+          );
         }
 
-        if (marcacao.ConsultaId != null)
+        bool consultaCriada = false;
+        string origem = "Consulta";
+
+        Consulta? consulta = request.ConsultaId.HasValue
+          ? await _repository.GetByIdAsync<Consulta, Guid>(request.ConsultaId.Value)
+          : null;
+
+        Admissao? admissao = null;
+        ConsultaMarcacao? marcacao = null;
+
+        if (request.AdmissaoId.HasValue)
         {
-          return ResponseFactory.Fail<Guid>("Já existe uma consulta associada a esta marcação.");
+          admissao = await ObterAdmissaoComServicosAsync(request.AdmissaoId.Value);
+          origem = "Admissao";
         }
 
-        Guid? medicoId = marcacao.MedicoId;
-
-        if (medicoId == null)
+        if (request.ConsultaMarcacaoId.HasValue)
         {
-          string? userIdStr = _currentTenantUserService.UserId;
-          if (!string.IsNullOrWhiteSpace(userIdStr) && Guid.TryParse(userIdStr, out Guid userId))
+          marcacao = await _repository.GetByIdAsync<ConsultaMarcacao, Guid>(
+            request.ConsultaMarcacaoId.Value
+          );
+          if (marcacao == null || marcacao.DeletedOn != null)
           {
-            var medicoRes = await _medicoService.GetMedicoByIdUtilizadorAsync(userId);
-            if (medicoRes.Status == ResponseStatus.Success && medicoRes.Data != null)
-            {
-              medicoId = medicoRes.Data.Id;
-              marcacao.MedicoId = medicoId;
-            }
+            return ResponseFactory.Fail<IniciarAtendimentoConsultaDTO>(
+              "Marcação de consulta não encontrada."
+            );
+          }
+
+          origem = admissao != null ? origem : "Marcacao";
+        }
+
+        if (consulta == null && admissao != null)
+        {
+          consulta = await ObterConsultaAssociadaAsync(admissao);
+        }
+
+        if (consulta == null && marcacao?.ConsultaId.HasValue == true)
+        {
+          consulta = await _repository.GetByIdAsync<Consulta, Guid>(marcacao.ConsultaId.Value);
+        }
+
+        if (admissao == null && marcacao != null)
+        {
+          admissao = await ObterAdmissaoPorMarcacaoComServicosAsync(marcacao.Id);
+        }
+
+        if (admissao != null && !PodeIniciarAtendimento(admissao.StatusConsulta))
+        {
+          return ResponseFactory.Fail<IniciarAtendimentoConsultaDTO>(
+            "Não é possível iniciar atendimento para uma admissão desmarcada, suspensa ou concluída."
+          );
+        }
+
+        if (marcacao != null && !PodeIniciarAtendimento(marcacao.StatusConsulta))
+        {
+          return ResponseFactory.Fail<IniciarAtendimentoConsultaDTO>(
+            "Não é possível iniciar atendimento para uma marcação desmarcada, suspensa ou concluída."
+          );
+        }
+
+        if (consulta == null)
+        {
+          if (admissao != null)
+          {
+            consulta = await CriarConsultaClinicaDesdeAdmissaoAsync(admissao);
+            consultaCriada = true;
+          }
+          else if (marcacao != null)
+          {
+            consulta = await CriarConsultaClinicaDesdeMarcacaoAsync(marcacao);
+            consultaCriada = true;
           }
         }
 
-        var consulta = new Consulta
+        if (consulta == null || consulta.DeletedOn != null)
         {
-          UtenteId = marcacao.UtenteId,
-          MedicoId = medicoId,
-          EspecialidadeId = marcacao.EspecialidadeId,
-          TecnicoId = marcacao.TecnicoId,
-          SalaId = marcacao.SalaId,
-          MedicoExternoId = marcacao.MedicoExternoId,
-          Data = marcacao.Data,
-          HoraInicio = marcacao.HoraMarcacao,
-          StatusConsulta = StatusConsulta.EmAtendimento,
-          ConsultaMarcacaoId = marcacao.Id,
-          TipoConsultaId = marcacao.TipoConsultaId,
-          Sinistrado = 0,
-        };
+          return ResponseFactory.Fail<IniciarAtendimentoConsultaDTO>(
+            "Consulta não encontrada."
+          );
+        }
 
-        var created = await _repository.CreateAsync<Consulta, Guid>(consulta);
+        if (!PodeIniciarAtendimento(consulta.StatusConsulta))
+        {
+          return ResponseFactory.Fail<IniciarAtendimentoConsultaDTO>(
+            "Não é possível iniciar atendimento para uma consulta desmarcada, suspensa ou concluída."
+          );
+        }
 
-        marcacao.ConsultaId = created.Id;
-        marcacao.StatusConsulta = StatusConsulta.EmAtendimento;
-        _ = await _repository.UpdateAsync<ConsultaMarcacao, Guid>(marcacao);
+        if (admissao == null && consulta.AdmissaoId.HasValue)
+        {
+          admissao = await ObterAdmissaoComServicosAsync(consulta.AdmissaoId.Value);
+        }
 
+        if (marcacao == null && consulta.ConsultaMarcacaoId.HasValue)
+        {
+          marcacao = await _repository.GetByIdAsync<ConsultaMarcacao, Guid>(
+            consulta.ConsultaMarcacaoId.Value
+          );
+        }
+
+        if (admissao != null)
+        {
+          await SincronizarServicosAdmissaoNaConsultaAsync(admissao, consulta.Id);
+        }
+
+        await AplicarEstadoEmAtendimentoAsync(consulta, admissao, marcacao);
         _ = await _repository.SaveChangesAsync();
-        return ResponseFactory.Success(created.Id);
+
+        return ResponseFactory.Success(await MapAtendimentoContextoAsync(
+          consulta,
+          admissao,
+          marcacao,
+          origem,
+          consultaCriada
+        ));
       }
       catch (Exception ex)
       {
-        return ResponseFactory.Fail<Guid>(ex.Message);
+        return ResponseFactory.Fail<IniciarAtendimentoConsultaDTO>(ex.Message);
       }
     }
 
@@ -191,16 +393,53 @@ namespace CliCloud.Application.Services.Consultas.ConsultaService
         if (consulta == null || consulta.DeletedOn != null)
           return ResponseFactory.Fail<Guid>("Consulta não encontrada.");
 
+        if (consulta.StatusConsulta
+            is StatusConsulta.Desmarcada
+            or StatusConsulta.Suspensa
+            or StatusConsulta.Faltou
+            or StatusConsulta.FaltouJustificada)
+        {
+          return ResponseFactory.Fail<Guid>(
+            "Não é possível concluir uma consulta desmarcada, suspensa ou marcada como falta."
+          );
+        }
+
+        Admissao? admissao = await ObterAdmissaoAssociadaComServicosAsync(consulta);
+        if (admissao != null)
+        {
+          AdmissaoPromocaoHelper.MesclarAdmissaoEmConsultaExistente(consulta, admissao);
+          await SincronizarServicosAdmissaoNaConsultaAsync(admissao, consulta.Id);
+        }
+
         consulta.StatusConsulta = StatusConsulta.Concluida;
         consulta.Efetuado = true;
+        consulta.Faltou = false;
+        consulta.Confirmado ??= admissao?.Confirmado ?? true;
+        consulta.ConfirmaConsulta ??= admissao?.ConfirmaConsulta;
+        consulta.HoraChegada ??= admissao?.HoraChegada;
+        consulta.AdmissaoId ??= admissao?.Id;
         consulta.HoraFim = horaFim;
         _ = await _repository.UpdateAsync<Consulta, Guid>(consulta);
 
-        var marcacoes = await _repository.GetListAsync<ConsultaMarcacao, Guid>();
-        foreach (var marcacao in marcacoes.Where(x => x.ConsultaId == id && x.DeletedOn == null))
+        var marcacoes = await _repository.GetListAsync<ConsultaMarcacao, Guid>(
+          new ConsultaMarcacoesByConsultaIdSpec(id)
+        );
+        foreach (var marcacao in marcacoes)
         {
+          marcacao.ConsultaId = id;
           marcacao.StatusConsulta = StatusConsulta.Concluida;
+          marcacao.EmTratamento = false;
           _ = await _repository.UpdateAsync<ConsultaMarcacao, Guid>(marcacao);
+        }
+
+        if (admissao != null && admissao.DeletedOn == null)
+        {
+          admissao.Efetuado = true;
+          admissao.StatusConsulta = StatusConsulta.Concluida;
+          admissao.EmTratamento = false;
+          admissao.Confirmado ??= true;
+          admissao.HoraFim = horaFim;
+          _ = await _repository.UpdateAsync<Admissao, Guid>(admissao);
         }
 
         _ = await _repository.SaveChangesAsync();
@@ -293,6 +532,405 @@ namespace CliCloud.Application.Services.Consultas.ConsultaService
       if (ok.Count == list.Count) return ResponseFactory.Success<IEnumerable<Guid>>(ok);
       if (ok.Count > 0) return ResponseFactory.PartialSuccess<IEnumerable<Guid>>(ok, $"Eliminadas {ok.Count} de {list.Count}.");
       return ResponseFactory.Fail<IEnumerable<Guid>>(string.Join("; ", fail));
+    }
+
+    private async Task<Admissao?> ObterAdmissaoComServicosAsync(Guid admissaoId)
+    {
+      return (
+        await _repository.GetListAsync<Admissao, Guid>(
+          new AdmissaoByIdWithServicosSpec(admissaoId)
+        )
+      ).FirstOrDefault();
+    }
+
+    private async Task<Admissao?> ObterAdmissaoPorMarcacaoComServicosAsync(Guid marcacaoId)
+    {
+      Admissao? admissao = (
+        await _repository.GetListAsync<Admissao, Guid>(
+          new AdmissaoByConsultaMarcacaoSpec(marcacaoId)
+        )
+      ).FirstOrDefault();
+
+      return admissao == null ? null : await ObterAdmissaoComServicosAsync(admissao.Id);
+    }
+
+    private async Task<Admissao?> ObterAdmissaoAssociadaComServicosAsync(Consulta consulta)
+    {
+      if (consulta.AdmissaoId.HasValue)
+      {
+        Admissao? admissao = await ObterAdmissaoComServicosAsync(consulta.AdmissaoId.Value);
+        if (admissao != null)
+        {
+          return admissao;
+        }
+      }
+
+      if (!consulta.ConsultaMarcacaoId.HasValue)
+      {
+        return null;
+      }
+
+      return await ObterAdmissaoPorMarcacaoComServicosAsync(consulta.ConsultaMarcacaoId.Value);
+    }
+
+    private async Task<Consulta?> ObterConsultaAssociadaAsync(Admissao admissao)
+    {
+      Consulta? consultaPorAdmissao = (
+        await _repository.GetListAsync<Consulta, Guid>(
+          new ConsultaPorAdmissaoSpec(admissao.Id)
+        )
+      ).FirstOrDefault();
+      if (consultaPorAdmissao != null)
+      {
+        return consultaPorAdmissao;
+      }
+
+      if (!admissao.ConsultaMarcacaoId.HasValue)
+      {
+        return null;
+      }
+
+      ConsultaMarcacao marcacao = await _repository.GetByIdAsync<ConsultaMarcacao, Guid>(
+        admissao.ConsultaMarcacaoId.Value
+      );
+      if (marcacao == null || marcacao.DeletedOn != null || !marcacao.ConsultaId.HasValue)
+      {
+        return null;
+      }
+
+      Consulta consulta = await _repository.GetByIdAsync<Consulta, Guid>(marcacao.ConsultaId.Value);
+      return consulta?.DeletedOn == null ? consulta : null;
+    }
+
+    private async Task<Consulta> CriarConsultaClinicaDesdeAdmissaoAsync(Admissao admissao)
+    {
+      Consulta consulta = AdmissaoPromocaoHelper.CriarConsultaDesdeAdmissao(admissao);
+      PrepararConsultaParaAtendimento(consulta);
+
+      Consulta created = await _repository.CreateAsync<Consulta, Guid>(consulta);
+      foreach (ServicoConsulta servico in AdmissaoPromocaoHelper.MapearServicos(admissao, created.Id))
+      {
+        if (servico.Id == Guid.Empty)
+        {
+          servico.Id = Guid.NewGuid();
+        }
+
+        _ = await _repository.CreateAsync<ServicoConsulta, Guid>(servico);
+      }
+
+      if (admissao.ConsultaMarcacaoId.HasValue)
+      {
+        ConsultaMarcacao marcacao = await _repository.GetByIdAsync<ConsultaMarcacao, Guid>(
+          admissao.ConsultaMarcacaoId.Value
+        );
+        if (marcacao != null && marcacao.DeletedOn == null)
+        {
+          marcacao.ConsultaId = created.Id;
+          _ = await _repository.UpdateAsync<ConsultaMarcacao, Guid>(marcacao);
+        }
+      }
+
+      return created;
+    }
+
+    private async Task<Consulta> CriarConsultaClinicaDesdeMarcacaoAsync(ConsultaMarcacao marcacao)
+    {
+      Guid? medicoId = marcacao.MedicoId ?? await ResolveMedicoLogadoIdAsync();
+      if (medicoId.HasValue && marcacao.MedicoId == null)
+      {
+        marcacao.MedicoId = medicoId;
+      }
+
+      Consulta consulta = new()
+      {
+        UtenteId = marcacao.UtenteId,
+        MedicoId = medicoId,
+        EspecialidadeId = marcacao.EspecialidadeId,
+        TecnicoId = marcacao.TecnicoId,
+        FuncionarioId = marcacao.FuncionarioId,
+        SalaId = marcacao.SalaId,
+        MedicoExternoId = marcacao.MedicoExternoId,
+        Data = marcacao.Data,
+        HoraInicio = marcacao.HoraMarcacao,
+        StatusConsulta = StatusConsulta.EmAtendimento,
+        ConsultaMarcacaoId = marcacao.Id,
+        TipoAdmissaoId = marcacao.TipoAdmissaoId,
+        TipoConsultaId = marcacao.TipoConsultaId,
+        MotivoConsultaId = marcacao.MotivoConsultaId,
+        NumDestacavel = marcacao.NumDestacavel,
+        Obs = marcacao.Obs,
+        Efetuado = false,
+        Faltou = false,
+      };
+
+      Consulta created = await _repository.CreateAsync<Consulta, Guid>(consulta);
+      marcacao.ConsultaId = created.Id;
+      _ = await _repository.UpdateAsync<ConsultaMarcacao, Guid>(marcacao);
+      return created;
+    }
+
+    private async Task SincronizarServicosAdmissaoNaConsultaAsync(Admissao admissao, Guid consultaId)
+    {
+      List<ServicoConsulta> servicosExistentes = (
+        await _repository.GetListAsync<ServicoConsulta, Guid>(
+          new ServicosConsultaPorConsultaIdSpec(consultaId)
+        )
+      ).ToList();
+
+      List<int> linhas = servicosExistentes.Select(s => s.Linha).ToList();
+      foreach (ServicoConsulta servico in AdmissaoPromocaoHelper.MapearServicosNovos(
+                 admissao,
+                 consultaId,
+                 linhas
+               ))
+      {
+        if (servico.Id == Guid.Empty)
+        {
+          servico.Id = Guid.NewGuid();
+        }
+
+        _ = await _repository.CreateAsync<ServicoConsulta, Guid>(servico);
+      }
+    }
+
+    private static bool PodeIniciarAtendimento(StatusConsulta? status)
+    {
+      return status
+        is null
+        or StatusConsulta.Agendada
+        or StatusConsulta.Pendente
+        or StatusConsulta.EmAtendimento;
+    }
+
+    private static void PrepararConsultaParaAtendimento(Consulta consulta)
+    {
+      consulta.StatusConsulta = StatusConsulta.EmAtendimento;
+      consulta.Efetuado = false;
+      consulta.Faltou = false;
+      consulta.HoraFim = null;
+    }
+
+    private async Task AplicarEstadoEmAtendimentoAsync(
+      Consulta consulta,
+      Admissao? admissao,
+      ConsultaMarcacao? marcacao
+    )
+    {
+      PrepararConsultaParaAtendimento(consulta);
+      _ = await _repository.UpdateAsync<Consulta, Guid>(consulta);
+
+      if (admissao != null && admissao.DeletedOn == null)
+      {
+        admissao.StatusConsulta = StatusConsulta.EmAtendimento;
+        admissao.EmTratamento = true;
+        admissao.Efetuado = false;
+        _ = await _repository.UpdateAsync<Admissao, Guid>(admissao);
+      }
+
+      if (marcacao != null && marcacao.DeletedOn == null)
+      {
+        marcacao.ConsultaId = consulta.Id;
+        marcacao.StatusConsulta = StatusConsulta.EmAtendimento;
+        marcacao.EmTratamento = true;
+        _ = await _repository.UpdateAsync<ConsultaMarcacao, Guid>(marcacao);
+      }
+    }
+
+    private async Task<IniciarAtendimentoConsultaDTO> MapAtendimentoContextoAsync(
+      Consulta consulta,
+      Admissao? admissao,
+      ConsultaMarcacao? marcacao,
+      string origem,
+      bool consultaCriada
+    )
+    {
+      string? utenteNome = consulta.Utente?.Nome ?? admissao?.Utente?.Nome;
+      if (string.IsNullOrWhiteSpace(utenteNome) && consulta.UtenteId.HasValue)
+      {
+        var utente = await _repository.GetByIdAsync<Utente, Guid>(consulta.UtenteId.Value);
+        utenteNome = utente?.Nome;
+      }
+
+      return new IniciarAtendimentoConsultaDTO
+      {
+        ConsultaId = consulta.Id,
+        ConsultaMarcacaoId = consulta.ConsultaMarcacaoId ?? marcacao?.Id,
+        AdmissaoId = consulta.AdmissaoId ?? admissao?.Id,
+        UtenteId = consulta.UtenteId ?? admissao?.UtenteId ?? marcacao?.UtenteId ?? Guid.Empty,
+        MedicoId = consulta.MedicoId ?? admissao?.MedicoId ?? marcacao?.MedicoId,
+        UtenteNome = utenteNome,
+        Origem = origem,
+        ConsultaCriada = consultaCriada,
+      };
+    }
+
+    private static string? FirstMessage(Dictionary<string, List<string>> messages)
+    {
+      return messages.Values.SelectMany(x => x).FirstOrDefault();
+    }
+
+    private async Task<Guid?> ResolveMedicoLogadoIdAsync()
+    {
+      string? userIdStr = _currentTenantUserService.UserId;
+      if (string.IsNullOrWhiteSpace(userIdStr) || !Guid.TryParse(userIdStr, out Guid userId))
+      {
+        return null;
+      }
+
+      var medicoRes = await _medicoService.GetMedicoByIdUtilizadorAsync(userId);
+      return medicoRes.Status == ResponseStatus.Success ? medicoRes.Data?.Id : null;
+    }
+
+    private static ConsultaDoDiaDTO MapAdmissaoConsultaDoDia(Admissao admissao)
+    {
+      Guid? consultaId = admissao.Consulta?.Id ?? admissao.ConsultaMarcacao?.ConsultaId;
+
+      return new ConsultaDoDiaDTO
+      {
+        Id = admissao.Id,
+        Origem = "Admissao",
+        AdmissaoId = admissao.Id,
+        ConsultaId = consultaId,
+        ConsultaMarcacaoId = admissao.ConsultaMarcacaoId,
+        UtenteId = admissao.UtenteId,
+        UtenteNumero = admissao.Utente?.NumeroUtente,
+        UtenteNome = admissao.Utente?.Nome,
+        MedicoId = admissao.MedicoId,
+        MedicoNome = admissao.Medico?.Nome,
+        EspecialidadeId = admissao.EspecialidadeId,
+        EspecialidadeDesignacao = admissao.Especialidade?.Nome,
+        OrganismoId = admissao.OrganismoId,
+        OrganismoNome = admissao.Organismo?.Nome,
+        Data = admissao.Data,
+        DataLabel = FormatDate(admissao.Data),
+        HoraInicio = FormatTime(admissao.HoraInicio),
+        HoraFim = FormatTime(admissao.HoraFim),
+        HoraChegada = FormatTime(admissao.HoraChegada),
+        TipoConsultaId = admissao.TipoConsultaId,
+        TipoConsultaDesignacao = admissao.TipoConsultaItem?.Designacao,
+        TipoAdmissaoId = admissao.TipoAdmissaoId,
+        TipoAdmissaoDesignacao = admissao.TipoAdmissao?.Designacao,
+        Diagnostico = admissao.Diagnostico,
+        StatusConsulta = ToInt(admissao.StatusConsulta),
+        StatusConsultaLabel = ResolveStatusLabel(
+          admissao.StatusConsulta,
+          admissao.Confirmado,
+          admissao.Efetuado,
+          null
+        ),
+        Confirmado = admissao.Confirmado,
+        Efetuado = admissao.Efetuado,
+      };
+    }
+
+    private static ConsultaDoDiaDTO MapConsultaDoDia(Consulta consulta)
+    {
+      return new ConsultaDoDiaDTO
+      {
+        Id = consulta.Id,
+        Origem = "Consulta",
+        ConsultaId = consulta.Id,
+        ConsultaMarcacaoId = consulta.ConsultaMarcacaoId,
+        AdmissaoId = consulta.AdmissaoId,
+        UtenteId = consulta.UtenteId,
+        UtenteNumero = consulta.Utente?.NumeroUtente,
+        UtenteNome = consulta.Utente?.Nome,
+        MedicoId = consulta.MedicoId,
+        MedicoNome = consulta.Medico?.Nome,
+        EspecialidadeId = consulta.EspecialidadeId,
+        EspecialidadeDesignacao = consulta.Especialidade?.Nome,
+        OrganismoId = consulta.OrganismoId,
+        OrganismoNome = consulta.Organismo?.Nome,
+        Data = consulta.Data,
+        DataLabel = FormatDate(consulta.Data),
+        HoraInicio = FormatTime(consulta.HoraInicio),
+        HoraFim = FormatTime(consulta.HoraFim),
+        HoraChegada = FormatTime(consulta.HoraChegada),
+        TipoConsultaId = consulta.TipoConsultaId,
+        TipoConsultaDesignacao = consulta.TipoConsultaItem?.Designacao,
+        TipoAdmissaoId = consulta.TipoAdmissaoId,
+        TipoAdmissaoDesignacao = consulta.TipoAdmissao?.Designacao,
+        Diagnostico = consulta.Diagnostico,
+        StatusConsulta = ToInt(consulta.StatusConsulta),
+        StatusConsultaLabel = ResolveStatusLabel(
+          consulta.StatusConsulta,
+          consulta.Confirmado,
+          consulta.Efetuado,
+          consulta.Faltou
+        ),
+        Confirmado = consulta.Confirmado,
+        Efetuado = consulta.Efetuado,
+        Faltou = consulta.Faltou,
+      };
+    }
+
+    private static ConsultaDoDiaDTO MapMarcacaoConsultaDoDia(ConsultaMarcacao marcacao)
+    {
+      return new ConsultaDoDiaDTO
+      {
+        Id = marcacao.Id,
+        Origem = "ConsultaMarcacao",
+        ConsultaId = marcacao.ConsultaId,
+        ConsultaMarcacaoId = marcacao.Id,
+        AdmissaoId = null,
+        UtenteId = marcacao.UtenteId,
+        UtenteNumero = marcacao.Utente?.NumeroUtente,
+        UtenteNome = marcacao.Utente?.Nome,
+        MedicoId = marcacao.MedicoId,
+        MedicoNome = marcacao.Medico?.Nome,
+        EspecialidadeId = marcacao.EspecialidadeId,
+        EspecialidadeDesignacao = marcacao.Especialidade?.Nome,
+        OrganismoId = marcacao.Utente?.OrganismoId,
+        OrganismoNome = marcacao.Utente?.Organismo?.Nome,
+        Data = marcacao.Data,
+        DataLabel = FormatDate(marcacao.Data),
+        HoraInicio = FormatTime(marcacao.HoraMarcacao),
+        TipoConsultaId = marcacao.TipoConsultaId,
+        TipoConsultaDesignacao = marcacao.TipoConsultaItem?.Designacao,
+        TipoAdmissaoId = marcacao.TipoAdmissaoId,
+        TipoAdmissaoDesignacao = marcacao.TipoAdmissao?.Designacao,
+        StatusConsulta = ToInt(marcacao.StatusConsulta),
+        StatusConsultaLabel = ResolveStatusLabel(
+          marcacao.StatusConsulta,
+          null,
+          null,
+          null
+        ),
+      };
+    }
+
+    private static string? FormatDate(DateTime? value) =>
+      value?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+    private static string? FormatTime(TimeSpan? value) =>
+      value?.ToString(@"hh\:mm", CultureInfo.InvariantCulture);
+
+    private static int? ToInt(StatusConsulta? status) =>
+      status.HasValue ? (int)status.Value : null;
+
+    private static string ResolveStatusLabel(
+      StatusConsulta? status,
+      bool? confirmado,
+      bool? efetuado,
+      bool? faltou
+    )
+    {
+      if (status.HasValue)
+      {
+        return EnumDisplayHelper.GetDisplayName(status.Value);
+      }
+
+      if (efetuado == true)
+      {
+        return EnumDisplayHelper.GetDisplayName(StatusConsulta.Concluida);
+      }
+
+      if (faltou == true)
+      {
+        return EnumDisplayHelper.GetDisplayName(StatusConsulta.Faltou);
+      }
+
+      return confirmado == true ? "Presente" : "Pendente";
     }
 
     /// <summary>

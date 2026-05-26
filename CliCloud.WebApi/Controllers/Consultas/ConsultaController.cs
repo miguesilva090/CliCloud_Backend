@@ -56,6 +56,17 @@ namespace CliCloud.WebApi.Controllers.Consultas
           }
         }
 
+        [Authorize(Roles = "client")]
+        [HttpGet("consultas-do-dia")]
+        public async Task<IActionResult> GetConsultasDoDiaAsync(DateTime? data = null, bool desmarcadas = false)
+        {
+          Response<IEnumerable<ConsultaDoDiaDTO>> result = await _consultaService.GetConsultasDoDiaAsync(
+            data ?? DateTime.Today,
+            desmarcadas
+          );
+          return Ok(result);
+        }
+
         // single by Id
         [Authorize(Roles = "client")]
         [HttpGet("{id}")]
@@ -89,6 +100,24 @@ namespace CliCloud.WebApi.Controllers.Consultas
             try
             {
                 Response<Guid> result = await _consultaService.CreateConsultaFromMarcacaoAsync(marcacaoId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [Authorize(Roles = "client")]
+        [HttpPost("iniciar-atendimento")]
+        public async Task<IActionResult> IniciarAtendimentoAsync(
+          [FromBody] IniciarAtendimentoConsultaRequest request
+        )
+        {
+            try
+            {
+                Response<IniciarAtendimentoConsultaDTO> result =
+                  await _consultaService.IniciarAtendimentoAsync(request);
                 return Ok(result);
             }
             catch (Exception ex)

@@ -23,6 +23,11 @@ public class AdmissaoAdministrativoController(IAdmissaoAdministrativoService ser
     => Ok(await _service.GetByIdAsync(id));
 
   [Authorize(Roles = "client")]
+  [HttpGet("por-marcacao/{consultaMarcacaoId:guid}")]
+  public async Task<IActionResult> GetByConsultaMarcacaoId(Guid consultaMarcacaoId)
+    => Ok(await _service.GetByConsultaMarcacaoIdAsync(consultaMarcacaoId));
+
+  [Authorize(Roles = "client")]
   [HttpPost]
   public async Task<IActionResult> Create([FromBody] CreateAdmissaoRequest request)
     => Ok(await _service.CreateAsync(request));
@@ -85,24 +90,4 @@ public class AdmissaoAdministrativoController(IAdmissaoAdministrativoService ser
   )
     => Ok(await _service.AppendObservacaoAsync(id, request));
 
-  [Authorize(Roles = "client")]
-  [HttpPost("ordem-entrada/paginated")]
-  public async Task<IActionResult> GetOrdemEntradaPaginated([FromBody] OrdemEntradaTableFilter filter)
-    => Ok(await _service.GetOrdemEntradaPaginatedAsync(filter));
-
-  [Authorize(Roles = "client")]
-  [HttpPost("{id:guid}/ordem-entrada/ordem")]
-  public async Task<IActionResult> DefinirOrdemEntrada(
-    Guid id, 
-    [FromBody] DefinirOrdemEntradaRequest request 
-  )
-    => Ok(await _service.DefinirOrdemEntradaAsync(id, request));
-
-  [Authorize(Roles = "client")]
-  [HttpPost("{id:guid}/ordem-entrada/anular")]
-  public async Task<IActionResult> AnularOrdemEntrada(
-    Guid id, 
-    [FromBody] AnularOrdemEntradaRequest request
-  )
-    => Ok(await _service.AnularOrdemEntradaAsync(id, request));
 }

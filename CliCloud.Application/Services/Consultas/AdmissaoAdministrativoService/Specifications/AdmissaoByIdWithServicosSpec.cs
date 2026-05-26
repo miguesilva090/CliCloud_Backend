@@ -8,7 +8,7 @@ public sealed class AdmissaoByIdWithServicosSpec : Specification<Admissao>
   public AdmissaoByIdWithServicosSpec(Guid id)
   {
     _ = Query
-      .Where(x => x.Id == id)
+      .Where(x => x.Id == id && x.DeletedOn == null)
       .Include(x => x.Utente)
       .Include(x => x.Medico)
       .Include(x => x.DoencaPrincipal)

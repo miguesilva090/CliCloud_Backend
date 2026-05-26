@@ -33,26 +33,11 @@ public class FechoDiarioAdministrativoService(
       return ResponseFactory.Success(result);
     }
 
-    HashSet<Guid> admissaoIds = admissoes.Select(a => a.Id).ToHashSet();
-    HashSet<Guid> idsJaPromovidas = (
-      await _repository.GetListAsync<Consulta, Guid>(new ConsultasPromovidasPorAdmissoesSpec(admissaoIds))
-    )
-      .Where(c => c.AdmissaoId.HasValue)
-      .Select(c => c.AdmissaoId!.Value)
-      .ToHashSet();
-
     try
     {
       foreach (Admissao admissao in admissoes)
       {
         result.TotalProcessadas++;
-
-        if (idsJaPromovidas.Contains(admissao.Id))
-        {
-          result.TotalIgnoradas++;
-          result.Avisos.Add($"Admissão {admissao.Id}: já promovida (ignorada).");
-          continue;
-        }
 
         _ = await AdmissaoPromocaoRunner.PromoverAsync(
           admissao,

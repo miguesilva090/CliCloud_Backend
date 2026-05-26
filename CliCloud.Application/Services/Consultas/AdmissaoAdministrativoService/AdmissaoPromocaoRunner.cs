@@ -14,26 +14,17 @@ internal static class AdmissaoPromocaoRunner
     CancellationToken cancellationToken = default
   )
   {
-    bool jaPromovida = await repository.ExistsAsync<Consulta, Guid>(
-      new ConsultaPorAdmissaoSpec(admissao.Id),
-      cancellationToken
-    );
-    if (jaPromovida)
-    {
-      throw new InvalidOperationException($"Admissão {admissao.Id}: já promovida.");
-    }
-
-    Guid? consultaClinicaId = await ObterConsultaClinicaDaMarcacaoAsync(
+    Guid? consultaExistenteId = await ObterConsultaExistenteAsync(
       repository,
       admissao,
       cancellationToken
     );
 
-    Guid consultaId = consultaClinicaId.HasValue
+    Guid consultaId = consultaExistenteId.HasValue
       ? await FundirAdmissaoEmConsultaExistenteAsync(
           repository,
           admissao,
-          consultaClinicaId.Value,
+          consultaExistenteId.Value,
           cancellationToken
         )
       : await CriarConsultaDesdeAdmissaoAsync(repository, admissao, cancellationToken);
@@ -49,12 +40,23 @@ internal static class AdmissaoPromocaoRunner
     return consultaId;
   }
 
-  private static async Task<Guid?> ObterConsultaClinicaDaMarcacaoAsync(
+  private static async Task<Guid?> ObterConsultaExistenteAsync(
     IRepositoryAsync repository,
     Admissao admissao,
     CancellationToken cancellationToken
   )
   {
+    Consulta? consultaPorAdmissao = (
+      await repository.GetListAsync<Consulta, Guid>(
+        new ConsultaPorAdmissaoSpec(admissao.Id),
+        cancellationToken
+      )
+    ).FirstOrDefault();
+    if (consultaPorAdmissao != null)
+    {
+      return consultaPorAdmissao.Id;
+    }
+
     if (!admissao.ConsultaMarcacaoId.HasValue)
     {
       return null;
@@ -64,7 +66,16 @@ internal static class AdmissaoPromocaoRunner
       admissao.ConsultaMarcacaoId.Value,
       cancellationToken: cancellationToken
     );
-    return marcacao.ConsultaId;
+    if (!marcacao.ConsultaId.HasValue)
+    {
+      return null;
+    }
+
+    Consulta consultaMarcacao = await repository.GetByIdAsync<Consulta, Guid>(
+      marcacao.ConsultaId.Value,
+      cancellationToken: cancellationToken
+    );
+    return consultaMarcacao.DeletedOn == null ? consultaMarcacao.Id : null;
   }
 
   private static async Task<Guid> FundirAdmissaoEmConsultaExistenteAsync(

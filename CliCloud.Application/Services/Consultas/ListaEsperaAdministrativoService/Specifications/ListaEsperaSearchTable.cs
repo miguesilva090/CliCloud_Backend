@@ -31,8 +31,7 @@ public sealed class ListaEsperaSearchTable : Specification<ListaEsperaConsulta>
             Guid? espAgenda = filter.MedicoAgendaEspecialidadeId;
             _ = Query.Where(x =>
                 x.MedicoId == medId
-                || (x.MedicoId == null && espAgenda != null && x.EspecialidadeId == espAgenda)
-                || (x.MedicoId == null && x.EspecialidadeId == null));
+                || (x.MedicoId == null && espAgenda != null && x.EspecialidadeId == espAgenda));
         }
         else if (filter.MedicoId.HasValue)
         {

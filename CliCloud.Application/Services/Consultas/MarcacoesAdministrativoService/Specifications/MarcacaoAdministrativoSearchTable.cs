@@ -22,10 +22,14 @@ public sealed class MarcacaoAdministrativoSearchTable : Specification<ConsultaMa
     if(filter.ApenasAtivas)
     {
       _ = Query.Where(x =>
-        x.StatusConsulta == null
-        || (
-          x.StatusConsulta != StatusConsulta.Desmarcada
-          && x.StatusConsulta != StatusConsulta.Suspensa
+        x.DeletedOn == null
+        && (
+          x.StatusConsulta == null
+          || (
+            x.StatusConsulta != StatusConsulta.Desmarcada
+            && x.StatusConsulta != StatusConsulta.Suspensa
+            && x.StatusConsulta != StatusConsulta.Concluida
+          )
         )
       );
     }

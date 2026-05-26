@@ -25,7 +25,8 @@ public sealed class AdmissaoSearchTable : Specification<Admissao>
       .Include(x => x.TipoConsultaItem);
 
     _ = Query.Where(x =>
-      x.StatusConsulta == null || x.StatusConsulta != StatusConsulta.Desmarcada
+      x.DeletedOn == null
+      && (x.StatusConsulta == null || x.StatusConsulta != StatusConsulta.Desmarcada)
     );
 
     DateTime refDate = dataReferencia.Date;

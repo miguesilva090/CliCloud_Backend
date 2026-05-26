@@ -5,6 +5,7 @@ using CliCloud.Application.Common.Wrapper;
 using CliCloud.Application.Services.Core.ClinicaService.Specifications;
 using CliCloud.Application.Services.Core.EmailService;
 using CliCloud.Application.Services.Core.EmailService.DTOs;
+using CliCloud.Application.Services.Tratamentos;
 using CliCloud.Application.Services.Tratamentos.SessaoTratamentoService.DTOs;
 using CliCloud.Application.Services.Tratamentos.SessaoTratamentoService.Filters;
 using CliCloud.Application.Services.Tratamentos.SessaoTratamentoService.Specifications;
@@ -88,6 +89,7 @@ namespace CliCloud.Application.Services.Tratamentos.SessaoTratamentoService
       try
       {
         var created = await _repository.CreateAsync<SessaoTratamento, Guid>(entity);
+        await TratamentoIntegridadeHelper.RecalcularFaltasAsync(created.TratamentoId, _repository);
         _ = await _repository.SaveChangesAsync();
         if (request.SendEmail)
           await TentarDispararEmailFluxoAsync(created);
@@ -104,10 +106,16 @@ namespace CliCloud.Application.Services.Tratamentos.SessaoTratamentoService
       var existing = await _repository.GetByIdAsync<SessaoTratamento, Guid>(id);
       if (existing == null) return ResponseFactory.Fail<Guid>("SessaoTratamento não encontrada.");
 
+      var tratamentoAnteriorId = existing.TratamentoId;
       _ = _mapper.Map(request, existing);
       try
       {
         var updated = await _repository.UpdateAsync<SessaoTratamento, Guid>(existing);
+        await TratamentoIntegridadeHelper.RecalcularFaltasAsync(updated.TratamentoId, _repository);
+        if (tratamentoAnteriorId != updated.TratamentoId)
+        {
+          await TratamentoIntegridadeHelper.RecalcularFaltasAsync(tratamentoAnteriorId, _repository);
+        }
         _ = await _repository.SaveChangesAsync();
         if (request.SendEmail)
           await TentarDispararEmailFluxoAsync(updated);
@@ -124,6 +132,7 @@ namespace CliCloud.Application.Services.Tratamentos.SessaoTratamentoService
       try
       {
         var entity = await _repository.RemoveByIdAsync<SessaoTratamento, Guid>(id);
+        await TratamentoIntegridadeHelper.RecalcularFaltasAsync(entity.TratamentoId, _repository);
         await _repository.SaveChangesAsync();
         return ResponseFactory.Success(entity.Id);
       }
@@ -138,6 +147,7 @@ namespace CliCloud.Application.Services.Tratamentos.SessaoTratamentoService
       var list = ids.ToList();
       var ok = new List<Guid>();
       var fail = new List<string>();
+      var tratamentosParaRecalcular = new HashSet<Guid>();
 
       foreach (var id in list)
       {
@@ -146,6 +156,7 @@ namespace CliCloud.Application.Services.Tratamentos.SessaoTratamentoService
           var e = await _repository.GetByIdAsync<SessaoTratamento, Guid>(id);
           if (e == null) { fail.Add($"SessaoTratamento {id} não encontrada."); continue; }
           var removed = await _repository.RemoveByIdAsync<SessaoTratamento, Guid>(id);
+          tratamentosParaRecalcular.Add(removed.TratamentoId);
           _ = await _repository.SaveChangesAsync();
           ok.Add(removed.Id);
         }
@@ -154,6 +165,15 @@ namespace CliCloud.Application.Services.Tratamentos.SessaoTratamentoService
           fail.Add($"SessaoTratamento {id}.");
           _repository.ClearChangeTracker();
         }
+      }
+
+      foreach (var tratamentoId in tratamentosParaRecalcular)
+      {
+        await TratamentoIntegridadeHelper.RecalcularFaltasAsync(tratamentoId, _repository);
+      }
+      if (tratamentosParaRecalcular.Count > 0)
+      {
+        _ = await _repository.SaveChangesAsync();
       }
 
       if (ok.Count == list.Count) return ResponseFactory.Success<IEnumerable<Guid>>(ok);

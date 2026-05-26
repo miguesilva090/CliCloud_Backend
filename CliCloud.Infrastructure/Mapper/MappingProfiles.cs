@@ -501,6 +501,12 @@ namespace CliCloud.Infrastructure.Mapper
       _ = CreateMap<Consulta, ConsultaDtos.ConsultaTableDTO>()
         .ForMember(d => d.TipoConsultaDesignacao,
           o => o.MapFrom(s => s.TipoConsultaItem != null ? s.TipoConsultaItem.Designacao : null))
+        .ForMember(d => d.MotivoConsultaDesignacao,
+          o => o.MapFrom(s => s.MotivoConsulta != null ? s.MotivoConsulta.Designacao : null))
+        .ForMember(d => d.Efectuado, o => o.MapFrom(s => s.Efetuado))
+        .ForMember(d => d.StatusConsulta, o => o.MapFrom(s => (int?)s.StatusConsulta))
+        .ForMember(d => d.StatusConsultaLabel,
+          o => o.MapFrom(s => s.StatusConsulta.HasValue ? EnumDisplayHelper.GetDisplayName(s.StatusConsulta.Value) : null))
         .ForMember(d => d.UtenteNumero,
           o => o.MapFrom(s => s.Utente != null ? s.Utente.NumeroUtente : null))
         .ForMember(d => d.UtenteNome,
@@ -521,7 +527,9 @@ namespace CliCloud.Infrastructure.Mapper
         .ForMember(d => d.HoraInic,
           o => o.MapFrom(s => s.HoraInicio.HasValue ? s.HoraInicio.Value.ToString(@"hh\:mm", CultureInfo.InvariantCulture) : null))
         .ForMember(d => d.HoraFim,
-          o => o.MapFrom(s => s.HoraFim.HasValue ? s.HoraFim.Value.ToString(@"hh\:mm", CultureInfo.InvariantCulture) : null));
+          o => o.MapFrom(s => s.HoraFim.HasValue ? s.HoraFim.Value.ToString(@"hh\:mm", CultureInfo.InvariantCulture) : null))
+        .ForMember(d => d.HoraChegada,
+          o => o.MapFrom(s => s.HoraChegada.HasValue ? s.HoraChegada.Value.ToString(@"hh\:mm", CultureInfo.InvariantCulture) : null));
       _ = CreateMap<Consulta, HistoricoConsultaAdministrativoDtos.HistoricoConsultaAdministrativoRowDTO>()
         .ForMember(d => d.UtenteNumero,
           o => o.MapFrom(s => s.Utente != null ? s.Utente.NumeroUtente : null))
@@ -538,8 +546,14 @@ namespace CliCloud.Infrastructure.Mapper
               : s.ConsultaMarcacao != null && s.ConsultaMarcacao.TipoAdmissao != null
                 ? s.ConsultaMarcacao.TipoAdmissao.Designacao
                 : null))
+        .ForMember(d => d.TipoConsultaDesignacao,
+          o => o.MapFrom(s => s.TipoConsultaItem != null ? s.TipoConsultaItem.Designacao : null))
+        .ForMember(d => d.MotivoConsultaDesignacao,
+          o => o.MapFrom(s => s.MotivoConsulta != null ? s.MotivoConsulta.Designacao : null))
         .ForMember(d => d.HoraInic,
           o => o.MapFrom(s => s.HoraInicio.HasValue ? s.HoraInicio.Value.ToString(@"hh\:mm", CultureInfo.InvariantCulture) : null))
+        .ForMember(d => d.HoraFim,
+          o => o.MapFrom(s => s.HoraFim.HasValue ? s.HoraFim.Value.ToString(@"hh\:mm", CultureInfo.InvariantCulture) : null))
         .ForMember(d => d.StatusConsulta, o => o.MapFrom(s => (int?)s.StatusConsulta))
         .ForMember(d => d.StatusConsultaLabel,
           o => o.MapFrom(s => s.StatusConsulta.HasValue ? EnumDisplayHelper.GetDisplayName(s.StatusConsulta.Value) : null))
@@ -1836,12 +1850,7 @@ namespace CliCloud.Infrastructure.Mapper
         .ForMember(d => d.SalaNome, o => o.MapFrom(s => s.Sala != null ? s.Sala.Nome : null))
         .ForMember(d => d.EspecialidadeNome, o => o.MapFrom(s => s.Especialidade != null ? s.Especialidade.Nome : null))
         .ForMember(d => d.MedicoExternoNome, o => o.MapFrom(s => s.MedicoExterno != null ? s.MedicoExterno.Nome : null))
-        .ForMember(d => d.MotivoConsultaId, o => o.Ignore())
         .ForMember(d => d.Servicos, o => o.Ignore())
-        .ForMember(d => d.NumDestacavel, o => o.Ignore())
-        .ForMember(d => d.Ordem, o => o.Ignore())
-        .ForMember(d => d.HoraChegada, o => o.Ignore())
-        .ForMember(d => d.DataHoraMarcacao, o => o.Ignore())
         .ForMember(d => d.Origem, o => o.MapFrom(_ => OrigemAdmissao.Manual))
         .ForMember(d => d.Pago, o => o.Ignore())
         .ForMember(d => d.Faturado, o => o.Ignore())
@@ -2375,7 +2384,7 @@ namespace CliCloud.Infrastructure.Mapper
       _ = CreateMap<TipoLote, CliCloud.Application.Services.Credenciais.LoteDirectService.DTOs.TipoLoteLightDTO>()
         .ForMember(d => d.Codigo, o => o.MapFrom(s => s.Id));
 
-      _ = CreateMap<Admissao, CliCloud.Application.Services.Consultas.AdmissaoAdministrativoService.DTOs.OrdemEntradaTableDTO>()
+      _ = CreateMap<Admissao, CliCloud.Application.Services.Consultas.OrdemEntradaAdministrativoService.DTOs.OrdemEntradaTableDTO>()
         .ForMember(d => d.UtenteNumero, o => o.MapFrom(s => s.Utente != null ? s.Utente.NumeroUtente : null))
         .ForMember(d => d.UtenteNome, o => o.MapFrom(s => s.Utente != null ? s.Utente.Nome : null))
         .ForMember(d => d.MedicoNome, o => o.MapFrom(s => s.Medico != null ? s.Medico.Nome : null))

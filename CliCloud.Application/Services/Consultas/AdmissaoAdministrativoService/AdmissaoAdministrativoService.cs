@@ -4,12 +4,15 @@ using CliCloud.Application.Common.Wrapper;
 using CliCloud.Application.Services.Consultas.AdmissaoAdministrativoService.DTOs;
 using CliCloud.Application.Services.Consultas.AdmissaoAdministrativoService.Filters;
 using CliCloud.Application.Services.Consultas.AdmissaoAdministrativoService.Specifications;
+using CliCloud.Application.Services.Consultas.DisponibilidadeMedico;
+using CliCloud.Application.Services.Consultas.DisponibilidadeSala;
 using CliCloud.Application.Services.Consultas.FechoDiarioAdministrativoService;
 using CliCloud.Application.Services.Consultas.FechoDiarioAdministrativoService.DTOs;
 using CliCloud.Application.Services.Utentes.UtenteService.DTOs;
 using CliCloud.Application.Services.Utentes.UtenteService.Specifications;
 using CliCloud.Application.Utility;
 using CliCloud.Domain.Entities.Consultas;
+using CliCloud.Domain.Entities.Core;
 using CliCloud.Domain.Entities.Utentes;
 using CliCloud.Domain.Enums;
 
@@ -19,7 +22,8 @@ public class AdmissaoAdministrativoService(
   IRepositoryAsync repository,
   IMapper mapper,
   IRequisicaoEspFechoUpdater requisicaoEspFechoUpdater,
-  IUtilizadorDisplayNameResolver utilizadorDisplayNameResolver
+  IUtilizadorDisplayNameResolver utilizadorDisplayNameResolver,
+  ICurrentClinicaService? currentClinicaService = null
 ) : IAdmissaoAdministrativoService
 {
   private readonly IRepositoryAsync _repository = repository;
@@ -27,6 +31,7 @@ public class AdmissaoAdministrativoService(
   private readonly IRequisicaoEspFechoUpdater _requisicaoEspFechoUpdater = requisicaoEspFechoUpdater;
   private readonly IUtilizadorDisplayNameResolver _utilizadorDisplayNameResolver =
     utilizadorDisplayNameResolver;
+  private readonly ICurrentClinicaService? _currentClinicaService = currentClinicaService;
 
   public async Task<PaginatedResponse<AdmissaoTableDTO>> GetPaginatedAsync(AdmissaoTableFilter filter)
   {
@@ -63,13 +68,34 @@ public class AdmissaoAdministrativoService(
     return ResponseFactory.Success(dto);
   }
 
+  public async Task<Response<AdmissaoDTO?>> GetByConsultaMarcacaoIdAsync(Guid consultaMarcacaoId)
+  {
+    List<Admissao> list = (
+      await _repository.GetListAsync<Admissao, Guid>(
+        new AdmissaoByConsultaMarcacaoSpec(consultaMarcacaoId)
+      )
+    ).ToList();
+    Admissao? entity = list.FirstOrDefault();
+    if (entity == null)
+    {
+      return ResponseFactory.Success<AdmissaoDTO?>(null);
+    }
+
+    AdmissaoDTO dto = _mapper.Map<AdmissaoDTO>(entity);
+    await HydrateUtenteNumeroAsync(dto, entity.UtenteId);
+    return ResponseFactory.Success<AdmissaoDTO?>(dto);
+  }
+
   public async Task<Response<Guid>> CreateAsync(CreateAdmissaoRequest request)
   {
     if (request.ConsultaMarcacaoId.HasValue)
     {
-      List<Admissao> existentes = (await _repository.GetListAsync<Admissao, Guid>()).ToList();
-      if (existentes.Any(a =>
-            a.ConsultaMarcacaoId == request.ConsultaMarcacaoId && a.DeletedOn == null))
+      List<Admissao> existentes = (
+        await _repository.GetListAsync<Admissao, Guid>(
+          new AdmissaoByConsultaMarcacaoSpec(request.ConsultaMarcacaoId.Value)
+        )
+      ).ToList();
+      if (existentes.Count > 0)
       {
         return ResponseFactory.Fail<Guid>("Já existe uma admissão para esta marcação.");
       }
@@ -88,12 +114,51 @@ public class AdmissaoAdministrativoService(
       if (marcacao != null)
       {
         entity.EmTratamento = marcacao.EmTratamento;
+        entity.SalaId ??= marcacao.SalaId;
       }
     }
 
     NormalizeServicos(entity);
     await AdmissaoHoraCalculoHelper.AplicarHoraFimAsync(entity, _repository);
+    DisponibilidadeMedicoResult disponibilidade = await DisponibilidadeMedicoHelper.ValidarAsync(
+      _repository,
+      new DisponibilidadeMedicoRequest
+      {
+        MedicoId = entity.MedicoId,
+        TipoConsultaId = entity.TipoConsultaId,
+        Data = entity.Data,
+        HoraInicio = entity.HoraInicio,
+        HoraFim = entity.HoraFim,
+        IgnorarMarcacaoId = entity.ConsultaMarcacaoId,
+      }
+    );
+    if (!disponibilidade.Valido)
+    {
+      return ResponseFactory.Fail<Guid>(disponibilidade.Mensagem!);
+    }
+
+    entity.HoraFim = disponibilidade.HoraFim ?? entity.HoraFim;
+    Clinica? clinica = await ObterClinicaAtualAsync();
+    DisponibilidadeSalaResult sala = await DisponibilidadeSalaHelper.ValidarAsync(
+      _repository,
+      new DisponibilidadeSalaRequest
+      {
+        SalaId = entity.SalaId,
+        Data = entity.Data,
+        HoraInicio = entity.HoraInicio,
+        HoraFim = entity.HoraFim,
+        IgnorarMarcacaoId = entity.ConsultaMarcacaoId,
+        RequerSala = clinica?.GestaoSalas == true,
+      }
+    );
+    if (!sala.Valido)
+    {
+      return ResponseFactory.Fail<Guid>(sala.Mensagem!);
+    }
+
+    entity.SalaId = sala.SalaId;
     _ = await _repository.CreateAsync<Admissao, Guid>(entity);
+    await SyncMarcacaoSalaAsync(entity);
     _ = await _repository.SaveChangesAsync();
     return ResponseFactory.Success(entity.Id);
   }
@@ -110,7 +175,47 @@ public class AdmissaoAdministrativoService(
     entity.Obs = obs;
     NormalizeServicos(entity);
     await AdmissaoHoraCalculoHelper.AplicarHoraFimAsync(entity, _repository);
+    DisponibilidadeMedicoResult disponibilidade = await DisponibilidadeMedicoHelper.ValidarAsync(
+      _repository,
+      new DisponibilidadeMedicoRequest
+      {
+        MedicoId = entity.MedicoId,
+        TipoConsultaId = entity.TipoConsultaId,
+        Data = entity.Data,
+        HoraInicio = entity.HoraInicio,
+        HoraFim = entity.HoraFim,
+        IgnorarAdmissaoId = entity.Id,
+        IgnorarMarcacaoId = entity.ConsultaMarcacaoId,
+      }
+    );
+    if (!disponibilidade.Valido)
+    {
+      return ResponseFactory.Fail<Guid>(disponibilidade.Mensagem!);
+    }
+
+    entity.HoraFim = disponibilidade.HoraFim ?? entity.HoraFim;
+    Clinica? clinica = await ObterClinicaAtualAsync();
+    DisponibilidadeSalaResult sala = await DisponibilidadeSalaHelper.ValidarAsync(
+      _repository,
+      new DisponibilidadeSalaRequest
+      {
+        SalaId = entity.SalaId,
+        Data = entity.Data,
+        HoraInicio = entity.HoraInicio,
+        HoraFim = entity.HoraFim,
+        IgnorarAdmissaoId = entity.Id,
+        IgnorarMarcacaoId = entity.ConsultaMarcacaoId,
+        RequerSala = clinica?.GestaoSalas == true,
+      }
+    );
+    if (!sala.Valido)
+    {
+      return ResponseFactory.Fail<Guid>(sala.Mensagem!);
+    }
+
+    entity.SalaId = sala.SalaId;
     _ = await _repository.UpdateAsync<Admissao, Guid>(entity);
+    await SyncMarcacaoSalaAsync(entity);
     _ = await _repository.SaveChangesAsync();
     return ResponseFactory.Success(entity.Id);
   }
@@ -170,6 +275,60 @@ public class AdmissaoAdministrativoService(
   {
     Admissao entity = await _repository.GetByIdAsync<Admissao, Guid>(id);
     entity.Efetuado = efetuado;
+    entity.EmTratamento = efetuado ? false : entity.EmTratamento;
+    entity.Ordem = efetuado
+      ? await AdmissaoOrdemHelper.ObterProximaOrdemDiaAsync(entity, _repository)
+      : null;
+
+    if (efetuado)
+    {
+      entity.StatusConsulta = StatusConsulta.Concluida;
+    }
+    else if (entity.StatusConsulta == StatusConsulta.Concluida)
+    {
+      entity.StatusConsulta = null;
+    }
+
+    if (entity.ConsultaMarcacaoId.HasValue)
+    {
+      ConsultaMarcacao? marcacao = await _repository.GetByIdAsync<ConsultaMarcacao, Guid>(
+        entity.ConsultaMarcacaoId.Value
+      );
+
+      if (marcacao != null)
+      {
+        Consulta? consulta = null;
+        if (marcacao.ConsultaId.HasValue)
+        {
+          consulta = await _repository.GetByIdAsync<Consulta, Guid>(marcacao.ConsultaId.Value);
+        }
+
+        if (efetuado)
+        {
+          marcacao.StatusConsulta = StatusConsulta.Concluida;
+          marcacao.EmTratamento = false;
+
+          if (consulta != null && consulta.DeletedOn == null)
+          {
+            consulta.Efetuado = true;
+            consulta.StatusConsulta = StatusConsulta.Concluida;
+            consulta.HoraFim ??= DateTime.Now.TimeOfDay;
+            _ = await _repository.UpdateAsync<Consulta, Guid>(consulta);
+          }
+        }
+        else if (consulta == null || consulta.DeletedOn != null || consulta.Efetuado != true)
+        {
+          if (marcacao.StatusConsulta == StatusConsulta.Concluida)
+          {
+            marcacao.StatusConsulta = null;
+          }
+        }
+
+        _ = await _repository.UpdateAsync<ConsultaMarcacao, Guid>(marcacao);
+      }
+    }
+
+    _ = await _repository.UpdateAsync<Admissao, Guid>(entity);
     _ = await _repository.SaveChangesAsync();
     return ResponseFactory.Success(id);
   }
@@ -190,6 +349,17 @@ public class AdmissaoAdministrativoService(
       );
     }
 
+    if (!string.IsNullOrWhiteSpace(entity.Credencial))
+    {
+      bool podeReverter = await _requisicaoEspFechoUpdater.ReverterAgendamentoSePossivelAsync(
+        entity.Credencial.Trim()
+      );
+      if (!podeReverter)
+      {
+        return ResponseFactory.Fail<Guid>("A requisição já está efetivada e não pode ser desmarcada.");
+      }
+    }
+
     string nomeAutor = await _utilizadorDisplayNameResolver.ResolveAsync();
     string linhaMotivo =
       $"{nomeAutor} - {DateTime.Now:dd-MM-yyyy HH:mm}{Environment.NewLine}{request.Motivo!.Trim()}";
@@ -199,6 +369,21 @@ public class AdmissaoAdministrativoService(
 
     entity.StatusConsulta = StatusConsulta.Desmarcada;
     entity.DataHoraMarcacao = DateTime.UtcNow;
+    entity.Confirmado = false;
+
+    if (entity.ConsultaMarcacaoId.HasValue)
+    {
+      ConsultaMarcacao? marcacao = await _repository.GetByIdAsync<ConsultaMarcacao, Guid>(
+        entity.ConsultaMarcacaoId.Value
+      );
+      if (marcacao != null)
+      {
+        marcacao.StatusConsulta = StatusConsulta.Desmarcada;
+        marcacao.Obs = entity.Obs;
+        _ = await _repository.UpdateAsync<ConsultaMarcacao, Guid>(marcacao);
+      }
+    }
+
     _ = await _repository.UpdateAsync<Admissao, Guid>(entity);
     _ = await _repository.SaveChangesAsync();
     return ResponseFactory.Success(id);
@@ -213,6 +398,13 @@ public class AdmissaoAdministrativoService(
     if (admissao == null)
     {
       return ResponseFactory.Fail<PromoverAdmissaoResultDTO>("Admissão não encontrada.");
+    }
+
+    if (admissao.StatusConsulta is StatusConsulta.Desmarcada or StatusConsulta.Suspensa)
+    {
+      return ResponseFactory.Fail<PromoverAdmissaoResultDTO>(
+        "Não é possível passar para histórico uma admissão desmarcada ou suspensa."
+      );
     }
 
     bool sugerirMarcacoesFisio = admissao.TipoAdmissao?.CodigoLegado == 1;
@@ -249,25 +441,11 @@ public class AdmissaoAdministrativoService(
     var result = new FechoDiarioResultDTO { TotalElegiveis = request.Ids.Count };
     HashSet<Guid> ids = request.Ids.Distinct().ToHashSet();
 
-    HashSet<Guid> idsJaPromovidas = (
-      await _repository.GetListAsync<Consulta, Guid>(new ConsultasPromovidasPorAdmissoesSpec(ids))
-    )
-      .Where(c => c.AdmissaoId.HasValue)
-      .Select(c => c.AdmissaoId!.Value)
-      .ToHashSet();
-
     try
     {
       foreach (Guid id in ids)
       {
         result.TotalProcessadas++;
-
-        if (idsJaPromovidas.Contains(id))
-        {
-          result.TotalIgnoradas++;
-          result.Avisos.Add($"Admissão {id}: já promovida (ignorada).");
-          continue;
-        }
 
         List<Admissao> list = (
           await _repository.GetListAsync<Admissao, Guid>(new AdmissaoByIdWithServicosSpec(id))
@@ -293,7 +471,6 @@ public class AdmissaoAdministrativoService(
           _requisicaoEspFechoUpdater
         );
         result.TotalConsultasCriadas++;
-        idsJaPromovidas.Add(id);
       }
 
       _ = await _repository.SaveChangesAsync();
@@ -335,159 +512,6 @@ public class AdmissaoAdministrativoService(
     _ = await _repository.UpdateAsync<Admissao, Guid>(entity);
     _ = await _repository.SaveChangesAsync();
     return ResponseFactory.Success(entity.Id);
-  }
-
-  public async Task<PaginatedResponse<OrdemEntradaTableDTO>> GetOrdemEntradaPaginatedAsync(
-    OrdemEntradaTableFilter filter
-  )
-  {
-    if(filter.Filters?.Count > 0)
-    {
-      filter.PageNumber = 1;
-    }
-
-    string order = filter.Sorting != null ? GSHelpers.GenerateOrderByString(filter) : string.Empty;
-    var spec = new OrdemEntradaSearchTable(filter, order);
-    PaginatedResponse<OrdemEntradaTableDTO> result = 
-      await _repository.GetPaginatedResultsAsync<Admissao, OrdemEntradaTableDTO, Guid>(
-        filter.PageNumber, 
-        filter.PageSize,
-        spec
-      );
-
-    await HydrateOrdemEntradaUtenteNumerosAsync(result.Data);
-    await HydrateOrdemEntradaCreatedByNomesAsync(result.Data);
-    HydrateOrdemEntradaConsultaPromovida(result.Data);
-    ApplyOrdemEntradaStatusLabels(result.Data);
-    return result;
-  }
-
-  public async Task<Response<Guid>> DefinirOrdemEntradaAsync(
-    Guid id, 
-    DefinirOrdemEntradaRequest request
-  )
-  {
-    Admissao entity = await _repository.GetByIdAsync<Admissao, Guid>(id);
-    if(entity.DeletedOn != null)
-    {
-      return ResponseFactory.Fail<Guid>("Admissão não encontrada.");
-    }
-
-    if(entity.StatusConsulta == StatusConsulta.Desmarcada)
-    {
-      return ResponseFactory.Fail<Guid>("Não é possível alterar a ordem de uma admissão anulada");
-    }
-
-    entity.Ordem = request.Ordem;
-    _ = await _repository.UpdateAsync<Admissao, Guid>(entity);
-    _ = await _repository.SaveChangesAsync();
-    return ResponseFactory.Success(entity.Id);
-  }
-
-  public async Task<Response<Guid>> AnularOrdemEntradaAsync(
-    Guid id, 
-    AnularOrdemEntradaRequest request
-  )
-  {
-    if(string.IsNullOrWhiteSpace(request.Motivo))
-    {
-      return ResponseFactory.Fail<Guid>("Indique o motivo da anulação");
-    }
-
-    Admissao entity = await _repository.GetByIdAsync<Admissao, Guid>(id);
-    if(entity.DeletedOn != null)
-    {
-      return ResponseFactory.Fail<Guid>("Admissão não encontrada");
-    }
-    if(entity.Pago == true || entity.Faturado == true)
-    {
-      return ResponseFactory.Fail<Guid>("A consulta tem recibo ou fatura associados e não pode ser anulada");
-    }
-
-    string nomeAutor = await _utilizadorDisplayNameResolver.ResolveAsync();
-    string linhaMotivo = 
-      $"{nomeAutor} - {DateTime.Now:dd-MM-yyyy HH:mm}{Environment.NewLine}{request.Motivo!.Trim()}";
-    entity.Obs = string.IsNullOrWhiteSpace(entity.Obs)
-      ? linhaMotivo
-      : $"{linhaMotivo}{Environment.NewLine}{Environment.NewLine}{entity.Obs}";
-
-    entity.StatusConsulta = StatusConsulta.Desmarcada;
-    entity.DataHoraMarcacao = DateTime.UtcNow;
-    entity.Confirmado = false;
-
-    _ = await _repository.UpdateAsync<Admissao, Guid>(entity);
-    _ = await _repository.SaveChangesAsync();
-    return ResponseFactory.Success(entity.Id);
-  }
-
-  private async Task HydrateOrdemEntradaUtenteNumerosAsync(
-    IReadOnlyCollection<OrdemEntradaTableDTO> rows
-  )
-  {
-    List<Guid> ids = rows.Select(r => r.UtenteId).Distinct().ToList();
-    if(ids.Count == 0)
-    {
-      return;
-    }
-
-    var spec = new UtenteNumerosByIdsSpecification(ids);
-    List<UtenteNumeroLookupDTO> lookups = (
-      await _repository.GetListAsync<Utente, UtenteNumeroLookupDTO, Guid>(spec)
-    ).ToList();
-
-    foreach(OrdemEntradaTableDTO row in rows)
-    {
-      UtenteNumeroLookupDTO? u = lookups.FirstOrDefault(x => x.Id == row.UtenteId);
-      if(u != null)
-      {
-        row.UtenteNumero = u.NumeroUtente;
-      }
-    }
-  }
-
-  private async Task HydrateOrdemEntradaCreatedByNomesAsync(
-    IReadOnlyCollection<OrdemEntradaTableDTO> rows
-  )
-  {
-    List<Guid> ids = rows.Select(r => r.CreatedBy).Distinct().ToList();
-    if (ids.Count == 0)
-    {
-      return;
-    }
-
-    IReadOnlyDictionary<Guid, string> nomes =
-      await _utilizadorDisplayNameResolver.ResolveManyByIdsAsync(ids);
-
-    foreach (OrdemEntradaTableDTO row in rows)
-    {
-      if (nomes.TryGetValue(row.CreatedBy, out string? nome))
-      {
-        row.CreatedByNome = nome;
-      }
-    }
-  }
-
-  private static void HydrateOrdemEntradaConsultaPromovida(
-    IReadOnlyCollection<OrdemEntradaTableDTO> rows
-  )
-  {
-    foreach(OrdemEntradaTableDTO row in rows)
-    {
-      if(row.ConsultaId.HasValue)
-      {
-        row.ConsultaPromovida = true;
-      }
-    }
-  }
-
-  private static void ApplyOrdemEntradaStatusLabels(
-    IReadOnlyCollection<OrdemEntradaTableDTO> rows
-  )
-  {
-    foreach(OrdemEntradaTableDTO row in rows)
-    {
-      row.StatusConsultaLabel = row.StatusConsulta?.ToString();
-    }
   }
 
   private static void NormalizeServicos(Admissao entity)
@@ -545,4 +569,36 @@ public class AdmissaoAdministrativoService(
       dto.UtenteNumero = u.NumeroUtente;
     }
   }
+
+  private async Task<Clinica?> ObterClinicaAtualAsync()
+  {
+    if (_currentClinicaService == null
+      || string.IsNullOrWhiteSpace(_currentClinicaService.ClinicaId)
+      || !Guid.TryParse(_currentClinicaService.ClinicaId, out Guid clinicaId))
+    {
+      return null;
+    }
+
+    return await _repository.GetByIdAsync<Clinica, Guid>(clinicaId);
+  }
+
+  private async Task SyncMarcacaoSalaAsync(Admissao entity)
+  {
+    if (!entity.ConsultaMarcacaoId.HasValue)
+    {
+      return;
+    }
+
+    ConsultaMarcacao? marcacao = await _repository.GetByIdAsync<ConsultaMarcacao, Guid>(
+      entity.ConsultaMarcacaoId.Value
+    );
+    if (marcacao == null)
+    {
+      return;
+    }
+
+    marcacao.SalaId = entity.SalaId;
+    _ = await _repository.UpdateAsync<ConsultaMarcacao, Guid>(marcacao);
+  }
+
 }

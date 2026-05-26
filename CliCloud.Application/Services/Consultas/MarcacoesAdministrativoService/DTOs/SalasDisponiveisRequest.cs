@@ -7,7 +7,10 @@ public class SalasDisponiveisRequest : IDto
 {
     public DateTime Data { get; set; }
     public TimeSpan HoraInicio { get; set; }
+    public TimeSpan? HoraFim { get; set; }
     public Guid? ClinicaId { get; set; }
+    public Guid? IgnorarMarcacaoId { get; set; }
+    public Guid? IgnorarAdmissaoId { get; set; }
 }
 
 public class SalasDisponiveisRequestValidator : AbstractValidator<SalasDisponiveisRequest>

@@ -1,7 +1,7 @@
 using CliCloud.Application.Common.Marker;
 using FluentValidation;
 
-namespace CliCloud.Application.Services.Consultas.AdmissaoAdministrativoService.DTOs;
+namespace CliCloud.Application.Services.Consultas.OrdemEntradaAdministrativoService.DTOs;
 
 public class AnularOrdemEntradaRequest : IDto 
 {

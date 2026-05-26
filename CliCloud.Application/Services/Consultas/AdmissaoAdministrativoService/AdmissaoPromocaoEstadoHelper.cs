@@ -15,6 +15,11 @@ internal static class AdmissaoPromocaoEstadoHelper
       consulta.Confirmado = admissao.Confirmado;
     }
 
+    if (!preservarExistentes || !consulta.ConfirmaConsulta.HasValue)
+    {
+      consulta.ConfirmaConsulta = admissao.ConfirmaConsulta;
+    }
+
     if (!preservarExistentes || !consulta.Efetuado.HasValue)
     {
       consulta.Efetuado = admissao.Efetuado ?? consulta.Efetuado;

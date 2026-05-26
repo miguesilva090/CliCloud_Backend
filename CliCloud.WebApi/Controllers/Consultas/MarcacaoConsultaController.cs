@@ -73,14 +73,17 @@ namespace CliCloud.WebApi.Controllers.Consultas
         /// </summary>
         [Authorize(Roles = "client")]
         [HttpGet("consultas-do-dia")]
-        public async Task<IActionResult> GetConsultasDoDiaMedicoLogadoAsync([FromQuery] DateTime? data = null)
+        public async Task<IActionResult> GetConsultasDoDiaMedicoLogadoAsync(
+            [FromQuery] DateTime? data = null,
+            [FromQuery] bool desmarcadas = false)
         {
             var dataConsulta = (data ?? DateTime.UtcNow.Date).Date;
             var dataStr = dataConsulta.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 
             var filters = new List<TableFilter>
             {
-                new TableFilter { Id = "data", Value = dataStr }
+                new TableFilter { Id = "data", Value = dataStr },
+                new TableFilter { Id = "desmarcadas", Value = desmarcadas.ToString() }
             };
 
             string? userIdStr = _currentTenantUserService.UserId;

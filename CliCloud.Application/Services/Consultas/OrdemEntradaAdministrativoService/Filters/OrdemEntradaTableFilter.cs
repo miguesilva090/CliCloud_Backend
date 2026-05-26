@@ -1,6 +1,6 @@
 using CliCloud.Application.Common.Filter;
 
-namespace CliCloud.Application.Services.Consultas.AdmissaoAdministrativoService.Filters;
+namespace CliCloud.Application.Services.Consultas.OrdemEntradaAdministrativoService.Filters;
 
 public class OrdemEntradaTableFilter : PaginationFilter
 {

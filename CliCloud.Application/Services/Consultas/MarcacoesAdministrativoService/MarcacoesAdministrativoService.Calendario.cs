@@ -42,6 +42,7 @@ public partial class MarcacoesAdministrativoService
       request.MedicoId,
       dataDe,
       dataAte,
+      request.SalaId,
       request.EspecialidadeId
     );
     List<ConsultaMarcacao> marcacoes =

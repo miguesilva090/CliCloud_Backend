@@ -2,6 +2,7 @@ using AutoMapper;
 using CliCloud.Application.Common;
 using CliCloud.Application.Common.Filter;
 using CliCloud.Application.Common.Wrapper;
+using CliCloud.Application.Services.Tratamentos;
 using CliCloud.Application.Services.Tratamentos.TratamentoService.DTOs;
 using CliCloud.Application.Services.Tratamentos.TratamentoService.Filters;
 using CliCloud.Application.Services.Tratamentos.TratamentoService.Specifications;
@@ -88,7 +89,10 @@ namespace CliCloud.Application.Services.Tratamentos.TratamentoService
       var entity = _mapper.Map<Tratamento>(request);
       try
       {
+        TratamentoIntegridadeHelper.NormalizarTratamento(entity);
         var created = await _repository.CreateAsync<Tratamento, Guid>(entity);
+        await TratamentoIntegridadeHelper.GarantirSessoesPlaneadasAsync(created, _repository);
+        await TratamentoIntegridadeHelper.RecalcularFaltasAsync(created.Id, _repository);
         _ = await _repository.SaveChangesAsync();
         if (request.SendEmail)
           await TentarDispararEmailFluxoAsync(created);
@@ -108,7 +112,10 @@ namespace CliCloud.Application.Services.Tratamentos.TratamentoService
       _ = _mapper.Map(request, existing);
       try
       {
+        TratamentoIntegridadeHelper.NormalizarTratamento(existing);
         var updated = await _repository.UpdateAsync<Tratamento, Guid>(existing);
+        await TratamentoIntegridadeHelper.GarantirSessoesPlaneadasAsync(updated, _repository);
+        await TratamentoIntegridadeHelper.RecalcularFaltasAsync(updated.Id, _repository);
         _ = await _repository.SaveChangesAsync();
         if (request.SendEmail)
           await TentarDispararEmailFluxoAsync(updated);

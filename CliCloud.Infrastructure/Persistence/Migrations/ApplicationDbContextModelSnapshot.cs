@@ -1337,6 +1337,9 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("AdmissaoId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<bool?>("ConfirmaConsulta")
+                        .HasColumnType("bit");
+
                     b.Property<bool?>("Confirmado")
                         .HasColumnType("bit");
 
@@ -1356,6 +1359,9 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("Data")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DataHoraMarcacao")
                         .HasColumnType("datetime2");
 
                     b.Property<Guid?>("DeletedBy")
@@ -1388,6 +1394,9 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("FuncionarioId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<TimeSpan?>("HoraChegada")
+                        .HasColumnType("time");
+
                     b.Property<TimeSpan?>("HoraFim")
                         .HasColumnType("time");
 
@@ -1409,11 +1418,20 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("MedicoId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("MotivoConsultaId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("MotivoJustificacao")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NumDestacavel")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Obs")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Ordem")
+                        .HasColumnType("int");
 
                     b.Property<Guid?>("OrganismoId")
                         .HasColumnType("uniqueidentifier");
@@ -1471,6 +1489,8 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.HasIndex("MedicoExternoId");
 
                     b.HasIndex("MedicoId");
+
+                    b.HasIndex("MotivoConsultaId");
 
                     b.HasIndex("OrganismoId");
 
@@ -13017,6 +13037,11 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .HasForeignKey("MedicoId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("CliCloud.Domain.Entities.Consultas.MotivoConsulta", "MotivoConsulta")
+                        .WithMany()
+                        .HasForeignKey("MotivoConsultaId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("CliCloud.Domain.Entities.Organismos.Organismo", "Organismo")
                         .WithMany()
                         .HasForeignKey("OrganismoId")
@@ -13079,6 +13104,8 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Navigation("Medico");
 
                     b.Navigation("MedicoExterno");
+
+                    b.Navigation("MotivoConsulta");
 
                     b.Navigation("Organismo");
 

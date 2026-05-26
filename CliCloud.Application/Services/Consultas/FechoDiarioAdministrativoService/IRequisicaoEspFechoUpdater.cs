@@ -9,4 +9,9 @@ public interface IRequisicaoEspFechoUpdater : IScopedService
     DateTime dataRealizacao,
     CancellationToken cancellationToken = default
   );
+
+  Task<bool> ReverterAgendamentoSePossivelAsync(
+    string numeroRequisicao,
+    CancellationToken cancellationToken = default
+  );
 }

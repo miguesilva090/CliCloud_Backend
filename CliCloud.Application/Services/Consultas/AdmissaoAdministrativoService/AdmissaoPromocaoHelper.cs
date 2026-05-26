@@ -21,16 +21,22 @@ internal static class AdmissaoPromocaoHelper
       HoraFim = admissao.HoraFim,
       StatusConsulta = AdmissaoPromocaoEstadoHelper.ResolverStatusConsultaHistorico(admissao),
       Confirmado = admissao.Confirmado,
+      ConfirmaConsulta = admissao.ConfirmaConsulta,
       Efetuado = admissao.Efetuado,
       Faltou = AdmissaoPromocaoEstadoHelper.DerivarFaltou(admissao),
       OrganismoId = admissao.OrganismoId,
       Credencial = admissao.Credencial,
       CredencialExterna = admissao.CredencialExterna,
+      NumDestacavel = admissao.NumDestacavel,
       SeguradoraId = admissao.SeguradoraId,
       Sinistrado = admissao.Sinistrado ?? 0,
       Justificacao = admissao.Justificacao ?? 0,
       MotivoJustificacao = admissao.MotivoJustificacao,
       TratamentoId = admissao.TratamentoId,
+      MotivoConsultaId = admissao.MotivoConsultaId,
+      HoraChegada = admissao.HoraChegada,
+      Ordem = admissao.Ordem,
+      DataHoraMarcacao = admissao.DataHoraMarcacao,
       Obs = admissao.Obs,
       Diagnostico = admissao.Diagnostico,
       TipoConsultaId = admissao.TipoConsultaId,
@@ -56,12 +62,21 @@ internal static class AdmissaoPromocaoHelper
     consulta.TratamentoId ??= admissao.TratamentoId;
     consulta.TipoAdmissaoId ??= admissao.TipoAdmissaoId;
     consulta.TipoConsultaId ??= admissao.TipoConsultaId;
+    consulta.MotivoConsultaId ??= admissao.MotivoConsultaId;
     consulta.DoencaPrincipalId ??= admissao.DoencaPrincipalId;
     consulta.DoencaSecundariaId ??= admissao.DoencaSecundariaId;
+    consulta.HoraChegada ??= admissao.HoraChegada;
+    consulta.Ordem ??= admissao.Ordem;
+    consulta.DataHoraMarcacao ??= admissao.DataHoraMarcacao;
 
     if (string.IsNullOrWhiteSpace(consulta.Credencial) && !string.IsNullOrWhiteSpace(admissao.Credencial))
     {
       consulta.Credencial = admissao.Credencial;
+    }
+
+    if (string.IsNullOrWhiteSpace(consulta.NumDestacavel) && !string.IsNullOrWhiteSpace(admissao.NumDestacavel))
+    {
+      consulta.NumDestacavel = admissao.NumDestacavel;
     }
 
     if (!consulta.CredencialExterna.HasValue && admissao.CredencialExterna.HasValue)

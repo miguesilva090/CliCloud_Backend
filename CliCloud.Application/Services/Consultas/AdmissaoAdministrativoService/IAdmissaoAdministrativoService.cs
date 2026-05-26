@@ -10,6 +10,7 @@ public interface IAdmissaoAdministrativoService : ITransientService
 {
   Task<PaginatedResponse<AdmissaoTableDTO>> GetPaginatedAsync(AdmissaoTableFilter filter);
   Task<Response<AdmissaoDTO>> GetByIdAsync(Guid id);
+  Task<Response<AdmissaoDTO?>> GetByConsultaMarcacaoIdAsync(Guid consultaMarcacaoId);
   Task<Response<Guid>> CreateAsync(CreateAdmissaoRequest request);
   Task<Response<Guid>> UpdateAsync(Guid id, UpdateAdmissaoRequest request);
   Task<Response<Guid>> DeleteAsync(Guid id);
@@ -23,9 +24,4 @@ public interface IAdmissaoAdministrativoService : ITransientService
   Task<Response<AdmissaoObservacoesDTO>> GetObservacoesAsync(Guid id);
   Task<Response<Guid>> AppendObservacaoAsync(Guid id, AppendAdmissaoObservacaoRequest request);
 
-  Task<PaginatedResponse<OrdemEntradaTableDTO>> GetOrdemEntradaPaginatedAsync(
-    OrdemEntradaTableFilter filter
-  );
-  Task<Response<Guid>> DefinirOrdemEntradaAsync(Guid id, DefinirOrdemEntradaRequest request);
-  Task<Response<Guid>> AnularOrdemEntradaAsync(Guid id, AnularOrdemEntradaRequest request);
 }

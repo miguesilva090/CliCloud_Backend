@@ -13,6 +13,11 @@ namespace CliCloud.Application.Services.Tratamentos.TratamentoService.DTOs
     public DateTime? DataInic { get; set; }
     public DateTime? DataFim { get; set; }
     public int? NumSessao { get; set; }
+    public int? NFaltMax { get; set; }
+    public int? NFaltComax { get; set; }
+    public int? NFalta { get; set; }
+    public int? NFaltaCons { get; set; }
+    public int? NAltSess { get; set; }
     public int? Pago { get; set; }
     public int? Faturado { get; set; }
     public int? Suspenso { get; set; }

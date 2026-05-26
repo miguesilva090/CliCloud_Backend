@@ -11,6 +11,7 @@ public class CreateMarcacaoAdministrativoRequest : IDto
     public DateTime Data { get; set; }
     public TimeSpan HoraInicio { get; set; }
     public TimeSpan? HoraFim { get; set; }
+    public Guid? SalaId { get; set; }
     public Guid? OrganismoId { get; set; }
     public Guid? TipoConsultaId { get; set; }
     public Guid? TipoAdmissaoId { get; set; }

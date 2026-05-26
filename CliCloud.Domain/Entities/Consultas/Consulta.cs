@@ -51,6 +51,9 @@ namespace CliCloud.Domain.Entities.Consultas
 
     /// <summary>Utente faltou (legado faltou).</summary>
     public bool? Faltou { get; set; }
+
+    /// <summary>Confirmação da consulta na receção (legado ADMISS.ConfirmaConsulta).</summary>
+    public bool? ConfirmaConsulta { get; set; }
     
     // Documentos
     public Guid? DocumentoId { get; set; }
@@ -76,6 +79,12 @@ namespace CliCloud.Domain.Entities.Consultas
     public Tratamento? Tratamento { get; set; }
     public Guid? FuncionarioId { get; set; }
     public Funcionario? Funcionario { get; set; }
+    public Guid? MotivoConsultaId { get; set; }
+    public MotivoConsulta? MotivoConsulta { get; set; }
+    public string? NumDestacavel { get; set; }
+    public TimeSpan? HoraChegada { get; set; }
+    public int? Ordem { get; set; }
+    public DateTime? DataHoraMarcacao { get; set; }
     public string? Obs { get; set; }
     public string? Diagnostico { get; set; }
     

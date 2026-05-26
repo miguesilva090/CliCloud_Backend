@@ -2,6 +2,7 @@ using Ardalis.Specification;
 using CliCloud.Application.Common.Specification;
 using CliCloud.Application.Common.Filter;
 using CliCloud.Domain.Entities.Consultas;
+using CliCloud.Domain.Enums;
 
 namespace CliCloud.Application.Services.Consultas.MarcacaoConsultaService.Specifications
 {
@@ -42,6 +43,22 @@ namespace CliCloud.Application.Services.Consultas.MarcacaoConsultaService.Specif
               break;
             case "consultaid":
               if (Guid.TryParse(val, out var cId)) _ = Query.Where(x => x.ConsultaId == cId);
+              break;
+            case "desmarcadas":
+              if (bool.TryParse(val, out var desmarcadas) && desmarcadas)
+              {
+                _ = Query.Where(x =>
+                  x.StatusConsulta == StatusConsulta.Desmarcada ||
+                  x.StatusConsulta == StatusConsulta.Suspensa);
+              }
+              else
+              {
+                _ = Query.Where(x =>
+                  x.StatusConsulta == null ||
+                  (x.StatusConsulta != StatusConsulta.Desmarcada &&
+                  x.StatusConsulta != StatusConsulta.Suspensa &&
+                  x.StatusConsulta != StatusConsulta.Concluida));
+              }
               break;
           }
         }

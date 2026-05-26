@@ -11,6 +11,7 @@ public sealed class HistoricoConsultaAdministrativoSearchSpec : Specification<Co
   public HistoricoConsultaAdministrativoSearchSpec(List<TableFilter> filters, string? dynamicOrder = "")
   {
     _ = Query.Include(x => x.TipoConsultaItem)
+      .Include(x => x.MotivoConsulta)
       .Include(x => x.Utente)
       .Include(x => x.Organismo)
       .Include(x => x.Sala)
