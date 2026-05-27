@@ -91,7 +91,11 @@ namespace CliCloud.Application.Services.Tratamentos.TratamentoService
       {
         TratamentoIntegridadeHelper.NormalizarTratamento(entity);
         var created = await _repository.CreateAsync<Tratamento, Guid>(entity);
+        _ = await _repository.SaveChangesAsync();
+
         await TratamentoIntegridadeHelper.GarantirSessoesPlaneadasAsync(created, _repository);
+        _ = await _repository.SaveChangesAsync();
+
         await TratamentoIntegridadeHelper.RecalcularFaltasAsync(created.Id, _repository);
         _ = await _repository.SaveChangesAsync();
         if (request.SendEmail)

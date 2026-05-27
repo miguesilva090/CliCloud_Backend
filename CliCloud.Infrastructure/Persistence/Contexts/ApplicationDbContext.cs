@@ -201,6 +201,8 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     
     // DbSets - Documentos
     public DbSet<Documento> Documentos { get; set; }
+    public DbSet<DocumentoLinha> DocumentosLinhas { get; set; }
+    public DbSet<DocumentoOrigemClinica> DocumentosOrigemClinica { get; set; }
     public DbSet<Recibo> Recibos { get; set; }
     public DbSet<TipoDocumento> TiposDocumento { get; set; }
     public DbSet<ReferenciaMB> ReferenciasMB { get; set; }
@@ -561,6 +563,8 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
       
       // Documentos configurations
       _ = modelBuilder.ApplyConfiguration(new DocumentoConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new DocumentoLinhaConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new DocumentoOrigemClinicaConfiguration());
       _ = modelBuilder.ApplyConfiguration(new ReciboConfiguration());
       _ = modelBuilder.ApplyConfiguration(new TipoDocumentoConfiguration());
       

@@ -4,9 +4,6 @@ using CliCloud.Domain.Entities.Consultas;
 
 namespace CliCloud.Application.Services.Consultas.AdmissaoAdministrativoService;
 
-/// <summary>
-/// Sincroniza flags de faturação da admissão para <see cref="ConsultaFaturacao"/> no fecho/promoção.
-/// </summary>
 internal static class AdmissaoFaturacaoPromocaoHelper
 {
   public static async Task SincronizarDesdeAdmissaoAsync(
@@ -56,4 +53,48 @@ internal static class AdmissaoFaturacaoPromocaoHelper
 
     _ = await repository.UpdateAsync<ConsultaFaturacao, Guid>(faturacao);
   }
+
+  public static async Task  SincronizarComDocumentoAsync(
+    IRepositoryAsync repository,
+    Guid consultaId,
+    Guid documentoId,
+    Guid tipoDocumentoId,
+    bool pago,
+    bool faturado,
+    CancellationToken cancellationToken = default
+  )
+  {
+    List<ConsultaFaturacao> existentes = (
+      await repository.GetListAsync<ConsultaFaturacao, Guid>(
+        new ConsultaFaturacaoByConsultaId(consultaId),
+        cancellationToken
+      )
+    ).ToList();
+
+    ConsultaFaturacao? faturacao = existentes.FirstOrDefault();
+
+    if(faturacao == null)
+    {
+      faturacao = new ConsultaFaturacao
+      {
+        Id = Guid.NewGuid(),
+        ConsultaId = consultaId,
+        DocumentoId = documentoId,
+        TipoDocumentoId = tipoDocumentoId,
+        Pago = pago, 
+        Faturado = faturado,
+      };
+
+      _ = await repository.CreateAsync<ConsultaFaturacao, Guid>(faturacao);
+      return;
+    }
+
+    faturacao.DocumentoId = documentoId;
+    faturacao.TipoDocumentoId = tipoDocumentoId;
+    faturacao.Pago = pago;
+    faturacao.Faturado = faturado;
+
+    _ = await repository.UpdateAsync<ConsultaFaturacao, Guid>(faturacao);
+  }
 }
+
