@@ -5,9 +5,12 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService.Specificatio
 {
     public class DocumentoMatchTipoNumero : Specification<Documento>
     {
-        public DocumentoMatchTipoNumero(Guid tipoDocumentoId, int numeroDocumento)
+        public DocumentoMatchTipoNumero(Guid tipoDocumentoId, int numeroDocumento, Guid clinicaId)
         {
-            _ = Query.Where(x => x.TipoDocumentoId == tipoDocumentoId && x.NumeroDocumento == numeroDocumento);
+            _ = Query.Where(x =>
+                x.ClinicaId == clinicaId &&
+                x.TipoDocumentoId == tipoDocumentoId &&
+                x.NumeroDocumento == numeroDocumento);
         }
     }
 }

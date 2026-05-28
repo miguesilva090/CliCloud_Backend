@@ -7,8 +7,13 @@ namespace CliCloud.Application.Services.Documentos.ReciboService.Specifications
 {
   public class ReciboSearchTable : Specification<Recibo>
   {
-    public ReciboSearchTable(List<TableFilter> filters, string? dynamicOrder = "")
+    public ReciboSearchTable(List<TableFilter> filters, Guid? clinicaId = null, string? dynamicOrder = "")
     {
+      if (clinicaId.HasValue)
+      {
+        _ = Query.Where(x => x.ClinicaId == clinicaId.Value);
+      }
+
       if (filters != null && filters.Count > 0)
         foreach (var f in filters)
           switch (f.Id.ToLowerInvariant())

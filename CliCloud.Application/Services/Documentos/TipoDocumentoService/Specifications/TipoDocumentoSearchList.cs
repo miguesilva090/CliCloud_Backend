@@ -5,8 +5,10 @@ namespace CliCloud.Application.Services.Documentos.TipoDocumentoService.Specific
 {
     public class TipoDocumentoSearchList : Specification<TipoDocumento>
     {
-        public TipoDocumentoSearchList(string? keyword = "")
+        public TipoDocumentoSearchList(string? keyword = "", Guid clinicaId = default)
         {
+            _ = Query.Where(x => x.ClinicaId == clinicaId);
+
             // filters
             if (!string.IsNullOrWhiteSpace(keyword))
             {

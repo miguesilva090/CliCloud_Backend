@@ -20,18 +20,20 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
         private readonly IRepositoryAsync _repository;
         private readonly IMapper _mapper;
         private readonly IServicoSms _servicoSms;
+        private readonly ICurrentClinicaService _currentClinicaService;
 
-        public DocumentoService(IRepositoryAsync repository, IMapper mapper, IServicoSms servicoSms)
+        public DocumentoService(IRepositoryAsync repository, IMapper mapper, IServicoSms servicoSms, ICurrentClinicaService currentClinicaService)
         {
             _repository = repository;
             _mapper = mapper;
             _servicoSms = servicoSms;
+            _currentClinicaService = currentClinicaService;
         }
 
         // get full List
         public async Task<Response<IEnumerable<DocumentoDTO>>> GetDocumentoAsync(string keyword = "")
         {
-            DocumentoSearchList specification = new(keyword);
+            DocumentoSearchList specification = new(keyword, GetCurrentClinicaId());
             IEnumerable<DocumentoDTO> list = await _repository.GetListAsync<Documento, DocumentoDTO, Guid>(specification);
             return ResponseFactory.Success<IEnumerable<DocumentoDTO>>(list);
         }
@@ -39,7 +41,7 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
         // get lightweight list 
         public async Task<Response<IEnumerable<DocumentoLightDTO>>> GetDocumentoLightAsync(string keyword = "")
         {
-            DocumentoSearchList specification = new(keyword);
+            DocumentoSearchList specification = new(keyword, GetCurrentClinicaId());
             IEnumerable<DocumentoLightDTO> list = await _repository.GetListAsync<Documento, DocumentoLightDTO, Guid>(specification);
             return ResponseFactory.Success<IEnumerable<DocumentoLightDTO>>(list);
         }
@@ -53,7 +55,7 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
             }
 
             string dynamicOrder = filter.Sorting != null ? GSHelpers.GenerateOrderByString(filter) : "";
-            DocumentoSearchTable specification = new(filter.Filters ?? [], dynamicOrder);
+            DocumentoSearchTable specification = new(filter.Filters ?? [], GetCurrentClinicaId(), dynamicOrder);
             PaginatedResponse<DocumentoTableDTO> pagedResponse = await _repository.GetPaginatedResultsAsync<Documento, DocumentoTableDTO, Guid>(filter.PageNumber, filter.PageSize, specification);
             return pagedResponse;
         }
@@ -67,7 +69,7 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
 
                 string dynamicOrder = filter.GetOrderByString();
                 List<TableFilter> tableFilters = filter.Filters ?? new List<TableFilter>();
-                DocumentoSearchTable specification = new(tableFilters, dynamicOrder);
+                DocumentoSearchTable specification = new(tableFilters, GetCurrentClinicaId(), dynamicOrder);
                 IEnumerable<DocumentoTableDTO> list = await _repository.GetListAsync<Documento, DocumentoTableDTO, Guid>(specification);
                 return ResponseFactory.Success<IEnumerable<DocumentoTableDTO>>(list);
             }
@@ -82,8 +84,16 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
         {
             try
             {
-                DocumentoDTO dto = await _repository.GetByIdAsync<Documento, DocumentoDTO, Guid>(id);
-                return ResponseFactory.Success<DocumentoDTO>(dto);
+                if (!TryGetClinicaId(out Guid clinicaId, out Response<DocumentoDTO>? clinicaError))
+                    return clinicaError!;
+
+                IEnumerable<DocumentoDTO> results = await _repository.GetListAsync<Documento, DocumentoDTO, Guid>(
+                    new DocumentoByIdClinicaSpec(id, clinicaId));
+                DocumentoDTO? dto = results.FirstOrDefault();
+                if (dto == null)
+                    return ResponseFactory.Fail<DocumentoDTO>("Documento não encontrado");
+
+                return ResponseFactory.Success(dto);
             }
             catch (Exception ex)
             {
@@ -96,7 +106,10 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
         {
             try
             {
-                DocumentoMatchTipoNumero specification = new(tipoDocumentoId, numeroDocumento);
+                if (!TryGetClinicaId(out Guid clinicaId, out Response<DocumentoDTO>? clinicaError))
+                    return clinicaError!;
+
+                DocumentoMatchTipoNumero specification = new(tipoDocumentoId, numeroDocumento, clinicaId);
                 IEnumerable<DocumentoDTO> results = await _repository.GetListAsync<Documento, DocumentoDTO, Guid>(specification);
 
                 DocumentoDTO? documento = results.FirstOrDefault();
@@ -116,13 +129,16 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
         // create new Documento
         public async Task<Response<Guid>> CreateDocumentoAsync(CreateDocumentoRequest request)
         {
+            if (!TryGetClinicaId(out Guid clinicaId, out Response<Guid>? clinicaError))
+                return clinicaError!;
+
             // Verificar unicidade do número de documento por tipo
             if(!Guid.TryParse(request.TipoDocumentoId, out Guid tipoDocumentoId))
             {
                 return ResponseFactory.Fail<Guid>("TipoDocumentoId inválido");
             }
 
-            DocumentoMatchTipoNumero specification = new(tipoDocumentoId, request.NumeroDocumento);
+            DocumentoMatchTipoNumero specification = new(tipoDocumentoId, request.NumeroDocumento, clinicaId);
             bool DocumentoExists = await _repository.ExistsAsync<Documento, Guid>(specification);
             if (DocumentoExists)
             {
@@ -130,6 +146,7 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
             }
 
             Documento newDocumento = _mapper.Map(request, new Documento());
+            newDocumento.ClinicaId = clinicaId;
             newDocumento.TipoDocumentoId = tipoDocumentoId;
             
             // Converter IDs opcionais de string para Guid
@@ -166,7 +183,12 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
         // update Documento
         public async Task<Response<Guid>> UpdateDocumentoAsync(UpdateDocumentoRequest request, Guid id)
         {
-            Documento DocumentoInDb = await _repository.GetByIdAsync<Documento, Guid>(id);
+            if (!TryGetClinicaId(out Guid clinicaId, out Response<Guid>? clinicaError))
+                return clinicaError!;
+
+            Documento? DocumentoInDb = (
+                await _repository.GetListAsync<Documento, Guid>(new DocumentoByIdClinicaSpec(id, clinicaId))
+            ).FirstOrDefault();
             if (DocumentoInDb == null)
             {
                 return ResponseFactory.Fail<Guid>("Documento não encontrado");
@@ -180,7 +202,7 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
 
             if (DocumentoInDb.TipoDocumentoId != tipoDocumentoId || DocumentoInDb.NumeroDocumento != request.NumeroDocumento)
             {
-                DocumentoMatchTipoNumero specification = new(tipoDocumentoId, request.NumeroDocumento);
+                DocumentoMatchTipoNumero specification = new(tipoDocumentoId, request.NumeroDocumento, clinicaId);
                 bool TipoNumeroExists = await _repository.ExistsAsync<Documento, Guid>(specification);
                 if (TipoNumeroExists)
                 {
@@ -242,6 +264,13 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
         {
             try
             {
+                if (!TryGetClinicaId(out Guid clinicaId, out Response<Guid>? clinicaError))
+                    return clinicaError!;
+
+                bool exists = await _repository.ExistsAsync<Documento, Guid>(new DocumentoByIdClinicaSpec(id, clinicaId));
+                if (!exists)
+                    return ResponseFactory.Fail<Guid>("Documento não encontrado");
+
                 Documento? Documento = await _repository.RemoveByIdAsync<Documento, Guid>(id);
                 if (Documento == null)
                 {
@@ -261,6 +290,9 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
         {
           try
           {
+            if (!TryGetClinicaId(out Guid clinicaId, out Response<IEnumerable<Guid>>? clinicaError))
+                return clinicaError!;
+
             List<Guid> idsList = ids.ToList();
             List<Guid> successfullyDeletedIds = [];
             List<string> failedDeletions = [];
@@ -269,7 +301,9 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
             {
               try
               {
-                Documento? entity = await _repository.GetByIdAsync<Documento, Guid>(id);
+                Documento? entity = (
+                    await _repository.GetListAsync<Documento, Guid>(new DocumentoByIdClinicaSpec(id, clinicaId))
+                ).FirstOrDefault();
                 if(entity == null)
                 {
                   failedDeletions.Add($"Documento com ID {id} não encontrado.");
@@ -351,6 +385,26 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
             {
                 // Não bloquear o fluxo de criação de documento por falha de SMS.
             }
+        }
+
+        private Guid? GetCurrentClinicaId()
+        {
+            return Guid.TryParse(_currentClinicaService.ClinicaId, out Guid clinicaId) ? clinicaId : null;
+        }
+
+        private bool TryGetClinicaId<T>(out Guid clinicaId, out Response<T>? error)
+        {
+            clinicaId = Guid.Empty;
+            error = null;
+            Guid? current = GetCurrentClinicaId();
+            if (!current.HasValue || current.Value == Guid.Empty)
+            {
+                error = ResponseFactory.Fail<T>("Clínica atual inválida");
+                return false;
+            }
+
+            clinicaId = current.Value;
+            return true;
         }
     }
 }

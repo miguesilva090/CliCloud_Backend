@@ -5,8 +5,13 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService.Specificatio
 {
     public class DocumentoSearchList : Specification<Documento>
     {
-        public DocumentoSearchList(string? keyword = "")
+        public DocumentoSearchList(string? keyword = "", Guid? clinicaId = null)
         {
+            if (clinicaId.HasValue)
+            {
+                _ = Query.Where(x => x.ClinicaId == clinicaId.Value);
+            }
+
             // filters
             if (!string.IsNullOrWhiteSpace(keyword))
             {

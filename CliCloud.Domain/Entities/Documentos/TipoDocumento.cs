@@ -3,12 +3,16 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using CliCloud.Domain.Entities.Common;
+using CliCloud.Domain.Entities.Core;
 
 namespace CliCloud.Domain.Entities.Documentos
 {
   [Table("TipoDocumento", Schema = "Documentos")]
   public class TipoDocumento : AuditableEntityWithSoftDelete
   {
+    public Guid ClinicaId { get; set; }
+    public Clinica? Clinica { get; set; }
+
     [Required]
     [StringLength(50)]
     public string Descricao { get; set; } = string.Empty;

@@ -8,12 +8,17 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService.Specificatio
 {
     public class DocumentoSearchTable : Specification<Documento>
     {
-        public DocumentoSearchTable(List<TableFilter> filters, string? dynamicOrder = "")
+        public DocumentoSearchTable(List<TableFilter> filters, Guid? clinicaId = null, string? dynamicOrder = "")
         {
           _ = Query.Include(x => x.TipoDocumento)
             .Include(x => x.Utente)
             .Include(x => x.Organismo)
             .Include(x => x.Funcionario);
+
+            if (clinicaId.HasValue)
+            {
+              _ = Query.Where(x => x.ClinicaId == clinicaId.Value);
+            }
 
             if(filters != null && filters.Count != 0)
             {
@@ -39,7 +44,7 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService.Specificatio
                       _ = Query.Where(x => x.NomeCliente != null && x.NomeCliente.Contains(filter.Value));
                     }
                     break;
-                  case "numeroContribuinteCliente":
+                  case "numerocontribuintecliente":
                     if(!string.IsNullOrWhiteSpace(filter.Value))
                     {
                       _ = Query.Where(x => x.NumeroContribuinteCliente != null && x.NumeroContribuinteCliente.Contains(filter.Value));

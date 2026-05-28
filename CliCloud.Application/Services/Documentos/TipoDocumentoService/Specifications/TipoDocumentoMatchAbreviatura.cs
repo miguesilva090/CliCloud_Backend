@@ -5,9 +5,9 @@ namespace CliCloud.Application.Services.Documentos.TipoDocumentoService.Specific
 {
     public class TipoDocumentoMatchAbreviatura : Specification<TipoDocumento>
     {
-        public TipoDocumentoMatchAbreviatura(string abreviatura)
+        public TipoDocumentoMatchAbreviatura(string abreviatura, Guid clinicaId = default)
         {
-            _ = Query.Where(x => x.Abreviatura == abreviatura);
+            _ = Query.Where(x => x.Abreviatura == abreviatura && x.ClinicaId == clinicaId);
         }
     }
 }

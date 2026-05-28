@@ -5,10 +5,10 @@ namespace CliCloud.Application.Services.Documentos.DocumentoEmissaoService.Speci
 
 public sealed class DocumentoByIdWithLinhasSpec : Specification<Documento>
 {
-    public DocumentoByIdWithLinhasSpec(Guid id)
+    public DocumentoByIdWithLinhasSpec(Guid id, Guid clinicaId)
     {
         _ = Query
-            .Where(x => x.Id == id && x.DeletedOn == null)
+            .Where(x => x.Id == id && x.ClinicaId == clinicaId && x.DeletedOn == null)
             .Include(x => x.Linhas);
     }
 }

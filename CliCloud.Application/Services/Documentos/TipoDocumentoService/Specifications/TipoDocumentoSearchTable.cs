@@ -7,8 +7,10 @@ namespace CliCloud.Application.Services.Documentos.TipoDocumentoService.Specific
 {
     public class TipoDocumentoSearchTable : Specification<TipoDocumento>
     {
-        public TipoDocumentoSearchTable(List<TableFilter> filters, string? dynamicOrder = "")
+        public TipoDocumentoSearchTable(List<TableFilter> filters, Guid clinicaId = default, string? dynamicOrder = "")
         {
+            _ = Query.Where(x => x.ClinicaId == clinicaId);
+
             if(filters != null && filters.Count != 0)
             {
               foreach(TableFilter filter in filters)
