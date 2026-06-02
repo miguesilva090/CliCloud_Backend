@@ -156,13 +156,20 @@ public async Task<Response<DocumentoEmissaoDTO>> EmitirDocumentoAsync(EmitirDocu
                             DescontoTipo1 = linhaReq.DescontoTipo1,
                             DescontoTipo2 = linhaReq.DescontoTipo2,
                             DescontoTipo3 = linhaReq.DescontoTipo3,
-                            TotalLinha = calc.TotalLinhaSemIva,
+                            TotalLinha = DocumentoEmissaoCalculoHelper.ResolverTotalLinhaPersistencia(
+                                calc,
+                                regraFaturacao
+                            ),
                             TaxaIvaId = linhaReq.TaxaIvaId,
                             MotivoIsencaoId = request.IsentoIva
                                 ? (linhaReq.MotivoIsencaoId ?? request.MotivoIsencaoId)
                                 : null,
-                            TaxaIvaPercentagem = linhaReq.TaxaIvaPercentagem,
-                            ValorImposto = calc.ValorIva,
+                            TaxaIvaPercentagem = request.IsentoIva ? 0m : linhaReq.TaxaIvaPercentagem,
+                            ValorImposto = Math.Round(
+                                calc.ValorIva,
+                                2,
+                                MidpointRounding.AwayFromZero
+                            ),
                             ModuloOrigemLinha = moduloOrigem
                         };
                     }).ToList();
@@ -181,7 +188,8 @@ public async Task<Response<DocumentoEmissaoDTO>> EmitirDocumentoAsync(EmitirDocu
                         request.RetencaoAtiva,
                         request.RetencaoTaxa,
                         request.RetencaoValor,
-                        totalDocumentoBase
+                        totalDocumentoBase,
+                        outros
                     );
                     totaisDoc = DocumentoEmissaoCalculoHelper.CalcularTotaisDocumento(
                         linhasCalc,
@@ -780,13 +788,12 @@ public async Task<Response<DocumentoEmissaoDTO>> EmitirDocumentoAsync(EmitirDocu
                         Quantidade = l.Quantidade,
                         PrecoUnitario = l.PrecoUnitario,
                         PercentagemDesconto = l.PercentagemDesconto,
-                        ValorDesconto = l.ValorDesconto,
                         DescontoTipo1 = l.DescontoTipo1,
                         DescontoTipo2 = l.DescontoTipo2,
                         DescontoTipo3 = l.DescontoTipo3,
                         TaxaIvaId = l.TaxaIvaId,
                         MotivoIsencaoId = l.MotivoIsencaoId,
-                        TaxaIvaPercentagem = l.TaxaIvaPercentagem,
+                        TaxaIvaPercentagem = documentoOrigem.IsentoIva ? 0m : l.TaxaIvaPercentagem,
                     }).ToList();
             }
             else
@@ -815,9 +822,15 @@ public async Task<Response<DocumentoEmissaoDTO>> EmitirDocumentoAsync(EmitirDocu
                             Descricao = $"NC - {origem.Descricao}",
                             Quantidade = qtd,
                             PrecoUnitario = l.PrecoUnitario ?? origem.PrecoUnitario,
+                            PercentagemDesconto = origem.PercentagemDesconto,
+                            DescontoTipo1 = origem.DescontoTipo1,
+                            DescontoTipo2 = origem.DescontoTipo2,
+                            DescontoTipo3 = origem.DescontoTipo3,
                             TaxaIvaId = origem.TaxaIvaId,
                             MotivoIsencaoId = origem.MotivoIsencaoId,
-                            TaxaIvaPercentagem = l.TaxaIvaPercentagem ?? origem.TaxaIvaPercentagem
+                            TaxaIvaPercentagem = documentoOrigem.IsentoIva
+                                ? 0m
+                                : (l.TaxaIvaPercentagem ?? origem.TaxaIvaPercentagem)
                         };
                     })
                     .ToList();
@@ -852,6 +865,9 @@ public async Task<Response<DocumentoEmissaoDTO>> EmitirDocumentoAsync(EmitirDocu
                 Anulado = false,
                 IsentoIva = documentoOrigem.IsentoIva,
                 IvaCaixa = documentoOrigem.IvaCaixa,
+                DescontoCliente = documentoOrigem.DescontoCliente,
+                DescontoPagamento = documentoOrigem.DescontoPagamento,
+                MotivoIsencaoId = documentoOrigem.MotivoIsencaoId,
 
                 ModuloOrigem = documentoOrigem.ModuloOrigem,
                 Linhas = linhasNc

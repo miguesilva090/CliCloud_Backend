@@ -3,7 +3,7 @@ using CliCloud.Application.Services.Documentos.DocumentoEmissaoService.DTOs;
 namespace CliCloud.Application.Services.Documentos.DocumentoEmissaoService;
 
 /// <summary>
-/// Cálculos alinhados a <c>TfaturaEdt.js</c> (calcularTaxaDesconto, recalculaLinha, calculaTotais).
+/// Cálculos alinhados a <c>TfaturaEdt.js</c> (calcularTaxaDesconto, calculosLinha, calculaTotais).
 /// </summary>
 internal static class DocumentoEmissaoCalculoHelper
 {
@@ -42,6 +42,10 @@ internal static class DocumentoEmissaoCalculoHelper
     IReadOnlyList<ResumoIvaLinha> ResumoIva
   );
 
+  /// <summary>
+  /// Percentagem efetiva de desconto (legado <c>calcularTaxaDesconto</c>).
+  /// Prioridade: desconto global → composto (cliente × pagamento × tipo1–3).
+  /// </summary>
   public static decimal CalcularPercentagemDescontoEfectiva(
     EmitirDocumentoLinhaRequest linha,
     decimal? descontoGlobalPct,
@@ -52,11 +56,6 @@ internal static class DocumentoEmissaoCalculoHelper
     if (descontoGlobalPct is > 0)
     {
       return Math.Round(descontoGlobalPct.Value, 2, MidpointRounding.AwayFromZero);
-    }
-
-    if (linha.PercentagemDesconto is > 0)
-    {
-      return Math.Round(linha.PercentagemDesconto.Value, 2, MidpointRounding.AwayFromZero);
     }
 
     decimal d1 = linha.DescontoTipo1 ?? 0m;
@@ -72,6 +71,17 @@ internal static class DocumentoEmissaoCalculoHelper
 
     return Math.Round((1m - factor) * 100m, 2, MidpointRounding.AwayFromZero);
   }
+
+  /// <summary>
+  /// <c>TotalLinha</c> persistido (legado grava <c>subTotal</c> da linha).
+  /// </summary>
+  public static decimal ResolverTotalLinhaPersistencia(
+    LinhaCalculoResult calc,
+    int regraFaturacao
+  ) =>
+    regraFaturacao == RegraPrecosComIvaIncluido
+      ? calc.SubTotalLinha
+      : calc.TotalLinhaSemIva;
 
   public static LinhaCalculoResult CalcularLinha(
     EmitirDocumentoLinhaRequest linha,
@@ -92,42 +102,33 @@ internal static class DocumentoEmissaoCalculoHelper
 
     decimal totalLinhaSemIva = precoUn * linha.Quantidade;
 
-    decimal descontoValor;
-    decimal pctEfectiva;
+    decimal pctEfectiva = CalcularPercentagemDescontoEfectiva(
+      linha,
+      descontoGlobalPct,
+      descontoClientePct,
+      descontoPagamentoPct
+    );
 
-    if (linha.ValorDesconto is > 0)
-    {
-      descontoValor = Math.Round(linha.ValorDesconto.Value, 2, MidpointRounding.AwayFromZero);
-      pctEfectiva = totalLinhaSemIva > 0
-        ? Math.Round(descontoValor / totalLinhaSemIva * 100m, 2, MidpointRounding.AwayFromZero)
-        : 0m;
-    }
-    else
-    {
-      pctEfectiva = CalcularPercentagemDescontoEfectiva(
-        linha,
-        descontoGlobalPct,
-        descontoClientePct,
-        descontoPagamentoPct
-      );
-      descontoValor = Math.Round(
-        totalLinhaSemIva * (pctEfectiva / 100m),
-        2,
-        MidpointRounding.AwayFromZero
-      );
-    }
-
-    decimal totalSemDesconto = totalLinhaSemIva - descontoValor;
-    decimal valorIva = Math.Round(
-      totalSemDesconto * (taxa / 100m),
+    // Legado: valorDesconto = totalLinhaSemIva * descontoPerc * 0.01 (arredonda só o desconto)
+    decimal descontoValor = Math.Round(
+      totalLinhaSemIva * (pctEfectiva / 100m),
       2,
       MidpointRounding.AwayFromZero
     );
 
-    decimal subTotal = totalSemDesconto;
+    decimal totalSemDesconto = totalLinhaSemIva - descontoValor;
+
+    // Legado: valorIva sem arredondamento intermédio (soma em calculaTotais)
+    decimal valorIva = totalSemDesconto * (taxa / 100m);
+
+    decimal subTotalLinha = Math.Round(totalSemDesconto, 2, MidpointRounding.AwayFromZero);
     if (regraFaturacao == RegraPrecosComIvaIncluido)
     {
-      subTotal = Math.Round(totalSemDesconto + valorIva, 2, MidpointRounding.AwayFromZero);
+      subTotalLinha = Math.Round(
+        totalSemDesconto + valorIva,
+        2,
+        MidpointRounding.AwayFromZero
+      );
     }
 
     return new LinhaCalculoResult(
@@ -136,7 +137,7 @@ internal static class DocumentoEmissaoCalculoHelper
       descontoValor,
       totalSemDesconto,
       valorIva,
-      subTotal,
+      subTotalLinha,
       pctEfectiva
     );
   }
@@ -174,9 +175,8 @@ internal static class DocumentoEmissaoCalculoHelper
         else
         {
           totalIvaGrupo += linha.ValorIva;
-          decimal incidenciaLinha = linha.SubTotalLinha - linha.ValorIva;
-          valorIncidencia += incidenciaLinha;
-          totalMercadoria += incidenciaLinha + linha.DescontoValor;
+          valorIncidencia += linha.ValorIncidencia;
+          totalMercadoria += linha.ValorIncidencia + linha.DescontoValor;
         }
       }
 
@@ -219,6 +219,7 @@ internal static class DocumentoEmissaoCalculoHelper
   {
     decimal descontoCliente = request.DescontoCliente ?? 0m;
     decimal descontoPagamento = request.DescontoPagamento ?? 0m;
+    decimal outros = request.Outros ?? 0m;
     List<LinhaCalculoResult> linhas = request
       .Linhas.Select(l =>
         CalcularLinha(
@@ -235,7 +236,7 @@ internal static class DocumentoEmissaoCalculoHelper
     DocumentoTotaisCalculo semRetencao = CalcularTotaisDocumento(
       linhas,
       regraFaturacao,
-      request.Outros ?? 0m,
+      outros,
       0m
     );
 
@@ -243,35 +244,44 @@ internal static class DocumentoEmissaoCalculoHelper
       request.RetencaoAtiva,
       request.RetencaoTaxa,
       request.RetencaoValor,
-      semRetencao.Total
+      semRetencao.Total,
+      outros
     );
 
-    return CalcularTotaisDocumento(
-      linhas,
-      regraFaturacao,
-      request.Outros ?? 0m,
-      retencao
-    ).APagar;
+    return CalcularTotaisDocumento(linhas, regraFaturacao, outros, retencao).APagar;
   }
 
+  /// <summary>
+  /// Legado: retenção sobre <c>total + acerto</c> (<c>calculaTotais</c>).
+  /// </summary>
   public static decimal ResolverRetencaoValor(
     bool retencaoAtiva,
     decimal? retencaoTaxa,
     decimal? retencaoValor,
-    decimal totalDocumentoBase
+    decimal totalDocumento,
+    decimal acerto
   )
   {
-    if (!retencaoAtiva) return 0m;
+    if (!retencaoAtiva)
+    {
+      return 0m;
+    }
 
     if (retencaoValor is > 0m)
+    {
       return Math.Round(retencaoValor.Value, 2, MidpointRounding.AwayFromZero);
+    }
+
+    decimal baseRetencao = totalDocumento + acerto;
 
     if (retencaoTaxa is > 0m)
+    {
       return Math.Round(
-        totalDocumentoBase * (retencaoTaxa.Value / 100m),
+        baseRetencao * (retencaoTaxa.Value / 100m),
         2,
         MidpointRounding.AwayFromZero
       );
+    }
 
     return 0m;
   }
