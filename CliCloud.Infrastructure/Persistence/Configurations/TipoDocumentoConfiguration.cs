@@ -15,9 +15,11 @@ namespace CliCloud.Infrastructure.Persistence.Configurations
         .HasForeignKey(t => t.ClinicaId)
         .OnDelete(DeleteBehavior.Restrict);
 
-      // Índice único por clínica na Abreviatura
-      builder.HasIndex(t => new { t.ClinicaId, t.Abreviatura })
+      // Série fiscal única por clínica (legado: unicidade em NumeroSerie por empresa)
+      builder.HasIndex(t => new { t.ClinicaId, t.NumeroSerie })
         .IsUnique();
+
+      builder.HasIndex(t => new { t.ClinicaId, t.Abreviatura });
 
       builder.HasIndex(t => t.ClinicaId);
     }

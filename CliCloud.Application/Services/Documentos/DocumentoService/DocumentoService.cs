@@ -7,11 +7,16 @@ using CliCloud.Domain.Entities.Documentos;
 using CliCloud.Application.Services.Documentos.DocumentoService.DTOs;
 using CliCloud.Application.Services.Documentos.DocumentoService.Filters;
 using CliCloud.Application.Services.Documentos.DocumentoService.Specifications;
+using CliCloud.Application.Services.Consultas.ConsultaService.Specifications;
+using CliCloud.Application.Services.Consultas.AdmissaoAdministrativoService.Specifications;
 using CliCloud.Application.Services.Core.ClinicaService.Specifications;
 using CliCloud.Application.Services.Core.SmsService;
 using CliCloud.Application.Services.Core.SmsService.DTOs;
+using CliCloud.Application.Common.Mailer;
 using CliCloud.Domain.Entities.Core;
 using CliCloud.Domain.Entities.Utility;
+using CliCloud.Domain.Enums;
+using System.Text;
 
 namespace CliCloud.Application.Services.Documentos.DocumentoService
 {
@@ -21,13 +26,15 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
         private readonly IMapper _mapper;
         private readonly IServicoSms _servicoSms;
         private readonly ICurrentClinicaService _currentClinicaService;
+        private readonly IMailService _mailService;
 
-        public DocumentoService(IRepositoryAsync repository, IMapper mapper, IServicoSms servicoSms, ICurrentClinicaService currentClinicaService)
+        public DocumentoService(IRepositoryAsync repository, IMapper mapper, IServicoSms servicoSms, ICurrentClinicaService currentClinicaService, IMailService mailService)
         {
             _repository = repository;
             _mapper = mapper;
             _servicoSms = servicoSms;
             _currentClinicaService = currentClinicaService;
+            _mailService = mailService;
         }
 
         // get full List
@@ -348,6 +355,394 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
           }
         }
 
+        public async Task<Response<DocumentoPrintDTO>> GetDocumentoPrintAsync(Guid id)
+        {
+            try
+            {
+                if (!TryGetClinicaId(out Guid clinicaId, out Response<DocumentoPrintDTO>? clinicaError))
+                    return clinicaError!;
+
+                Documento? documento = (
+                    await _repository.GetListAsync<Documento, Guid>(new DocumentoByIdClinicaSpec(id, clinicaId))
+                ).FirstOrDefault();
+
+                if (documento == null)
+                    return ResponseFactory.Fail<DocumentoPrintDTO>("Documento não encontrado");
+
+                if (documento.Anulado || !documento.EstaEmitido)
+                    return ResponseFactory.Fail<DocumentoPrintDTO>("Documento inválido para impressão/reimpressão");
+
+                DocumentoPrintDTO dto = new()
+                {
+                    Template = ResolvePrintTemplate(documento),
+                    IsAnulado = documento.Anulado,
+                    IsEmitido = documento.EstaEmitido,
+                    TipoSerie = documento.TipoSerie ?? string.Empty,
+                    NumeroExibicao = documento.NumeroExibicao ?? $"{documento.NumeroDocumento}"
+                };
+
+                return ResponseFactory.Success(dto);
+            }
+            catch (Exception ex)
+            {
+                return ResponseFactory.Fail<DocumentoPrintDTO>(ex.Message);
+            }
+        }
+
+        public async Task<Response<DocumentoPrintDTO>> GetDocumentoPrintOriginalAsync(Guid id)
+        {
+            try
+            {
+                if (!TryGetClinicaId(out Guid clinicaId, out Response<DocumentoPrintDTO>? clinicaError))
+                    return clinicaError!;
+
+                Documento? documento = (
+                    await _repository.GetListAsync<Documento, Guid>(new DocumentoByIdClinicaSpec(id, clinicaId))
+                ).FirstOrDefault();
+
+                if (documento == null)
+                    return ResponseFactory.Fail<DocumentoPrintDTO>("Documento não encontrado");
+
+                if (documento.Anulado || !documento.EstaEmitido)
+                    return ResponseFactory.Fail<DocumentoPrintDTO>("Documento inválido para impressão original");
+
+                if (!string.Equals(documento.TipoSerie, "N", StringComparison.OrdinalIgnoreCase))
+                    return ResponseFactory.Fail<DocumentoPrintDTO>("Impressão original só disponível para série normal");
+
+                // Paridade com legado: registar evento de reimpressão original.
+                // Nota: sem tabela dedicada neste momento, guardamos no campo observações.
+                string stamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                string linhaHistorico = $"[REIMP_ORIGINAL] {stamp}";
+                documento.Observacoes = string.IsNullOrWhiteSpace(documento.Observacoes)
+                    ? linhaHistorico
+                    : $"{documento.Observacoes}{Environment.NewLine}{linhaHistorico}";
+                _ = await _repository.UpdateAsync<Documento, Guid>(documento);
+                _ = await _repository.SaveChangesAsync();
+
+                DocumentoPrintDTO dto = new()
+                {
+                    Template = ResolvePrintTemplate(documento),
+                    IsAnulado = documento.Anulado,
+                    IsEmitido = documento.EstaEmitido,
+                    TipoSerie = documento.TipoSerie ?? string.Empty,
+                    NumeroExibicao = documento.NumeroExibicao ?? $"{documento.NumeroDocumento}"
+                };
+
+                return ResponseFactory.Success(dto);
+            }
+            catch (Exception ex)
+            {
+                return ResponseFactory.Fail<DocumentoPrintDTO>(ex.Message);
+            }
+        }
+
+        public async Task<Response<bool>> EnviarDocumentoPorEmailAsync(Guid id, EnviarDocumentoEmailRequest request)
+        {
+            try
+            {
+                if (!TryGetClinicaId(out Guid clinicaId, out Response<bool>? clinicaError))
+                    return clinicaError!;
+
+                Documento? documento = (
+                    await _repository.GetListAsync<Documento, Guid>(new DocumentoByIdClinicaSpec(id, clinicaId))
+                ).FirstOrDefault();
+
+                if (documento == null)
+                    return ResponseFactory.Fail<bool>("Documento não encontrado");
+
+                if (documento.Anulado || !documento.EstaEmitido)
+                    return ResponseFactory.Fail<bool>("Documento inválido para envio por email");
+
+                string? emailDestino = ResolveEmailDestino(documento, request.DestinatarioOverride);
+                if (string.IsNullOrWhiteSpace(emailDestino))
+                    return ResponseFactory.Fail<bool>("Sem email de destino para este documento");
+
+                string numeroExibicao = documento.NumeroExibicao ?? $"{documento.NumeroDocumento}";
+                string assunto = !string.IsNullOrWhiteSpace(request.AssuntoOverride)
+                    ? request.AssuntoOverride.Trim()
+                    : $"Documento {numeroExibicao}";
+
+                string corpo = !string.IsNullOrWhiteSpace(request.MensagemOverride)
+                    ? request.MensagemOverride.Trim()
+                    : BuildDefaultEmailBody(documento);
+
+                await _mailService.SendAsync(new MailRequest
+                {
+                    To = emailDestino,
+                    Subject = assunto,
+                    Body = corpo
+                });
+
+                return ResponseFactory.Success(true);
+            }
+            catch (Exception ex)
+            {
+                return ResponseFactory.Fail<bool>(ex.Message);
+            }
+        }
+
+        public async Task<Response<DocumentoDetalhesAdmissoesDTO>> GetDocumentoDetalhesAdmissoesAsync(Guid id)
+        {
+            try
+            {
+                if (!TryGetClinicaId(out Guid clinicaId, out Response<DocumentoDetalhesAdmissoesDTO>? clinicaError))
+                    return clinicaError!;
+
+                Documento? documento = (
+                    await _repository.GetListAsync<Documento, Guid>(new DocumentoByIdClinicaSpec(id, clinicaId))
+                ).FirstOrDefault();
+
+                if (documento == null)
+                    return ResponseFactory.Fail<DocumentoDetalhesAdmissoesDTO>("Documento não encontrado");
+
+                DocumentoDetalhesAdmissoesDTO dto = new()
+                {
+                    DocumentoId = documento.Id
+                };
+
+                if (documento.OrigemClinica != null)
+                {
+                    dto.Itens.Add(new DocumentoAdmissaoDetalheDTO
+                    {
+                        AdmissaoId = documento.OrigemClinica.AdmissaoId,
+                        ConsultaId = documento.OrigemClinica.ConsultaId,
+                        Origem = "DocumentoOrigemClinica",
+                        Descricao =
+                            $"Origem clínica: admissão {documento.OrigemClinica.AdmissaoId?.ToString() ?? "-"} / consulta {documento.OrigemClinica.ConsultaId?.ToString() ?? "-"}"
+                    });
+                }
+
+                List<Domain.Entities.Consultas.ConsultaFaturacao> faturacoes = (
+                    await _repository.GetListAsync<Domain.Entities.Consultas.ConsultaFaturacao, Guid>(
+                        new ConsultaFaturacaoByDocumentoIdSpec(documento.Id))
+                ).ToList();
+
+                foreach (var fat in faturacoes)
+                {
+                    Guid? admissaoId = null;
+                    if (fat.ConsultaId.HasValue)
+                    {
+                        var admissao = (
+                            await _repository.GetListAsync<Domain.Entities.Consultas.Admissao, Guid>(
+                                new AdmissaoByConsultaIdSpec(fat.ConsultaId.Value))
+                        ).FirstOrDefault();
+                        admissaoId = admissao?.Id;
+                    }
+
+                    dto.Itens.Add(new DocumentoAdmissaoDetalheDTO
+                    {
+                        AdmissaoId = admissaoId,
+                        ConsultaId = fat.ConsultaId,
+                        Origem = "ConsultaFaturacao",
+                        Descricao =
+                            $"Consulta faturação: admissão {admissaoId?.ToString() ?? "-"} / consulta {fat.ConsultaId?.ToString() ?? "-"}"
+                    });
+                }
+
+                return ResponseFactory.Success(dto);
+            }
+            catch (Exception ex)
+            {
+                return ResponseFactory.Fail<DocumentoDetalhesAdmissoesDTO>(ex.Message);
+            }
+        }
+
+        public async Task<Response<DocumentoLiquidacaoContextoDTO>> GetDocumentoLiquidacaoContextoAsync(Guid id)
+        {
+            try
+            {
+                if (!TryGetClinicaId(out Guid clinicaId, out Response<DocumentoLiquidacaoContextoDTO>? clinicaError))
+                    return clinicaError!;
+
+                Documento? documento = (
+                    await _repository.GetListAsync<Documento, Guid>(new DocumentoByIdClinicaSpec(id, clinicaId))
+                ).FirstOrDefault();
+
+                if (documento == null)
+                    return ResponseFactory.Fail<DocumentoLiquidacaoContextoDTO>("Documento não encontrado");
+
+                if (documento.Anulado)
+                    return ResponseFactory.Fail<DocumentoLiquidacaoContextoDTO>("Documento anulado não pode ser liquidado");
+
+                if (!documento.EstaEmitido)
+                    return ResponseFactory.Fail<DocumentoLiquidacaoContextoDTO>("Documento ainda não emitido");
+
+                if (documento.Liquidado)
+                    return ResponseFactory.Fail<DocumentoLiquidacaoContextoDTO>("Documento já liquidado");
+
+                DocumentoLiquidacaoContextoDTO dto = new()
+                {
+                    DocumentoId = documento.Id,
+                    JaLiquidado = documento.Liquidado,
+                    IsUtente = documento.UtenteId.HasValue,
+                    UtenteId = documento.UtenteId,
+                    OrganismoId = documento.OrganismoId,
+                    TotalLiquido = documento.TotalLiquido ?? 0m,
+                    NumeroExibicao = documento.NumeroExibicao ?? $"{documento.NumeroDocumento}"
+                };
+
+                return ResponseFactory.Success(dto);
+            }
+            catch (Exception ex)
+            {
+                return ResponseFactory.Fail<DocumentoLiquidacaoContextoDTO>(ex.Message);
+            }
+        }
+
+        public async Task<Response<Guid>> LiquidarDocumentoAsync(Guid id)
+        {
+            try
+            {
+                if (!TryGetClinicaId(out Guid clinicaId, out Response<Guid>? clinicaError))
+                    return clinicaError!;
+
+                Documento? documento = (
+                    await _repository.GetListAsync<Documento, Guid>(new DocumentoByIdClinicaSpec(id, clinicaId))
+                ).FirstOrDefault();
+
+                if (documento == null)
+                    return ResponseFactory.Fail<Guid>("Documento não encontrado");
+
+                if (documento.Anulado)
+                    return ResponseFactory.Fail<Guid>("Documento anulado não pode ser liquidado");
+
+                if (!documento.EstaEmitido)
+                    return ResponseFactory.Fail<Guid>("Documento ainda não emitido");
+
+                if (documento.Liquidado)
+                    return ResponseFactory.Fail<Guid>("Documento já liquidado");
+
+                TipoDocumento? tipoRecibo = (
+                    await _repository.GetListAsync<TipoDocumento, Guid>(new TipoDocumentoReciboByClinicaSpec(clinicaId))
+                ).FirstOrDefault();
+                if (tipoRecibo == null)
+                    return ResponseFactory.Fail<Guid>("Tipo de documento de recibo não configurado na clínica");
+
+                Documento? ultimoRecibo = (
+                    await _repository.GetListAsync<Documento, Guid>(
+                        new DocumentoUltimoNumeroByTipoAnoSpec(clinicaId, tipoRecibo.Id, documento.AnoFiscal)
+                    )
+                ).FirstOrDefault();
+
+                int numeroRecibo = (ultimoRecibo?.NumeroDocumento ?? 0) + 1;
+                string numeroExibicao = string.IsNullOrWhiteSpace(tipoRecibo.Abreviatura)
+                    ? $"{numeroRecibo}"
+                    : $"{tipoRecibo.Abreviatura}-{numeroRecibo}";
+
+                Recibo recibo = new()
+                {
+                    ClinicaId = documento.ClinicaId,
+                    AnoFiscal = documento.AnoFiscal,
+                    TipoDocumentoId = tipoRecibo.Id,
+                    NumeroDocumento = numeroRecibo,
+                    NumeroExibicao = numeroExibicao,
+                    Data = DateTime.Today,
+                    DataSistemaRegisto = DateTime.Now,
+
+                    UtenteId = documento.UtenteId,
+                    OrganismoId = documento.OrganismoId,
+                    FuncionarioId = documento.FuncionarioId,
+                    NomeCliente = documento.NomeCliente,
+                    MoradaCliente = documento.MoradaCliente,
+                    CodigoPostalId = documento.CodigoPostalId,
+                    LocalidadeCliente = documento.LocalidadeCliente,
+                    NumeroContribuinteCliente = documento.NumeroContribuinteCliente,
+
+                    TotalBruto = documento.TotalBruto,
+                    TotalDocumento = documento.TotalDocumento,
+                    TotalIva = documento.TotalIva,
+                    TotalDesconto = documento.TotalDesconto,
+                    TotalLiquido = documento.TotalLiquido,
+                    DescontoCliente = documento.DescontoCliente,
+                    DescontoPagamento = documento.DescontoPagamento,
+                    Outros = documento.Outros,
+                    PrecoUnitarioMercadorias = documento.PrecoUnitarioMercadorias,
+
+                    CondicaoPagamento = documento.CondicaoPagamento,
+                    TipoModoPagamento = documento.TipoModoPagamento,
+                    MoedaId = documento.MoedaId,
+                    TaxaCambio = documento.TaxaCambio,
+                    TipoCambio = documento.TipoCambio,
+                    DataVencimentoPagamento = documento.DataVencimentoPagamento,
+                    BancoId = documento.BancoId,
+
+                    EstadoDocumento = EstadoDocumento.Emitido,
+                    Estado = (int)EstadoDocumento.Emitido,
+                    Liquidado = true,
+                    Rectificado = false,
+                    Exportado = false,
+                    IsentoIva = documento.IsentoIva,
+                    Anulado = false,
+                    IvaCaixa = documento.IvaCaixa,
+                    Emitido = 1,
+                    EstaEmitido = true,
+                    TipoSerie = "N",
+                    ModuloOrigem = documento.ModuloOrigem,
+                    Origem = documento.Origem,
+
+                    DocumentoOrigemId = documento.Id,
+                    IdentificadorUnicoDocumentoOrigem = documento.NumeroExibicao,
+                    DataDocumentoOrigem = documento.Data,
+                    HashDocumentoOrigem = documento.GlobalHash,
+                    Observacoes = $"Liquidação automática do documento {documento.NumeroExibicao ?? documento.NumeroDocumento.ToString()}"
+                };
+
+                Recibo createdRecibo = await _repository.CreateAsync<Recibo, Guid>(recibo);
+                documento.Liquidado = true;
+                _ = await _repository.UpdateAsync<Documento, Guid>(documento);
+                _ = await _repository.SaveChangesAsync();
+
+                return ResponseFactory.Success(createdRecibo.Id);
+            }
+            catch (Exception ex)
+            {
+                return ResponseFactory.Fail<Guid>(ex.Message);
+            }
+        }
+
+        public async Task<Response<Guid>> AtualizarValidacaoTransporteAsync(
+            Guid id,
+            AtualizarValidacaoTransporteRequest request)
+        {
+            try
+            {
+                if (!TryGetClinicaId(out Guid clinicaId, out Response<Guid>? clinicaError))
+                    return clinicaError!;
+
+                Documento? documento = (
+                    await _repository.GetListAsync<Documento, Guid>(new DocumentoByIdClinicaSpec(id, clinicaId))
+                ).FirstOrDefault();
+
+                if (documento == null)
+                    return ResponseFactory.Fail<Guid>("Documento não encontrado");
+
+                if (documento.Anulado)
+                    return ResponseFactory.Fail<Guid>("Documento anulado não permite validação de transporte");
+
+                string abrev = documento.TipoDocumento?.Abreviatura?.Trim().ToUpperInvariant() ?? string.Empty;
+                if (abrev != "GT" && abrev != "GR")
+                    return ResponseFactory.Fail<Guid>("Validação de transporte só disponível para GT/GR");
+
+                if (string.IsNullOrWhiteSpace(request.CodigoValidacaoTransporte))
+                    return ResponseFactory.Fail<Guid>("Código de validação de transporte é obrigatório");
+
+                documento.CodigoValidacaoTransporte = request.CodigoValidacaoTransporte.Trim();
+                documento.DataTransporte = request.DataTransporte ?? documento.DataTransporte ?? DateTime.Today;
+                documento.HoraTransporte = string.IsNullOrWhiteSpace(request.HoraTransporte)
+                    ? documento.HoraTransporte
+                    : request.HoraTransporte.Trim();
+
+                _ = await _repository.UpdateAsync<Documento, Guid>(documento);
+                _ = await _repository.SaveChangesAsync();
+
+                return ResponseFactory.Success(documento.Id);
+            }
+            catch (Exception ex)
+            {
+                return ResponseFactory.Fail<Guid>(ex.Message);
+            }
+        }
+
         private async Task TentarDispararSmsFaturacaoAsync(Documento documento)
         {
             try
@@ -390,6 +785,45 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
         private Guid? GetCurrentClinicaId()
         {
             return Guid.TryParse(_currentClinicaService.ClinicaId, out Guid clinicaId) ? clinicaId : null;
+        }
+
+        private static string ResolvePrintTemplate(Documento documento)
+        {
+            if (!string.IsNullOrWhiteSpace(documento.TipoDocumento?.ReportPersonalizado))
+                return documento.TipoDocumento.ReportPersonalizado!.Trim();
+
+            return "TFatura";
+        }
+
+        private static string? ResolveEmailDestino(Documento documento, string? destinatarioOverride)
+        {
+            if (!string.IsNullOrWhiteSpace(destinatarioOverride))
+                return destinatarioOverride.Trim();
+
+            if (!string.IsNullOrWhiteSpace(documento.Utente?.Email))
+                return documento.Utente.Email!.Trim();
+
+            if (!string.IsNullOrWhiteSpace(documento.Organismo?.Email))
+                return documento.Organismo.Email!.Trim();
+
+            return null;
+        }
+
+        private static string BuildDefaultEmailBody(Documento documento)
+        {
+            string numero = documento.NumeroExibicao ?? $"{documento.NumeroDocumento}";
+            string cliente = string.IsNullOrWhiteSpace(documento.NomeCliente) ? "Cliente" : documento.NomeCliente!;
+            string total = (documento.TotalLiquido ?? 0m).ToString("0.00");
+
+            StringBuilder sb = new();
+            _ = sb.AppendLine($"Exmo(a). {cliente},");
+            _ = sb.AppendLine();
+            _ = sb.AppendLine($"Segue o documento {numero}.");
+            _ = sb.AppendLine($"Total líquido: {total}.");
+            _ = sb.AppendLine();
+            _ = sb.AppendLine("Cumprimentos.");
+
+            return sb.ToString();
         }
 
         private bool TryGetClinicaId<T>(out Guid clinicaId, out Response<T>? error)

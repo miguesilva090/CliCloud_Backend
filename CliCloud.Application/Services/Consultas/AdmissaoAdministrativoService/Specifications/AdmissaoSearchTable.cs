@@ -30,7 +30,11 @@ public sealed class AdmissaoSearchTable : Specification<Admissao>
     );
 
     DateTime refDate = dataReferencia.Date;
-    if(modo == ModoListagemAdmissao.Pendentes)
+    if (modo == ModoListagemAdmissao.ParaFaturacao)
+    {
+      // Sem filtro por data do documento — alinhado ao legado TfaturaEdt (utente + débitos).
+    }
+    else if (modo == ModoListagemAdmissao.Pendentes)
     {
       _ = Query.Where(x => x.Data.HasValue && x.Data.Value.Date < refDate);
     }
@@ -118,12 +122,35 @@ public sealed class AdmissaoSearchTable : Specification<Admissao>
         case "credencial":
           _ = Query.Where(x => x.Credencial != null && x.Credencial.Contains(val));
           break;
+        case "faturado":
+          if (bool.TryParse(val, out bool faturado))
+          {
+            _ = faturado
+              ? Query.Where(x => x.Faturado == true)
+              : Query.Where(x => x.Faturado != true);
+          }
+
+          break;
+        case "pago":
+          if (bool.TryParse(val, out bool pago))
+          {
+            _ = Query.Where(x => x.Pago == pago);
+          }
+
+          break;
       }
     }
 
     if (string.IsNullOrWhiteSpace(dynamicOrder))
     {
-      _ = Query.OrderBy(x => x.Ordem).ThenBy(x => x.HoraInicio);
+      if (modo == ModoListagemAdmissao.ParaFaturacao)
+      {
+        _ = Query.OrderByDescending(x => x.Data).ThenByDescending(x => x.HoraInicio);
+      }
+      else
+      {
+        _ = Query.OrderBy(x => x.Ordem).ThenBy(x => x.HoraInicio);
+      }
     }
     else
     {

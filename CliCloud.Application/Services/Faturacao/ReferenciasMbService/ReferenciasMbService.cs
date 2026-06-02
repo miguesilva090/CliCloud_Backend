@@ -8,7 +8,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace CliCloud.Application.Services.Faturacao.ReferenciasMbService;
 
-public class ReferenciasMbService(IRepositoryAsync repository, IConfiguration configuration) : IReferenciasMbService
+public partial class ReferenciasMbService(IRepositoryAsync repository, IConfiguration configuration) : IReferenciasMbService
 {
     private readonly IRepositoryAsync _repository = repository;
     private readonly IConfiguration _configuration = configuration;

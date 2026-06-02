@@ -9,6 +9,7 @@ namespace CliCloud.Application.Services.Documentos.TipoDocumentoService.DTOs
         public string Abreviatura { get; set; } = string.Empty;
         public string? Natureza { get; set; }
         public int? TipoMovimento { get; set; }
+        public int? CodigoTipoDocumentoSaft { get; set; }
         public string? NumeroSerie { get; set; }
         public string? TipoSerie { get; set; }
         public int? NumeroDocumento { get; set; }

@@ -702,6 +702,67 @@ namespace CliCloud.Application.Services.Consultas.ConsultaService
         or StatusConsulta.EmAtendimento;
     }
 
+    private static bool PodeIniciarAtendimentoConsultaDoDia(
+      StatusConsulta? statusAdmissao,
+      StatusConsulta? statusMarcacao,
+      StatusConsulta? statusConsulta,
+      bool? efetuado,
+      bool? faltou
+    )
+    {
+      if (efetuado == true || faltou == true)
+      {
+        return false;
+      }
+
+      return PodeIniciarAtendimento(statusAdmissao)
+        && PodeIniciarAtendimento(statusMarcacao)
+        && PodeIniciarAtendimento(statusConsulta);
+    }
+
+    private static StatusConsulta? ResolverStatusExibicaoConsultaDoDia(
+      StatusConsulta? statusAdmissao,
+      StatusConsulta? statusMarcacao,
+      StatusConsulta? statusConsulta,
+      bool? efetuado,
+      bool? faltou
+    )
+    {
+      StatusConsulta[] prioridade =
+      [
+        StatusConsulta.Desmarcada,
+        StatusConsulta.Suspensa,
+        StatusConsulta.Concluida,
+        StatusConsulta.Faltou,
+        StatusConsulta.FaltouJustificada,
+        StatusConsulta.EmAtendimento,
+        StatusConsulta.Pendente,
+        StatusConsulta.Agendada,
+      ];
+
+      foreach (StatusConsulta candidato in prioridade)
+      {
+        if (statusAdmissao == candidato
+          || statusMarcacao == candidato
+          || statusConsulta == candidato)
+        {
+          return candidato;
+        }
+      }
+
+      if (efetuado == true)
+      {
+        return StatusConsulta.Concluida;
+      }
+
+      if (faltou == true)
+      {
+        return StatusConsulta.Faltou;
+      }
+
+      return statusAdmissao ?? statusMarcacao ?? statusConsulta;
+    }
+
     private static void PrepararConsultaParaAtendimento(Consulta consulta)
     {
       consulta.StatusConsulta = StatusConsulta.EmAtendimento;
@@ -783,7 +844,18 @@ namespace CliCloud.Application.Services.Consultas.ConsultaService
 
     private static ConsultaDoDiaDTO MapAdmissaoConsultaDoDia(Admissao admissao)
     {
-      Guid? consultaId = admissao.Consulta?.Id ?? admissao.ConsultaMarcacao?.ConsultaId;
+      ConsultaMarcacao? marcacao = admissao.ConsultaMarcacao;
+      Consulta? consulta = admissao.Consulta;
+      Guid? consultaId = consulta?.Id ?? marcacao?.ConsultaId;
+      bool? efetuado = admissao.Efetuado == true || consulta?.Efetuado == true;
+      bool? faltou = consulta?.Faltou;
+      StatusConsulta? statusExibicao = ResolverStatusExibicaoConsultaDoDia(
+        admissao.StatusConsulta,
+        marcacao?.StatusConsulta,
+        consulta?.StatusConsulta,
+        efetuado,
+        faltou
+      );
 
       return new ConsultaDoDiaDTO
       {
@@ -811,20 +883,37 @@ namespace CliCloud.Application.Services.Consultas.ConsultaService
         TipoAdmissaoId = admissao.TipoAdmissaoId,
         TipoAdmissaoDesignacao = admissao.TipoAdmissao?.Designacao,
         Diagnostico = admissao.Diagnostico,
-        StatusConsulta = ToInt(admissao.StatusConsulta),
+        StatusConsulta = ToInt(statusExibicao),
         StatusConsultaLabel = ResolveStatusLabel(
-          admissao.StatusConsulta,
+          statusExibicao,
           admissao.Confirmado,
-          admissao.Efetuado,
-          null
+          efetuado,
+          faltou
         ),
         Confirmado = admissao.Confirmado,
-        Efetuado = admissao.Efetuado,
+        Efetuado = efetuado,
+        Faltou = faltou,
+        PodeIniciarAtendimento = PodeIniciarAtendimentoConsultaDoDia(
+          admissao.StatusConsulta,
+          marcacao?.StatusConsulta,
+          consulta?.StatusConsulta,
+          efetuado,
+          faltou
+        ),
       };
     }
 
     private static ConsultaDoDiaDTO MapConsultaDoDia(Consulta consulta)
     {
+      ConsultaMarcacao? marcacao = consulta.ConsultaMarcacao;
+      StatusConsulta? statusExibicao = ResolverStatusExibicaoConsultaDoDia(
+        null,
+        marcacao?.StatusConsulta,
+        consulta.StatusConsulta,
+        consulta.Efetuado,
+        consulta.Faltou
+      );
+
       return new ConsultaDoDiaDTO
       {
         Id = consulta.Id,
@@ -851,9 +940,9 @@ namespace CliCloud.Application.Services.Consultas.ConsultaService
         TipoAdmissaoId = consulta.TipoAdmissaoId,
         TipoAdmissaoDesignacao = consulta.TipoAdmissao?.Designacao,
         Diagnostico = consulta.Diagnostico,
-        StatusConsulta = ToInt(consulta.StatusConsulta),
+        StatusConsulta = ToInt(statusExibicao),
         StatusConsultaLabel = ResolveStatusLabel(
-          consulta.StatusConsulta,
+          statusExibicao,
           consulta.Confirmado,
           consulta.Efetuado,
           consulta.Faltou
@@ -861,11 +950,27 @@ namespace CliCloud.Application.Services.Consultas.ConsultaService
         Confirmado = consulta.Confirmado,
         Efetuado = consulta.Efetuado,
         Faltou = consulta.Faltou,
+        PodeIniciarAtendimento = PodeIniciarAtendimentoConsultaDoDia(
+          null,
+          marcacao?.StatusConsulta,
+          consulta.StatusConsulta,
+          consulta.Efetuado,
+          consulta.Faltou
+        ),
       };
     }
 
     private static ConsultaDoDiaDTO MapMarcacaoConsultaDoDia(ConsultaMarcacao marcacao)
     {
+      Consulta? consulta = marcacao.Consulta;
+      StatusConsulta? statusExibicao = ResolverStatusExibicaoConsultaDoDia(
+        null,
+        marcacao.StatusConsulta,
+        consulta?.StatusConsulta,
+        consulta?.Efetuado,
+        consulta?.Faltou
+      );
+
       return new ConsultaDoDiaDTO
       {
         Id = marcacao.Id,
@@ -889,12 +994,21 @@ namespace CliCloud.Application.Services.Consultas.ConsultaService
         TipoConsultaDesignacao = marcacao.TipoConsultaItem?.Designacao,
         TipoAdmissaoId = marcacao.TipoAdmissaoId,
         TipoAdmissaoDesignacao = marcacao.TipoAdmissao?.Designacao,
-        StatusConsulta = ToInt(marcacao.StatusConsulta),
+        StatusConsulta = ToInt(statusExibicao),
         StatusConsultaLabel = ResolveStatusLabel(
+          statusExibicao,
+          null,
+          consulta?.Efetuado,
+          consulta?.Faltou
+        ),
+        Efetuado = consulta?.Efetuado,
+        Faltou = consulta?.Faltou,
+        PodeIniciarAtendimento = PodeIniciarAtendimentoConsultaDoDia(
+          null,
           marcacao.StatusConsulta,
-          null,
-          null,
-          null
+          consulta?.StatusConsulta,
+          consulta?.Efetuado,
+          consulta?.Faltou
         ),
       };
     }

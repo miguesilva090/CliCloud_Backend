@@ -9,6 +9,7 @@ namespace CliCloud.Application.Services.Documentos.TipoDocumentoService.DTOs
         public required string Abreviatura { get; set; }
         public string? Natureza { get; set; }
         public int? TipoMovimento { get; set; }
+        public int? CodigoTipoDocumentoSaft { get; set; }
         public string? NumeroSerie { get; set; }
         public string? TipoSerie { get; set; }
         public int? NumeroDocumento { get; set; }
@@ -59,6 +60,10 @@ namespace CliCloud.Application.Services.Documentos.TipoDocumentoService.DTOs
                 .NotEmpty()
                 .MaximumLength(5)
                 .WithMessage("Abreviatura é obrigatória e deve ter no máximo 5 caracteres.");
+            _ = RuleFor(x => x.NumeroSerie)
+                .NotEmpty()
+                .MaximumLength(14)
+                .WithMessage("NumeroSerie é obrigatório e deve ter no máximo 14 caracteres.");
         }
     }
 }

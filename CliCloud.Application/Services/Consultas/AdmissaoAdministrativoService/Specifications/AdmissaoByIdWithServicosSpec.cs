@@ -14,6 +14,8 @@ public sealed class AdmissaoByIdWithServicosSpec : Specification<Admissao>
       .Include(x => x.DoencaPrincipal)
       .Include(x => x.DoencaSecundaria)
       .Include(x => x.TipoAdmissao)
-      .Include(x => x.Servicos);
+      .Include(x => x.Servicos)
+        .ThenInclude(x => x.Servico)
+        .ThenInclude(x => x!.TaxaIva);
   }
 }

@@ -26,7 +26,13 @@ namespace CliCloud.Application.Services.Documentos.TipoDocumentoService
         // get full List
         public async Task<Response<IEnumerable<TipoDocumentoDTO>>> GetTipoDocumentoAsync(string keyword = "")
         {
-            TipoDocumentoSearchList specification = new(keyword, GetCurrentClinicaIdOrDefault());
+            Guid? clinicaId = await ResolveClinicaIdAsync();
+            if (!clinicaId.HasValue)
+            {
+                return ResponseFactory.Fail<IEnumerable<TipoDocumentoDTO>>("Clínica atual não definida");
+            }
+
+            TipoDocumentoSearchList specification = new(keyword, clinicaId.Value);
             IEnumerable<TipoDocumentoDTO> list = await _repository.GetListAsync<TipoDocumento, TipoDocumentoDTO, Guid>(specification);
             return ResponseFactory.Success<IEnumerable<TipoDocumentoDTO>>(list);
         }
@@ -34,7 +40,13 @@ namespace CliCloud.Application.Services.Documentos.TipoDocumentoService
         // get lightweight list 
         public async Task<Response<IEnumerable<TipoDocumentoLightDTO>>> GetTipoDocumentoLightAsync(string keyword = "")
         {
-            TipoDocumentoSearchList specification = new(keyword, GetCurrentClinicaIdOrDefault());
+            Guid? clinicaId = await ResolveClinicaIdAsync();
+            if (!clinicaId.HasValue)
+            {
+                return ResponseFactory.Fail<IEnumerable<TipoDocumentoLightDTO>>("Clínica atual não definida");
+            }
+
+            TipoDocumentoSearchList specification = new(keyword, clinicaId.Value);
             IEnumerable<TipoDocumentoLightDTO> list = await _repository.GetListAsync<TipoDocumento, TipoDocumentoLightDTO, Guid>(specification);
             return ResponseFactory.Success<IEnumerable<TipoDocumentoLightDTO>>(list);
         }
@@ -48,7 +60,13 @@ namespace CliCloud.Application.Services.Documentos.TipoDocumentoService
             }
 
             string dynamicOrder = filter.Sorting != null ? GSHelpers.GenerateOrderByString(filter) : "";
-            TipoDocumentoSearchTable specification = new(filter.Filters ?? [], GetCurrentClinicaIdOrDefault(), dynamicOrder);
+            Guid? clinicaId = await ResolveClinicaIdAsync();
+            if (!clinicaId.HasValue)
+            {
+                return new PaginatedResponse<TipoDocumentoTableDTO>([], 0, filter.PageNumber, filter.PageSize);
+            }
+
+            TipoDocumentoSearchTable specification = new(filter.Filters ?? [], clinicaId.Value, dynamicOrder);
             PaginatedResponse<TipoDocumentoTableDTO> pagedResponse = await _repository.GetPaginatedResultsAsync<TipoDocumento, TipoDocumentoTableDTO, Guid>(filter.PageNumber, filter.PageSize, specification);
             return pagedResponse;
         }
@@ -62,7 +80,13 @@ namespace CliCloud.Application.Services.Documentos.TipoDocumentoService
 
                 string dynamicOrder = filter.GetOrderByString();
                 List<TableFilter> tableFilters = filter.Filters ?? new List<TableFilter>();
-                TipoDocumentoSearchTable specification = new(tableFilters, GetCurrentClinicaIdOrDefault(), dynamicOrder);
+                Guid? clinicaId = await ResolveClinicaIdAsync();
+                if (!clinicaId.HasValue)
+                {
+                    return ResponseFactory.Fail<IEnumerable<TipoDocumentoTableDTO>>("Clínica atual não definida");
+                }
+
+                TipoDocumentoSearchTable specification = new(tableFilters, clinicaId.Value, dynamicOrder);
                 IEnumerable<TipoDocumentoTableDTO> list = await _repository.GetListAsync<TipoDocumento, TipoDocumentoTableDTO, Guid>(specification);
                 return ResponseFactory.Success<IEnumerable<TipoDocumentoTableDTO>>(list);
             }
@@ -77,8 +101,13 @@ namespace CliCloud.Application.Services.Documentos.TipoDocumentoService
         {
             try
             {
-                Guid clinicaId = GetCurrentClinicaIdOrDefault();
-                TipoDocumentoByIdClinicaSpec specification = new(id, clinicaId);
+                Guid? clinicaId = await ResolveClinicaIdAsync();
+                if (!clinicaId.HasValue)
+                {
+                    return ResponseFactory.Fail<TipoDocumentoDTO>("Clínica atual não definida");
+                }
+
+                TipoDocumentoByIdClinicaSpec specification = new(id, clinicaId.Value);
                 TipoDocumentoDTO? dto = (await _repository.GetListAsync<TipoDocumento, TipoDocumentoDTO, Guid>(specification)).FirstOrDefault();
                 if (dto == null)
                 {
@@ -102,10 +131,19 @@ namespace CliCloud.Application.Services.Documentos.TipoDocumentoService
                   return ResponseFactory.Fail<TipoDocumentoDTO>("Abreviatura não pode ser vazia");
                 }
 
-                TipoDocumentoMatchAbreviatura specification = new(abreviatura, GetCurrentClinicaIdOrDefault());
+                Guid? clinicaId = await ResolveClinicaIdAsync();
+                if (!clinicaId.HasValue)
+                {
+                    return ResponseFactory.Fail<TipoDocumentoDTO>("Clínica atual não definida");
+                }
+
+                TipoDocumentoMatchAbreviatura specification = new(abreviatura, clinicaId.Value);
                 IEnumerable<TipoDocumentoDTO> results = await _repository.GetListAsync<TipoDocumento, TipoDocumentoDTO, Guid>(specification);
 
-                TipoDocumentoDTO? tipoDocumento = results.FirstOrDefault();
+                TipoDocumentoDTO? tipoDocumento = results
+                    .OrderBy(x => x.TipoSerie == "N" ? 0 : 1)
+                    .ThenBy(x => x.NumeroSerie)
+                    .FirstOrDefault();
                 if(tipoDocumento == null)
                 {
                   return ResponseFactory.Fail<TipoDocumentoDTO>("Não foi encontrado nenhum TipoDocumento com a Abreviatura fornecida");
@@ -122,21 +160,33 @@ namespace CliCloud.Application.Services.Documentos.TipoDocumentoService
         // create new TipoDocumento
         public async Task<Response<Guid>> CreateTipoDocumentoAsync(CreateTipoDocumentoRequest request)
         {
-            Guid clinicaId = GetCurrentClinicaIdOrDefault();
-            if (clinicaId == Guid.Empty)
+            Guid? clinicaIdOpt = await ResolveClinicaIdAsync();
+            if (!clinicaIdOpt.HasValue)
             {
                 return ResponseFactory.Fail<Guid>("Clínica atual inválida");
             }
 
-            TipoDocumentoMatchAbreviatura specification = new(request.Abreviatura, clinicaId);
-            bool TipoDocumentoExists = await _repository.ExistsAsync<TipoDocumento, Guid>(specification);
-            if (TipoDocumentoExists)
+            Guid clinicaId = clinicaIdOpt.Value;
+
+            if (string.IsNullOrWhiteSpace(request.NumeroSerie))
             {
-                return ResponseFactory.Fail<Guid>("TipoDocumento com esta Abreviatura já existe");
+                return ResponseFactory.Fail<Guid>("NumeroSerie é obrigatório");
+            }
+
+            string numeroSerie = request.NumeroSerie.Trim();
+            TipoDocumentoMatchNumeroSerie specSerie = new(numeroSerie, clinicaId);
+            if (await _repository.ExistsAsync<TipoDocumento, Guid>(specSerie))
+            {
+                return ResponseFactory.Fail<Guid>("Já existe um TipoDocumento com este NumeroSerie na clínica");
             }
 
             TipoDocumento newTipoDocumento = _mapper.Map(request, new TipoDocumento());
+            newTipoDocumento.NumeroSerie = numeroSerie;
             newTipoDocumento.ClinicaId = clinicaId;
+            newTipoDocumento.TipoSerie = string.IsNullOrWhiteSpace(newTipoDocumento.TipoSerie)
+                ? "N"
+                : newTipoDocumento.TipoSerie.Trim();
+            newTipoDocumento.PermiteMovimento ??= 1;
 
             try
             {
@@ -153,7 +203,13 @@ namespace CliCloud.Application.Services.Documentos.TipoDocumentoService
         // update TipoDocumento
         public async Task<Response<Guid>> UpdateTipoDocumentoAsync(UpdateTipoDocumentoRequest request, Guid id)
         {
-            Guid clinicaId = GetCurrentClinicaIdOrDefault();
+            Guid? clinicaIdOpt = await ResolveClinicaIdAsync();
+            if (!clinicaIdOpt.HasValue)
+            {
+                return ResponseFactory.Fail<Guid>("Clínica atual inválida");
+            }
+
+            Guid clinicaId = clinicaIdOpt.Value;
             TipoDocumentoByIdClinicaSpec getSpec = new(id, clinicaId);
             TipoDocumento? TipoDocumentoInDb = (await _repository.GetListAsync<TipoDocumento, Guid>(getSpec)).FirstOrDefault();
             if (TipoDocumentoInDb == null)
@@ -161,18 +217,24 @@ namespace CliCloud.Application.Services.Documentos.TipoDocumentoService
                 return ResponseFactory.Fail<Guid>("TipoDocumento não encontrado");
             }
 
-            // Verificar se a abreviatura já existe em outro registro
-            if (TipoDocumentoInDb.Abreviatura != request.Abreviatura)
+            if (string.IsNullOrWhiteSpace(request.NumeroSerie))
             {
-                TipoDocumentoMatchAbreviatura specification = new(request.Abreviatura, clinicaId);
-                bool AbreviaturaExists = await _repository.ExistsAsync<TipoDocumento, Guid>(specification);
-                if (AbreviaturaExists)
+                return ResponseFactory.Fail<Guid>("NumeroSerie é obrigatório");
+            }
+
+            string numeroSerie = request.NumeroSerie.Trim();
+            if (!string.Equals(TipoDocumentoInDb.NumeroSerie, numeroSerie, StringComparison.Ordinal))
+            {
+                TipoDocumentoMatchNumeroSerie specSerie = new(numeroSerie, clinicaId);
+                bool serieExists = await _repository.ExistsAsync<TipoDocumento, Guid>(specSerie);
+                if (serieExists)
                 {
-                    return ResponseFactory.Fail<Guid>("Já existe um TipoDocumento com esta Abreviatura");
+                    return ResponseFactory.Fail<Guid>("Já existe um TipoDocumento com este NumeroSerie na clínica");
                 }
             }
 
             TipoDocumento updatedTipoDocumento = _mapper.Map(request, TipoDocumentoInDb);
+            updatedTipoDocumento.NumeroSerie = numeroSerie;
             updatedTipoDocumento.ClinicaId = clinicaId;
 
             try
@@ -192,7 +254,13 @@ namespace CliCloud.Application.Services.Documentos.TipoDocumentoService
         {
             try
             {
-                Guid clinicaId = GetCurrentClinicaIdOrDefault();
+                Guid? clinicaIdOpt = await ResolveClinicaIdAsync();
+                if (!clinicaIdOpt.HasValue)
+                {
+                    return ResponseFactory.Fail<Guid>("Clínica atual inválida");
+                }
+
+                Guid clinicaId = clinicaIdOpt.Value;
                 TipoDocumentoByIdClinicaSpec getSpec = new(id, clinicaId);
                 TipoDocumento? TipoDocumento = (await _repository.GetListAsync<TipoDocumento, Guid>(getSpec)).FirstOrDefault();
                 if (TipoDocumento == null)
@@ -217,7 +285,13 @@ namespace CliCloud.Application.Services.Documentos.TipoDocumentoService
             List<Guid> idsList = ids.ToList();
             List<Guid> successfullyDeletedIds = [];
             List<string> failedDeletions = [];
-            Guid clinicaId = GetCurrentClinicaIdOrDefault();
+            Guid? clinicaIdOpt = await ResolveClinicaIdAsync();
+            if (!clinicaIdOpt.HasValue)
+            {
+                return ResponseFactory.Fail<IEnumerable<Guid>>("Clínica atual inválida");
+            }
+
+            Guid clinicaId = clinicaIdOpt.Value;
 
             foreach(Guid id in idsList)
             {
@@ -262,9 +336,15 @@ namespace CliCloud.Application.Services.Documentos.TipoDocumentoService
           }
         }
 
-        private Guid GetCurrentClinicaIdOrDefault()
+        private async Task<Guid?> ResolveClinicaIdAsync()
         {
-            return Guid.TryParse(_currentClinicaService.ClinicaId, out Guid clinicaId) ? clinicaId : Guid.Empty;
+            await _currentClinicaService.SetClinicaAsync();
+            if (Guid.TryParse(_currentClinicaService.ClinicaId, out Guid clinicaId) && clinicaId != Guid.Empty)
+            {
+                return clinicaId;
+            }
+
+            return null;
         }
     }
 }

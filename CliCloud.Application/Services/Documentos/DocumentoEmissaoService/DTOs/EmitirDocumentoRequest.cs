@@ -45,6 +45,7 @@ public class EmitirDocumentoRequest : IDto
     
     public bool IsentoIva { get; set; }
     public bool IvaCaixa { get; set; }
+    public Guid? MotivoIsencaoId { get; set; }
 
     public bool Rectificado { get; set; }
     public bool Liquidado { get; set; }
@@ -61,9 +62,26 @@ public class EmitirDocumentoRequest : IDto
 
     public int? CodigoTipoDocSaft { get; set; }
 
+    /// <summary>N/D/M na emissão; por defeito usa o do tipo de documento.</summary>
+    [StringLength(1)]
+    public string? TipoSerie { get; set; }
+
     public List<EmitirDocumentoLinhaRequest> Linhas { get; set; } = [];
 
-    
+    public bool RetencaoAtiva { get; set; }
+    public string? RetencaoImposto { get; set; }
+    public decimal? RetencaoTaxa { get; set; }
+    public decimal? RetencaoValor { get; set; }
 
+    public int? RetencaoCodigoMotivo { get; set; }
+
+    public string? RetencaoMotivo { get; set; }
+
+    public decimal? PercentagemDescontoGlobal { get; set; }
+    
+    public Guid? DocumentoOrigemId { get; set; }
+    public string? IdentificadorUnicoDocumentoOrigem { get; set; }
+    public DateTime? DataDocumentoOrigem { get; set; }
+    public int? GerarReferenciaMb { get; set; }
 
 }

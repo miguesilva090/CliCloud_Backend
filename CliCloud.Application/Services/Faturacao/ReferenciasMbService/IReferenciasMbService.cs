@@ -15,4 +15,6 @@ public interface IReferenciasMbService : ITransientService
     Task<Response<Guid>> AnularAsync(Guid clinicaId, Guid referenciaId, AnularReferenciaMbRequest request);
 
     Task<Response<string>> ReceberCallbackIfThenAsync(IfThenCallbackRequest request);
+
+    Task<Response<ReferenciaMbGeradaDTO>> GerarParaDocumentoAsync(GerarReferenciaDocumentoRequest request);
 }

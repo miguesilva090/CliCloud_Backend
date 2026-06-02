@@ -11,6 +11,8 @@ public sealed class ConsultaByIdWithServicosSpec : Specification<Consulta>
             .Where(x => x.Id == consultaId && x.DeletedOn == null)
             .Include(x => x.Utente)
             .Include(x => x.Organismo)
-            .Include(x => x.Servicos);
+            .Include(x => x.Servicos)
+                .ThenInclude(x => x.Servico)
+                .ThenInclude(x => x!.TaxaIva);
     }
 }

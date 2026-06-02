@@ -8,6 +8,7 @@ using CliCloud.Domain.Entities.Core;
 using CliCloud.Domain.Entities.Funcionarios;
 using CliCloud.Domain.Entities.Moedas;
 using CliCloud.Domain.Entities.Organismos;
+using CliCloud.Domain.Entities.TaxasIva;
 using CliCloud.Domain.Entities.Utentes;
 using CliCloud.Domain.Entities.Utility;
 using CliCloud.Domain.Enums;
@@ -124,6 +125,8 @@ public class Documento : AuditableEntityWithSoftDelete
   public bool IsentoIva { get; set; }
   public bool Anulado { get; set; }
   public bool IvaCaixa { get; set; }
+  public Guid? MotivoIsencaoId { get; set; }
+  public MotivoIsencao? MotivoIsencao { get; set; }
 
   /// <summary>Legado: Emitido como int (0/1). Preferir <see cref="EstaEmitido"/>.</summary>
   public int? Emitido { get; set; }
@@ -136,6 +139,10 @@ public class Documento : AuditableEntityWithSoftDelete
   public ModuloOrigemDocumento? ModuloOrigem { get; set; }
 
   public int? NumVias { get; set; }
+
+  /// <summary>Modo de emissão na criação: N=normal, D=duplicado, M=manual (legado TipoSerie).</summary>
+  [StringLength(1)]
+  public string? TipoSerie { get; set; }
 
   [StringLength(250)]
   public string? Observacoes { get; set; }
@@ -175,6 +182,11 @@ public class Documento : AuditableEntityWithSoftDelete
 
   [Column(TypeName = "decimal(18,2)")]
   public decimal? RetencaoValor { get; set; }
+
+  public int? RetencaoCodigoMotivo { get; set; }
+
+  [StringLength(250)]
+  public string? RetencaoMotivo { get; set; }
 
   // --- Transporte ---
   [StringLength(50)]

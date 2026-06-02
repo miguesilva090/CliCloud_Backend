@@ -13,6 +13,15 @@ namespace CliCloud.WebApi.Controllers.Documentos;
 public class DocumentoEmissaoController(IDocumentoEmissaoService DocumentoEmissaoService) : ControllerBase
 {
     [Authorize(Roles = "client")]
+    [HttpGet("opcoes/pagamento")]
+    public async Task<IActionResult> GetOpcoesPagamento()
+    {
+        Response<DocumentoEmissaoOpcoesPagamentoDTO> result =
+            await DocumentoEmissaoService.GetOpcoesPagamentoAsync();
+        return Ok(result);
+    }
+
+    [Authorize(Roles = "client")]
     [HttpPost("emitir")]
     public async Task<IActionResult> Emitir([FromBody] EmitirDocumentoRequest request)
     {

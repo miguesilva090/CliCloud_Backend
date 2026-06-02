@@ -23,6 +23,11 @@ public class AdmissaoAdministrativoController(IAdmissaoAdministrativoService ser
     => Ok(await _service.GetByIdAsync(id));
 
   [Authorize(Roles = "client")]
+  [HttpGet("{id:guid}/debito-faturacao")]
+  public async Task<IActionResult> GetDebitoFaturacao(Guid id)
+    => Ok(await _service.GetDebitoFaturacaoAsync(id));
+
+  [Authorize(Roles = "client")]
   [HttpGet("por-marcacao/{consultaMarcacaoId:guid}")]
   public async Task<IActionResult> GetByConsultaMarcacaoId(Guid consultaMarcacaoId)
     => Ok(await _service.GetByConsultaMarcacaoIdAsync(consultaMarcacaoId));

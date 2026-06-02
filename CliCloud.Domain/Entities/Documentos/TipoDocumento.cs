@@ -25,7 +25,10 @@ namespace CliCloud.Domain.Entities.Documentos
     [StringLength(1)]
     public string? Natureza { get; set; } 
     
-    public int? TipoMovimento { get; set; } 
+    public int? TipoMovimento { get; set; }
+
+    /// <summary>Código do tipo de documento para hash SAFT (1=FT, 2=FS, 3=FR, 4=NC, 5=ND).</summary>
+    public int? CodigoTipoDocumentoSaft { get; set; }
     
     // Série e numeração
     [StringLength(14)]

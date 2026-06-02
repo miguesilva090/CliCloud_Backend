@@ -8,6 +8,8 @@ public class ReferenciaMB : AuditableEntityWithSoftDelete
 {
     public Guid ClinicaId { get; set; }
 
+    public Guid? DocumentoId { get; set; }
+
     public Guid? UtenteId { get; set; }
     public string ClienteNome { get; set; } = string.Empty;
 

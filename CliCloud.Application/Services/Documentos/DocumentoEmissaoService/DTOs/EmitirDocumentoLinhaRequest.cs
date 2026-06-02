@@ -30,6 +30,7 @@ public class EmitirDocumentoLinhaRequest : IDto
     public decimal? DescontoTipo2 { get; set; }
     public decimal? DescontoTipo3 { get; set; }
     public Guid? TaxaIvaId { get; set; }
+    public Guid? MotivoIsencaoId { get; set; }
     
     [Range(0, 100)]
     public decimal TaxaIvaPercentagem { get; set; }

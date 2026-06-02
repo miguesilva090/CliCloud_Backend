@@ -8,14 +8,21 @@ namespace CliCloud.Application.Services.Documentos.TipoDocumentoService.Specific
         public TipoDocumentoSearchList(string? keyword = "", Guid clinicaId = default)
         {
             _ = Query.Where(x => x.ClinicaId == clinicaId);
+            _ = Query.Where(x => !x.Inactivo);
+            _ = Query.Where(x => x.PermiteMovimento == null || x.PermiteMovimento == 1);
+            _ = Query.Where(x =>
+                string.IsNullOrEmpty(x.TipoSerie)
+                || x.TipoSerie == "N");
 
-            // filters
             if (!string.IsNullOrWhiteSpace(keyword))
             {
-                _ = Query.Where(x => x.Descricao.Contains(keyword) || x.Abreviatura.Contains(keyword));
+                _ = Query.Where(x =>
+                    x.Descricao.Contains(keyword)
+                    || x.Abreviatura.Contains(keyword)
+                    || (x.NumeroSerie != null && x.NumeroSerie.Contains(keyword)));
             }
 
-            _ = Query.OrderBy(x => x.Descricao); // default sort order
+            _ = Query.OrderBy(x => x.Abreviatura).ThenBy(x => x.NumeroSerie);
         }
     }
 }

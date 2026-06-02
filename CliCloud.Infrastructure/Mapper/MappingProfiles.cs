@@ -41,7 +41,6 @@ using CliCloud.Domain.Entities.Common;
 using CliCloud.Domain.Entities.Sinistros;
 using CliCloud.Domain.Entities.Credenciais;
 
-// TipoAparelho, MarcaAparelho, ModeloAparelho, Exame, Aparelho, Clinica, Seguradora, Recibo — Fase 0 services
 using TipoAparelhoDtos = CliCloud.Application.Services.Tratamentos.TipoAparelhoService.DTOs;
 using MarcaAparelhoDtos = CliCloud.Application.Services.Tratamentos.MarcaAparelhoService.DTOs;
 using ModeloAparelhoDtos = CliCloud.Application.Services.Tratamentos.ModeloAparelhoService.DTOs;
@@ -70,6 +69,8 @@ using AparelhoDtos = CliCloud.Application.Services.Tratamentos.AparelhoService.D
 using ClinicaDtos = CliCloud.Application.Services.Core.ClinicaService.DTOs;
 using SeguradoraDtos = CliCloud.Application.Services.Seguradoras.SeguradoraService.DTOs;
 using ReciboDtos = CliCloud.Application.Services.Documentos.ReciboService.DTOs;
+using DocumentoDtos = CliCloud.Application.Services.Documentos.DocumentoService.DTOs;
+using TipoDocumentoDtos = CliCloud.Application.Services.Documentos.TipoDocumentoService.DTOs;
 using UtenteDtos = CliCloud.Application.Services.Utentes.UtenteService.DTOs;
 using MedicoDtos = CliCloud.Application.Services.Medicos.MedicoService.DTOs;
 using MedicoExternoDtos = CliCloud.Application.Services.Medicos.MedicoExternoService.DTOs;
@@ -1015,6 +1016,32 @@ namespace CliCloud.Infrastructure.Mapper
       _ = CreateMap<Recibo, ReciboDtos.ReciboDTO>();
       _ = CreateMap<Recibo, ReciboDtos.ReciboLightDTO>();
       _ = CreateMap<Recibo, ReciboDtos.ReciboTableDTO>();
+
+      // ---- Documento fiscal / TipoDocumento ----
+      _ = CreateMap<DocumentoLinha, DocumentoDtos.DocumentoLinhaDTO>();
+
+      _ = CreateMap<Documento, DocumentoDtos.DocumentoDTO>()
+        .ForMember(d => d.EstadoDocumento, o => o.MapFrom(s => (int?)s.EstadoDocumento))
+        .ForMember(d => d.EstadoDocumentoLabel, o => o.MapFrom(s => s.EstadoDocumento.HasValue ? EnumDisplayHelper.GetDisplayName(s.EstadoDocumento.Value) : null))
+        .ForMember(d => d.OrigemLabel, o => o.MapFrom(s => ResolveDocumentoOrigemLabel(s)))
+        .ForMember(d => d.Linhas, o => o.MapFrom(s => s.Linhas.OrderBy(l => l.NumeroLinha)));
+
+      _ = CreateMap<Documento, DocumentoDtos.DocumentoTableDTO>()
+        .ForMember(d => d.TipoDocumentoAbreviatura, o => o.MapFrom(s => s.TipoDocumento != null ? s.TipoDocumento.Abreviatura : null))
+        .ForMember(d => d.TipoSerie, o => o.MapFrom(s => s.TipoSerie))
+        .ForMember(d => d.UtenteNome, o => o.MapFrom(s => s.Utente != null ? s.Utente.Nome : null))
+        .ForMember(d => d.OrganismoNome, o => o.MapFrom(s => s.Organismo != null ? s.Organismo.Nome : null))
+        .ForMember(d => d.FuncionarioNome, o => o.MapFrom(s => s.Funcionario != null ? s.Funcionario.Nome : null))
+        .ForMember(d => d.EstadoDocumento, o => o.MapFrom(s => (int?)s.EstadoDocumento))
+        .ForMember(d => d.EstadoDocumentoLabel, o => o.MapFrom(s => s.EstadoDocumento.HasValue ? EnumDisplayHelper.GetDisplayName(s.EstadoDocumento.Value) : null))
+        .ForMember(d => d.OrigemLabel, o => o.MapFrom(s => ResolveDocumentoOrigemLabel(s)));
+
+      _ = CreateMap<Documento, DocumentoDtos.DocumentoLightDTO>()
+        .ForMember(d => d.TipoDocumentoAbreviatura, o => o.MapFrom(s => s.TipoDocumento != null ? s.TipoDocumento.Abreviatura : null));
+
+      _ = CreateMap<TipoDocumento, TipoDocumentoDtos.TipoDocumentoDTO>();
+      _ = CreateMap<TipoDocumento, TipoDocumentoDtos.TipoDocumentoTableDTO>();
+      _ = CreateMap<TipoDocumento, TipoDocumentoDtos.TipoDocumentoLightDTO>();
 
       // ---- Utente ----
       _ = CreateMap<UtenteSubsistemaLinha, UtenteDtos.UtenteSubsistemaLinhaDTO>()
@@ -2438,6 +2465,29 @@ namespace CliCloud.Infrastructure.Mapper
         .ForMember(d => d.ConvertidoEm, o => o.Ignore())
         .ForMember(d => d.Obs, o => o.Ignore());
 
+    }
+
+    private static string? ResolveDocumentoOrigemLabel(Documento documento)
+    {
+      if (documento.ModuloOrigem.HasValue)
+      {
+        return documento.ModuloOrigem.Value switch
+        {
+          ModuloOrigemDocumento.Faturacao => "Faturação",
+          ModuloOrigemDocumento.Tratamentos => "Tratamentos",
+          ModuloOrigemDocumento.Consultas => "Consultas",
+          ModuloOrigemDocumento.Exames => "Exames",
+          ModuloOrigemDocumento.CredenciaisSns => "Credenciais SNS",
+          ModuloOrigemDocumento.HistorialUtente => "Historial utente",
+          ModuloOrigemDocumento.Modalidades => "Modalidades",
+          _ => documento.ModuloOrigem.Value.ToString(),
+        };
+      }
+
+      if (documento.Origem.HasValue)
+        return documento.Origem.Value.ToString(CultureInfo.InvariantCulture);
+
+      return null;
     }
 
     /// <summary>Garante que o DTO da linha do subsistema tenha sempre Empresa (Id + Nome) quando existir EmpresaId, mesmo que o Include não tenha carregado a navegação.</summary>

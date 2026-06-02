@@ -23,5 +23,5 @@ public interface IAdmissaoAdministrativoService : ITransientService
   Task<Response<FechoDiarioResultDTO>> PromoverLoteAsync(PromoverAdmissaoLoteRequest request);
   Task<Response<AdmissaoObservacoesDTO>> GetObservacoesAsync(Guid id);
   Task<Response<Guid>> AppendObservacaoAsync(Guid id, AppendAdmissaoObservacaoRequest request);
-
+  Task<Response<AdmissaoDebitoFaturacaoDTO>> GetDebitoFaturacaoAsync(Guid admissaoId);
 }

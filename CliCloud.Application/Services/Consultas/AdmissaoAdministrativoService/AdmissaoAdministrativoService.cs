@@ -12,6 +12,7 @@ using CliCloud.Application.Services.Utentes.UtenteService.DTOs;
 using CliCloud.Application.Services.Utentes.UtenteService.Specifications;
 using CliCloud.Application.Utility;
 using CliCloud.Domain.Entities.Consultas;
+using CliCloud.Domain.Entities.Documentos;
 using CliCloud.Domain.Entities.Core;
 using CliCloud.Domain.Entities.Utentes;
 using CliCloud.Domain.Enums;
@@ -580,6 +581,86 @@ public class AdmissaoAdministrativoService(
     }
 
     return await _repository.GetByIdAsync<Clinica, Guid>(clinicaId);
+  }
+
+  public async Task<Response<AdmissaoDebitoFaturacaoDTO>> GetDebitoFaturacaoAsync(Guid admissaoId)
+  {
+    List<Admissao> list = (
+      await _repository.GetListAsync<Admissao, Guid>(new AdmissaoByIdWithServicosSpec(admissaoId))
+    ).ToList();
+
+    Admissao? admissao = list.FirstOrDefault();
+    if (admissao == null)
+    {
+      return ResponseFactory.Fail<AdmissaoDebitoFaturacaoDTO>("Admissão não encontrada.");
+    }
+
+    List<AdmissaoServico> servicos = (admissao.Servicos ?? []).ToList();
+    int servicosTotal = servicos.Count;
+
+    if (servicosTotal == 0)
+    {
+      return ResponseFactory.Success(
+        new AdmissaoDebitoFaturacaoDTO
+        {
+          Debito = 0m,
+          PodeFaturar = false,
+          ServicosComDebito = 0,
+          ServicosTotal = 0,
+        }
+      );
+    }
+
+    List<Guid> servicoIds = servicos.Select(s => s.Id).ToList();
+    HashSet<Guid> jaFaturados = (
+      await _repository.GetListAsync<DocumentoLinha, Guid>(
+        new DocumentoLinhaByAdmissaoServicoIdsSpec(servicoIds)
+      )
+    )
+      .Where(l => l.AdmissaoServicoId.HasValue)
+      .Select(l => l.AdmissaoServicoId!.Value)
+      .ToHashSet();
+
+    decimal debito = 0m;
+    int comDebito = 0;
+    List<Guid> idsComDebito = [];
+
+    foreach (AdmissaoServico s in servicos)
+    {
+      if (jaFaturados.Contains(s.Id))
+      {
+        continue;
+      }
+
+      decimal q = s.Quantidade.GetValueOrDefault(1m);
+      if (q <= 0m)
+      {
+        q = 1m;
+      }
+
+      decimal valor = (s.ValorServico ?? s.ValorArtigo ?? 0m) * q;
+      if (valor <= 0m)
+      {
+        continue;
+      }
+
+      debito += valor;
+      comDebito++;
+      idsComDebito.Add(s.Id);
+    }
+
+    bool podeFaturar = comDebito > 0 && debito > 0m;
+
+    return ResponseFactory.Success(
+      new AdmissaoDebitoFaturacaoDTO
+      {
+        Debito = debito,
+        PodeFaturar = podeFaturar,
+        ServicosComDebito = comDebito,
+        ServicosTotal = servicosTotal,
+        AdmissaoServicoIdsComDebito = idsComDebito,
+      }
+    );
   }
 
   private async Task SyncMarcacaoSalaAsync(Admissao entity)

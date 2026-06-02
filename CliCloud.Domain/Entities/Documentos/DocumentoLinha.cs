@@ -62,6 +62,8 @@ public class DocumentoLinha : AuditableEntityWithSoftDelete
 
   public Guid? TaxaIvaId { get; set; }
   public TaxaIva? TaxaIva { get; set; }
+  public Guid? MotivoIsencaoId { get; set; }
+  public MotivoIsencao? MotivoIsencao { get; set; }
 
   /// <summary>Taxa aplicada no momento da emissão (snapshot fiscal).</summary>
   [Column(TypeName = "decimal(18,2)")]

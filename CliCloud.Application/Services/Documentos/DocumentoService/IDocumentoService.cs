@@ -17,5 +17,13 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
         Task<Response<Guid>> UpdateDocumentoAsync(UpdateDocumentoRequest request, Guid id);
         Task<Response<Guid>> DeleteDocumentoAsync(Guid id);
         Task<Response<IEnumerable<Guid>>> DeleteMultipleDocumentoAsync(IEnumerable<Guid> ids);
+        Task<Response<DocumentoPrintDTO>> GetDocumentoPrintAsync(Guid id);
+        Task<Response<DocumentoPrintDTO>> GetDocumentoPrintOriginalAsync(Guid id);
+        Task<Response<bool>> EnviarDocumentoPorEmailAsync(Guid id, EnviarDocumentoEmailRequest request);
+        Task<Response<DocumentoDetalhesAdmissoesDTO>> GetDocumentoDetalhesAdmissoesAsync(Guid id);
+        Task<Response<DocumentoLiquidacaoContextoDTO>> GetDocumentoLiquidacaoContextoAsync(Guid id);
+        Task<Response<Guid>> LiquidarDocumentoAsync(Guid id);
+        Task<Response<Guid>> AtualizarValidacaoTransporteAsync(Guid id, AtualizarValidacaoTransporteRequest request);
+
     }
 }

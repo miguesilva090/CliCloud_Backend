@@ -4639,6 +4639,9 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
 
+                    b.Property<Guid?>("MotivoIsencaoId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("NomeCliente")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -4679,9 +4682,16 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Property<bool>("Rectificado")
                         .HasColumnType("bit");
 
+                    b.Property<int?>("RetencaoCodigoMotivo")
+                        .HasColumnType("int");
+
                     b.Property<string>("RetencaoImposto")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("RetencaoMotivo")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
 
                     b.Property<decimal?>("RetencaoTaxa")
                         .HasColumnType("decimal(18,2)");
@@ -4700,6 +4710,10 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
 
                     b.Property<int?>("TipoModoPagamento")
                         .HasColumnType("int");
+
+                    b.Property<string>("TipoSerie")
+                        .HasMaxLength(1)
+                        .HasColumnType("nvarchar(1)");
 
                     b.Property<decimal?>("TotalBruto")
                         .HasColumnType("decimal(18,2)");
@@ -4741,6 +4755,8 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.HasIndex("FuncionarioId");
 
                     b.HasIndex("MoedaId");
+
+                    b.HasIndex("MotivoIsencaoId");
 
                     b.HasIndex("NumeroExibicao");
 
@@ -4809,6 +4825,9 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Property<int?>("ModuloOrigemLinha")
                         .HasColumnType("int");
 
+                    b.Property<Guid?>("MotivoIsencaoId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<int>("NumeroLinha")
                         .HasColumnType("int");
 
@@ -4842,6 +4861,8 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AdmissaoServicoId");
+
+                    b.HasIndex("MotivoIsencaoId");
 
                     b.HasIndex("ServicoId");
 
@@ -5209,6 +5230,9 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<int?>("CodigoTipoDocumentoSaft")
+                        .HasColumnType("int");
+
                     b.Property<int?>("Config")
                         .HasColumnType("int");
 
@@ -5350,8 +5374,11 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ClinicaId");
 
-                    b.HasIndex("ClinicaId", "Abreviatura")
-                        .IsUnique();
+                    b.HasIndex("ClinicaId", "Abreviatura");
+
+                    b.HasIndex("ClinicaId", "NumeroSerie")
+                        .IsUnique()
+                        .HasFilter("[NumeroSerie] IS NOT NULL");
 
                     b.ToTable("TipoDocumento", "Documentos");
                 });
@@ -5941,6 +5968,9 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Property<string>("Descricao")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("DocumentoId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("EntidadeMb")
                         .HasColumnType("nvarchar(max)");
@@ -13922,6 +13952,11 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .HasForeignKey("MoedaId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("CliCloud.Domain.Entities.TaxasIva.MotivoIsencao", "MotivoIsencao")
+                        .WithMany()
+                        .HasForeignKey("MotivoIsencaoId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("CliCloud.Domain.Entities.Organismos.Organismo", "Organismo")
                         .WithMany()
                         .HasForeignKey("OrganismoId")
@@ -13950,6 +13985,8 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
 
                     b.Navigation("Moeda");
 
+                    b.Navigation("MotivoIsencao");
+
                     b.Navigation("Organismo");
 
                     b.Navigation("TipoDocumento");
@@ -13970,6 +14007,11 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("CliCloud.Domain.Entities.TaxasIva.MotivoIsencao", "MotivoIsencao")
+                        .WithMany()
+                        .HasForeignKey("MotivoIsencaoId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("CliCloud.Domain.Entities.Servicos.Servico", "Servico")
                         .WithMany()
                         .HasForeignKey("ServicoId")
@@ -13983,6 +14025,8 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Navigation("AdmissaoServico");
 
                     b.Navigation("Documento");
+
+                    b.Navigation("MotivoIsencao");
 
                     b.Navigation("Servico");
 

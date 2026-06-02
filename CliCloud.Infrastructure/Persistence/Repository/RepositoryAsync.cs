@@ -187,6 +187,14 @@ namespace CliCloud.Infrastructure.Persistence.Repository
       if (entry.State != EntityState.Detached)
       {
         entry.CurrentValues.SetValues(entity);
+
+        // Entidade nova (CreateAsync no mesmo request): manter Added para INSERT.
+        // Forçar Modified gera UPDATE sobre Id inexistente → DbUpdateConcurrencyException (0 rows).
+        if (entry.State == EntityState.Added)
+        {
+          return entity;
+        }
+
         entry.State = EntityState.Modified;
         MarkEntidadeMoradaModified<T, TId>(entry);
         return entity;

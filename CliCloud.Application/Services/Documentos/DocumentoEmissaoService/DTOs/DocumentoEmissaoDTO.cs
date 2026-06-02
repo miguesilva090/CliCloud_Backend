@@ -15,5 +15,8 @@ public class DocumentoEmissaoDTO : IDto
     public string? NumeroExibicao { get; set; }
     public string? HashDocumento { get; set; }
     public int? VersaoChave { get; set; }
-    
+
+    public string? ReferenciaMbEntidade { get; set; }
+    public string? ReferenciaMbCodigo { get; set; }
+    public bool ReferenciaMbWay { get; set; }
 }

@@ -14,244 +14,347 @@ using CliCloud.Application.Services.Consultas.ConsultaService.Specifications;
 using CliCloud.Application.Services.Documentos.DocumentoEmissaoService.Specifications;
 using CliCloud.Application.Services.Documentos.DocumentoService.Specifications;
 using CliCloud.Application.Services.Documentos.TipoDocumentoService.Specifications;
+using CliCloud.Application.Services.Documentos.DocumentoEmissaoService.Validators;
 using CliCloud.Domain.Entities.Consultas;
+using CliCloud.Application.Services.Faturacao.ReferenciasMbService;
+using CliCloud.Application.Services.Faturacao.ReferenciasMbService.DTOs;
+using Microsoft.EntityFrameworkCore;
 
 namespace CliCloud.Application.Services.Documentos.DocumentoEmissaoService;
 
 public class DocumentoEmissaoService(
     IRepositoryAsync repository,
     ICurrentClinicaService currentClinicaService,
-    ITransactionalExecutor transactionalExecutor
+    ITransactionalExecutor transactionalExecutor,
+    IReferenciasMbService referenciasMbService
 ) : IDocumentoEmissaoService
 {
-    public async Task<Response<DocumentoEmissaoDTO>> EmitirDocumentoAsync(EmitirDocumentoRequest request)
+public Task<Response<DocumentoEmissaoOpcoesPagamentoDTO>> GetOpcoesPagamentoAsync()
+{
+    var condicoes = Enum.GetValues<CondicaoPagamento>()
+        .Select(v => new PagamentoOpcaoDTO
+        {
+            Valor = (int)v,
+            Descricao = EnumDisplayHelper.GetDisplayName(v)
+        })
+        .ToList();
+
+    var modos = Enum.GetValues<TipoModoPagamento>()
+        .Select(v => new PagamentoOpcaoDTO
+        {
+            Valor = (int)v,
+            Descricao = EnumDisplayHelper.GetDisplayName(v)
+        })
+        .ToList();
+    var tiposSerie = new List<OpcaoTextoDTO>
     {
-        try
+        new() { Valor = "N", Descricao = "N — Normal" },
+        new() { Valor = "D", Descricao = "D — Documento de conferência" },
+        new() { Valor = "M", Descricao = "M — Manual" }
+    };
+    var impostosRetencao = new List<OpcaoTextoDTO>
+    {
+        new() { Valor = "IRS", Descricao = "IRS" },
+        new() { Valor = "IRC", Descricao = "IRC" },
+        new() { Valor = "IS", Descricao = "IS" }
+    };
+    var referenciasMb = new List<PagamentoOpcaoDTO>
+    {
+        new() { Valor = 0, Descricao = "Não gerar" },
+        new() { Valor = 1, Descricao = "Referência Multibanco" },
+        new() { Valor = 2, Descricao = "Pedido MB Way" }
+    };
+
+    DocumentoEmissaoOpcoesPagamentoDTO data = new()
+    {
+        CondicoesPagamento = condicoes,
+        ModosPagamento = modos,
+        TiposSerie = tiposSerie,
+        ImpostosRetencao = impostosRetencao,
+        ReferenciasMb = referenciasMb
+    };
+
+    return Task.FromResult(ResponseFactory.Success(data));
+}
+
+public async Task<Response<DocumentoEmissaoDTO>> EmitirDocumentoAsync(EmitirDocumentoRequest request)
+{
+    const int maxTentativas = 3;
+    try
+    {
+        for (int tentativa = 1; tentativa <= maxTentativas; tentativa++)
         {
-            return await transactionalExecutor.ExecuteAsync(async ct =>
+            try
             {
-            if(request.Linhas == null || request.Linhas.Count == 0)
-                return ResponseFactory.Fail<DocumentoEmissaoDTO>("Documento deve conter pelo menos uma linha");
-            if(request.Anulado)
-                return ResponseFactory.Fail<DocumentoEmissaoDTO>("Não é permitido emitir documento já anulado.");
-
-            await currentClinicaService.SetClinicaAsync();
-            if(!Guid.TryParse(currentClinicaService.ClinicaId, out Guid clinicaId) || clinicaId == Guid.Empty)
-                return ResponseFactory.Fail<DocumentoEmissaoDTO>("Clínica atual inválida");
-
-            TipoDocumento? tipoDocumento = (
-                await repository.GetListAsync<TipoDocumento, Guid>(new TipoDocumentoByIdClinicaSpec(request.TipoDocumentoId, clinicaId))
-            ).FirstOrDefault();
-            if (tipoDocumento == null)
-                return ResponseFactory.Fail<DocumentoEmissaoDTO>("Tipo de documento não encontrado na clínica atual");
-
-            Clinica clinica = await repository.GetByIdAsync<Clinica, Guid>(clinicaId);
-
-            DateTime dataDocumento = request.DataDocumento ?? DateTime.Today;
-            if(request.DataVencimentoPagamento.HasValue && request.DataVencimentoPagamento.Value.Date < dataDocumento.Date)
-                return ResponseFactory.Fail<DocumentoEmissaoDTO>("Data de vencimento não pode ser inferior à data do documento.");
-
-            if(dataDocumento.Year > 2022)
-            {
-                if(string.IsNullOrWhiteSpace(tipoDocumento.CodigoATCUD))
-                    return ResponseFactory.Fail<DocumentoEmissaoDTO>("Tipo de documento não tem código ATCUD definido");
-
-                if(!string.Equals(tipoDocumento.ATCUDEstado?.Trim(), "A" , StringComparison.OrdinalIgnoreCase))
-                    return ResponseFactory.Fail<DocumentoEmissaoDTO>("ATCUD inválido/inativo para o tipo de Documento");
+                return await transactionalExecutor.ExecuteAsync(async ct =>
+                {
+                    if (request.Linhas == null || request.Linhas.Count == 0)
+                        return ResponseFactory.Fail<DocumentoEmissaoDTO>("Documento deve conter pelo menos uma linha");
+                    if (request.Anulado)
+                        return ResponseFactory.Fail<DocumentoEmissaoDTO>("Não é permitido emitir documento já anulado.");
+                    await currentClinicaService.SetClinicaAsync();
+                    if (!Guid.TryParse(currentClinicaService.ClinicaId, out Guid clinicaId) || clinicaId == Guid.Empty)
+                        return ResponseFactory.Fail<DocumentoEmissaoDTO>("Clínica atual inválida");
+                    TipoDocumento? tipoDocumento = (
+                        await repository.GetListAsync<TipoDocumento, Guid>(new TipoDocumentoByIdClinicaSpec(request.TipoDocumentoId, clinicaId))
+                    ).FirstOrDefault();
+                    if (tipoDocumento == null)
+                        return ResponseFactory.Fail<DocumentoEmissaoDTO>("Tipo de documento não encontrado na clínica atual");
+                    Clinica clinica = await repository.GetByIdAsync<Clinica, Guid>(clinicaId);
+                    int regraFaturacao = DocumentoEmissaoCalculoHelper.ParseRegraFaturacao(clinica.Regrafaturacao);
+                    string? erroPerfil = DocumentoEmissaoPerfilValidator.Validar(tipoDocumento, request, regraFaturacao);
+                    if (erroPerfil != null)
+                        return ResponseFactory.Fail<DocumentoEmissaoDTO>(erroPerfil);
+                    DateTime dataDocumento = request.DataDocumento ?? DateTime.Today;
+                    if (request.DataVencimentoPagamento.HasValue && request.DataVencimentoPagamento.Value.Date < dataDocumento.Date)
+                        return ResponseFactory.Fail<DocumentoEmissaoDTO>("Data de vencimento não pode ser inferior à data do documento.");
+                    if (dataDocumento.Year > 2022)
+                    {
+                        if (string.IsNullOrWhiteSpace(tipoDocumento.CodigoATCUD))
+                            return ResponseFactory.Fail<DocumentoEmissaoDTO>("Tipo de documento não tem código ATCUD definido");
+                        if (!string.Equals(tipoDocumento.ATCUDEstado?.Trim(), "A", StringComparison.OrdinalIgnoreCase))
+                            return ResponseFactory.Fail<DocumentoEmissaoDTO>("ATCUD inválido/inativo para o tipo de Documento");
+                    }
+                    var specUltimo = new DocumentoUltimoNumeroSpec(clinicaId, request.TipoDocumentoId, request.AnoFiscal);
+                    Documento? ultimo = (await repository.GetListAsync<Documento, Guid>(specUltimo)).FirstOrDefault();
+                    int numeroDocumento = (ultimo?.NumeroDocumento ?? 0) + 1;
+                    string hashDocAnterior = ultimo?.GlobalHash ?? string.Empty;
+                    string serie = request.AnoFiscal < 2013 ? "1" : (tipoDocumento.NumeroSerie ?? string.Empty);
+                    if (request.AnoFiscal >= 2013 && string.IsNullOrWhiteSpace(serie))
+                        return ResponseFactory.Fail<DocumentoEmissaoDTO>("O número de série do documento é obrigatório para SAFT");
+                    decimal descontoCliente = request.DescontoCliente ?? 0m;
+                    decimal descontoPagamento = request.DescontoPagamento ?? 0m;
+                    decimal outros = request.Outros ?? 0m;
+                    ModuloOrigemDocumento moduloOrigem = request.ModuloOrigem ?? ModuloOrigemDocumento.Faturacao;
+                    decimal retencaoValor = 0m;
+                    List<DocumentoEmissaoCalculoHelper.LinhaCalculoResult> linhasCalc = [];
+                    List<DocumentoLinha> linhas = request.Linhas.Select((linhaReq, index) =>
+                    {
+                        int numeroLinha = linhaReq.NumeroLinha > 0 ? linhaReq.NumeroLinha : index + 1;
+                        DocumentoEmissaoCalculoHelper.LinhaCalculoResult calc =
+                            DocumentoEmissaoCalculoHelper.CalcularLinha(
+                                linhaReq,
+                                regraFaturacao,
+                                descontoCliente,
+                                descontoPagamento,
+                                request.PercentagemDescontoGlobal,
+                                request.IsentoIva
+                            );
+                        linhasCalc.Add(calc);
+                        return new DocumentoLinha
+                        {
+                            Id = Guid.NewGuid(),
+                            NumeroLinha = numeroLinha,
+                            CodigoArtigo = linhaReq.CodigoArtigo,
+                            ServicoId = linhaReq.ServicoId,
+                            AdmissaoServicoId = linhaReq.AdmissaoServicoId,
+                            Descricao = linhaReq.Descricao,
+                            Quantidade = linhaReq.Quantidade,
+                            PrecoUnitario = linhaReq.PrecoUnitario,
+                            PercentagemDesconto = calc.PercentagemDescontoEfectiva,
+                            ValorDesconto = calc.DescontoValor,
+                            DescontoTipo1 = linhaReq.DescontoTipo1,
+                            DescontoTipo2 = linhaReq.DescontoTipo2,
+                            DescontoTipo3 = linhaReq.DescontoTipo3,
+                            TotalLinha = calc.TotalLinhaSemIva,
+                            TaxaIvaId = linhaReq.TaxaIvaId,
+                            MotivoIsencaoId = request.IsentoIva
+                                ? (linhaReq.MotivoIsencaoId ?? request.MotivoIsencaoId)
+                                : null,
+                            TaxaIvaPercentagem = linhaReq.TaxaIvaPercentagem,
+                            ValorImposto = calc.ValorIva,
+                            ModuloOrigemLinha = moduloOrigem
+                        };
+                    }).ToList();
+                    DocumentoEmissaoCalculoHelper.DocumentoTotaisCalculo totaisDoc =
+                        DocumentoEmissaoCalculoHelper.CalcularTotaisDocumento(
+                            linhasCalc,
+                            regraFaturacao,
+                            outros,
+                            0m
+                        );
+                    decimal precoUnitarioMercadorias = totaisDoc.Mercadorias;
+                    decimal totalDocumentoBase = totaisDoc.Total;
+                    decimal totalIva = totaisDoc.Impostos;
+                    decimal totalDescontoHeader = totaisDoc.Descontos;
+                    retencaoValor = DocumentoEmissaoCalculoHelper.ResolverRetencaoValor(
+                        request.RetencaoAtiva,
+                        request.RetencaoTaxa,
+                        request.RetencaoValor,
+                        totalDocumentoBase
+                    );
+                    totaisDoc = DocumentoEmissaoCalculoHelper.CalcularTotaisDocumento(
+                        linhasCalc,
+                        regraFaturacao,
+                        outros,
+                        retencaoValor
+                    );
+                    totalDocumentoBase = totaisDoc.Total;
+                    decimal totalBruto = totaisDoc.Total + outros;
+                    decimal totalLiquido = totaisDoc.APagar;
+                    DateTime dataSistemaRegisto = DateTime.Now;
+                    dataSistemaRegisto = dataSistemaRegisto.AddTicks(-(dataSistemaRegisto.Ticks % TimeSpan.TicksPerSecond));
+                    string? codigoAtcud = null;
+                    if (dataDocumento.Year > 2022)
+                        codigoAtcud = tipoDocumento.CodigoATCUD?.Trim();
+                    string numeroExibicao =
+                        !string.IsNullOrWhiteSpace(codigoAtcud)
+                        ? $"{codigoAtcud}-{numeroDocumento}"
+                        : $"{tipoDocumento.Abreviatura}-{numeroDocumento}";
+                    Documento documento = IsTipoRecibo(tipoDocumento) ? new Recibo() : new Documento();
+                    documento.Id = Guid.NewGuid();
+                    documento.ClinicaId = clinicaId;
+                    documento.AnoFiscal = request.AnoFiscal;
+                    documento.TipoDocumentoId = request.TipoDocumentoId;
+                    documento.NumeroDocumento = numeroDocumento;
+                    documento.NumeroExibicao = numeroExibicao;
+                    documento.Data = dataDocumento;
+                    documento.DataSistemaRegisto = dataSistemaRegisto;
+                    documento.UtenteId = request.UtenteId;
+                    documento.OrganismoId = request.OrganismoId;
+                    documento.FuncionarioId = request.FuncionarioId;
+                    documento.NomeCliente = request.NomeCliente;
+                    documento.MoradaCliente = request.MoradaCliente;
+                    documento.LocalidadeCliente = request.LocalidadeCliente;
+                    documento.NumeroContribuinteCliente = request.NumeroContribuinteCliente;
+                    documento.CodigoPostalId = request.CodigoPostalId;
+                    documento.TotalDocumento = totalDocumentoBase;
+                    documento.TotalIva = totalIva;
+                    documento.TotalDesconto = totalDescontoHeader;
+                    documento.TotalBruto = totalBruto;
+                    documento.TotalLiquido = totalLiquido;
+                    documento.DescontoCliente = descontoCliente;
+                    documento.DescontoPagamento = descontoPagamento;
+                    documento.Outros = outros;
+                    documento.PrecoUnitarioMercadorias = precoUnitarioMercadorias;
+                    documento.CondicaoPagamento = request.CondicaoPagamento;
+                    documento.TipoModoPagamento = request.TipoModoPagamento;
+                    documento.MoedaId = request.MoedaId;
+                    documento.BancoId = request.BancoId;
+                    documento.TaxaCambio = request.TaxaCambio;
+                    documento.TipoCambio = request.TipoCambio;
+                    documento.DataVencimentoPagamento = request.DataVencimentoPagamento ?? dataDocumento;
+                    documento.EstadoDocumento = EstadoDocumento.Emitido;
+                    documento.Estado = (int)EstadoDocumento.Emitido;
+                    documento.Liquidado = request.Liquidado;
+                    documento.Rectificado = request.Rectificado;
+                    documento.Exportado = false;
+                    documento.IsentoIva = request.IsentoIva;
+                    documento.MotivoIsencaoId = request.IsentoIva ? request.MotivoIsencaoId : null;
+                    documento.Anulado = request.Anulado;
+                    documento.IvaCaixa = request.IvaCaixa;
+                    documento.Emitido = 1;
+                    documento.EstaEmitido = true;
+                    documento.Origem = (int)moduloOrigem;
+                    documento.ModuloOrigem = moduloOrigem;
+                    documento.CaixaId = request.CaixaId;
+                    documento.Observacoes = request.Observacoes;
+                    documento.CodigoAtcud = codigoAtcud;
+                    documento.CodigoValidacaoTransporte = request.CodigoValidacaoTransporte;
+                    documento.DataTransporte = request.DataTransporte;
+                    documento.HoraTransporte = request.HoraTransporte;
+                    documento.RetencaoImposto = request.RetencaoAtiva ? request.RetencaoImposto?.Trim() : null;
+                    documento.RetencaoTaxa = request.RetencaoAtiva ? request.RetencaoTaxa : null;
+                    documento.RetencaoValor = request.RetencaoAtiva ? retencaoValor : null;
+                    documento.RetencaoCodigoMotivo = request.RetencaoAtiva ? request.RetencaoCodigoMotivo : null;
+                    documento.RetencaoMotivo = request.RetencaoAtiva ? request.RetencaoMotivo?.Trim() : null;
+                    documento.DocumentoOrigemId = request.DocumentoOrigemId;
+                    documento.IdentificadorUnicoDocumentoOrigem = request.IdentificadorUnicoDocumentoOrigem;
+                    documento.DataDocumentoOrigem = request.DataDocumentoOrigem;
+                    documento.TipoSerie = ResolveTipoSerieEmissao(request.TipoSerie, tipoDocumento.TipoSerie);
+                    if (clinica.TemSaft == true)
+                    {
+                        int codigoTipoDocSaft = request.CodigoTipoDocSaft
+                            ?? tipoDocumento.CodigoTipoDocumentoSaft
+                            ?? throw new InvalidOperationException("Não foi possível inferir o código de documento SAFT");
+                        documento.VersaoChave = SaftHash.VersaoChave;
+                        documento.GlobalHash = SaftHash.GerarHash(
+                            documento.Data!.Value,
+                            documento.DataSistemaRegisto!.Value,
+                            codigoTipoDocSaft,
+                            serie,
+                            numeroDocumento,
+                            documento.TotalDocumento!.Value,
+                            hashDocAnterior
+                        );
+                    }
+                    foreach (DocumentoLinha linha in linhas)
+                    {
+                        linha.DocumentoId = documento.Id;
+                    }
+                    await repository.CreateAsync<Documento, Guid>(documento);
+                    await repository.CreateRangeAsync<DocumentoLinha, Guid>(linhas);
+                    documento.Linhas = linhas;
+                    await repository.SaveChangesAsync();
+                    IEnumerable<Guid> admissaoServicoIds = request.Linhas
+                        .Where(l => l.AdmissaoServicoId.HasValue)
+                        .Select(l => l.AdmissaoServicoId!.Value);
+                    await DocumentoEmissaoClinicaSyncHelper.SincronizarAposEmissaoAsync(
+                        repository,
+                        documento.Id,
+                        request.TipoDocumentoId,
+                        admissaoServicoIds,
+                        moduloOrigem,
+                        faturado: true,
+                        pago: false);
+                    await repository.SaveChangesAsync();
+                    string? refEntidade = null;
+                    string? refCodigo = null;
+                    bool refMbWay = false;
+                    if (request.GerarReferenciaMb is 1 or 2)
+                    {
+                        Response<ReferenciaMbGeradaDTO> mb = await referenciasMbService.GerarParaDocumentoAsync(
+                            new GerarReferenciaDocumentoRequest
+                            {
+                                ClinicaId = clinicaId,
+                                DocumentoId = documento.Id,
+                                UtenteId = documento.UtenteId,
+                                ClienteNome = documento.NomeCliente ?? string.Empty,
+                                NumeroExibicao = documento.NumeroExibicao,
+                                Valor = documento.TotalLiquido ?? totalLiquido,
+                                Modo = request.GerarReferenciaMb.Value,
+                            });
+                        if (mb.Status != ResponseStatus.Success || mb.Data == null)
+                        {
+                            string msg = mb.Messages.TryGetValue("$", out List<string>? errs) && errs.Count > 0
+                                ? errs[0]
+                                : "Não foi possível gerar a referência Multibanco.";
+                            throw new InvalidOperationException(msg);
+                        }
+                        refEntidade = mb.Data.EntidadeMb;
+                        refCodigo = mb.Data.ReferenciaCodigo;
+                        refMbWay = mb.Data.MbWay;
+                    }
+                    return ResponseFactory.Success(new DocumentoEmissaoDTO
+                    {
+                        Id = documento.Id,
+                        TipoDocumentoId = documento.TipoDocumentoId,
+                        AnoFiscal = documento.AnoFiscal,
+                        NumeroDocumento = documento.NumeroDocumento,
+                        NumeroExibicao = documento.NumeroExibicao,
+                        HashDocumento = documento.GlobalHash,
+                        VersaoChave = documento.VersaoChave,
+                        ReferenciaMbEntidade = refEntidade,
+                        ReferenciaMbCodigo = refCodigo,
+                        ReferenciaMbWay = refMbWay,
+                    });
+                });
             }
-
-            var specUltimo = new DocumentoUltimoNumeroSpec(clinicaId, request.TipoDocumentoId, request.AnoFiscal);
-            Documento? ultimo = (await repository.GetListAsync<Documento, Guid>(specUltimo)).FirstOrDefault();
-
-            int numeroDocumento = (ultimo?.NumeroDocumento ?? 0) + 1;
-            string hashDocAnterior = ultimo?.GlobalHash ?? string.Empty;
-
-            string serie = request.AnoFiscal < 2013 ? "1" : (tipoDocumento.NumeroSerie ?? string.Empty);
-            if(request.AnoFiscal >= 2013 && string.IsNullOrWhiteSpace(serie))
-                return ResponseFactory.Fail<DocumentoEmissaoDTO>("O número de série do documento é obrigatório para SAFT");
-
-            decimal precoUnitarioMercadorias = 0m;
-            decimal totalDocumentoBase = 0m;
-            decimal totalIva = 0m;
-            decimal totalDescontosLinhas = 0m;
-
-            List<DocumentoLinha> linhas = request.Linhas.Select((linhaReq, index) =>
+            catch (DbUpdateException dbEx) when (tentativa < maxTentativas && IsNumeroDocumentoCollision(dbEx))
             {
-                int numeroLinha = linhaReq.NumeroLinha > 0 ? linhaReq.NumeroLinha : index + 1;
-
-                decimal baseLinha = linhaReq.Quantidade * linhaReq.PrecoUnitario;
-                precoUnitarioMercadorias += baseLinha;
-
-                decimal descontoLinha = 0m;
-
-                if(linhaReq.ValorDesconto.HasValue)
-                {
-                    descontoLinha = linhaReq.ValorDesconto.Value;
-                }
-                else if(linhaReq.PercentagemDesconto.HasValue)
-                {
-                    descontoLinha = Math.Round(baseLinha * (linhaReq.PercentagemDesconto.Value / 100m), 2, MidpointRounding.AwayFromZero);
-                }
-                else
-                {
-                    descontoLinha =
-                        (linhaReq.DescontoTipo1 ?? 0m) +
-                        (linhaReq.DescontoTipo2 ?? 0m) +
-                        (linhaReq.DescontoTipo3 ?? 0m);
-                }
-
-                decimal totalLinha = baseLinha - descontoLinha;
-                totalDescontosLinhas += descontoLinha;
-
-                decimal valorImposto = Math.Round(totalLinha * (linhaReq.TaxaIvaPercentagem / 100m), 2, MidpointRounding.AwayFromZero);
-                totalIva += valorImposto;
-
-                totalDocumentoBase += totalLinha;
-
-                return new DocumentoLinha
-                {
-                    Id = Guid.NewGuid(),
-                    NumeroLinha = numeroLinha,
-                    CodigoArtigo = linhaReq.CodigoArtigo,
-                    ServicoId = linhaReq.ServicoId,
-                    AdmissaoServicoId = linhaReq.AdmissaoServicoId,
-                    Descricao = linhaReq.Descricao,
-                    Quantidade = linhaReq.Quantidade,
-                    PrecoUnitario = linhaReq.PrecoUnitario,
-
-                    PercentagemDesconto = linhaReq.PercentagemDesconto,
-                    ValorDesconto = linhaReq.ValorDesconto,
-
-                    DescontoTipo1 = linhaReq.DescontoTipo1,
-                    DescontoTipo2 = linhaReq.DescontoTipo2,
-                    DescontoTipo3 = linhaReq.DescontoTipo3,
-
-                    TotalLinha = totalLinha,
-                    TaxaIvaId = linhaReq.TaxaIvaId,
-                    TaxaIvaPercentagem = linhaReq.TaxaIvaPercentagem,
-                    ValorImposto = valorImposto,
-
-                    ModuloOrigemLinha = request.ModuloOrigem
-                };
-            }).ToList();
-
-            decimal descontoCliente = request.DescontoCliente ?? 0m;
-            decimal descontoPagamento = request.DescontoPagamento ?? 0m;
-            decimal outros = request.Outros ?? 0m;
-
-            decimal totalDescontoHeader = totalDescontosLinhas + descontoCliente;
-            decimal totalBruto = totalDocumentoBase + totalIva + outros;
-            decimal totalLiquido = totalBruto - descontoPagamento;
-
-            DateTime dataSistemaRegisto = DateTime.Now;
-            dataSistemaRegisto = dataSistemaRegisto.AddTicks(-(dataSistemaRegisto.Ticks % TimeSpan.TicksPerSecond));
-
-            string? codigoAtcud = null;
-            if(dataDocumento.Year > 2022)
-                codigoAtcud = tipoDocumento.CodigoATCUD?.Trim();
-
-            string numeroExibicao = 
-                !string.IsNullOrWhiteSpace(codigoAtcud)
-                ? $"{codigoAtcud}-{numeroDocumento}"
-                : $"{tipoDocumento.Abreviatura}-{numeroDocumento}";
-
-            Documento documento = IsTipoRecibo(tipoDocumento) ? new Recibo() : new Documento();
-            documento.Id = Guid.NewGuid();
-            documento.ClinicaId = clinicaId;
-            documento.AnoFiscal = request.AnoFiscal;
-            documento.TipoDocumentoId = request.TipoDocumentoId;
-            documento.NumeroDocumento = numeroDocumento;
-            documento.NumeroExibicao = numeroExibicao;
-            documento.Data = dataDocumento;
-            documento.DataSistemaRegisto = dataSistemaRegisto;
-            documento.UtenteId = request.UtenteId;
-            documento.OrganismoId = request.OrganismoId;
-            documento.FuncionarioId = request.FuncionarioId;
-            documento.NomeCliente = request.NomeCliente;
-            documento.MoradaCliente = request.MoradaCliente;
-            documento.LocalidadeCliente = request.LocalidadeCliente;
-            documento.NumeroContribuinteCliente = request.NumeroContribuinteCliente;
-            documento.CodigoPostalId = request.CodigoPostalId;
-            documento.TotalDocumento = totalDocumentoBase;
-            documento.TotalIva = totalIva;
-            documento.TotalDesconto = totalDescontoHeader;
-            documento.TotalBruto = totalBruto;
-            documento.TotalLiquido = totalLiquido;
-            documento.DescontoCliente = descontoCliente;
-            documento.DescontoPagamento = descontoPagamento;
-            documento.Outros = outros;
-            documento.PrecoUnitarioMercadorias = precoUnitarioMercadorias;
-            documento.CondicaoPagamento = request.CondicaoPagamento;
-            documento.TipoModoPagamento = request.TipoModoPagamento;
-            documento.MoedaId = request.MoedaId;
-            documento.BancoId = request.BancoId;
-            documento.TaxaCambio = request.TaxaCambio;
-            documento.TipoCambio = request.TipoCambio;
-            documento.DataVencimentoPagamento = request.DataVencimentoPagamento ?? dataDocumento;
-            documento.EstadoDocumento = EstadoDocumento.Emitido;
-            documento.Estado = (int)EstadoDocumento.Emitido;
-            documento.Liquidado = request.Liquidado;
-            documento.Rectificado = request.Rectificado;
-            documento.Exportado = false;
-            documento.IsentoIva = request.IsentoIva;
-            documento.Anulado = request.Anulado;
-            documento.IvaCaixa = request.IvaCaixa;
-            documento.Emitido = 1;
-            documento.EstaEmitido = true;
-            documento.Origem = request.ModuloOrigem != null ? (int)request.ModuloOrigem.Value : null;
-            documento.ModuloOrigem = request.ModuloOrigem;
-            documento.CaixaId = request.CaixaId;
-            documento.Observacoes = request.Observacoes;
-            documento.CodigoAtcud = codigoAtcud;
-            documento.CodigoValidacaoTransporte = request.CodigoValidacaoTransporte;
-            documento.DataTransporte = request.DataTransporte;
-            documento.HoraTransporte = request.HoraTransporte;
-
-            if(clinica.TemSaft == true)
-            {
-                int codigoTipoDocSaft = request.CodigoTipoDocSaft ?? tipoDocumento.TipoMovimento
-                    ?? throw new InvalidOperationException("Não foi possível inferir o código de documento SAFT ");
-
-                documento.VersaoChave = SaftHash.VersaoChave;
-                documento.GlobalHash = SaftHash.GerarHash(
-                    documento.Data!.Value,
-                    documento.DataSistemaRegisto!.Value,
-                    codigoTipoDocSaft,
-                    serie,
-                    numeroDocumento,
-                    documento.TotalDocumento!.Value,
-                    hashDocAnterior
-                );
+                repository.ClearChangeTracker();
+                continue;
             }
-
-            foreach (DocumentoLinha linha in linhas)
-            {
-                linha.DocumentoId = documento.Id;
-            }
-
-            await repository.CreateAsync<Documento, Guid>(documento);
-            await repository.CreateRangeAsync<DocumentoLinha, Guid>(linhas);
-            documento.Linhas = linhas;
-
-            await repository.SaveChangesAsync();
-
-            return ResponseFactory.Success(new DocumentoEmissaoDTO
-            {
-                Id = documento.Id,
-                TipoDocumentoId = documento.TipoDocumentoId,
-                AnoFiscal = documento.AnoFiscal,
-                NumeroDocumento = documento.NumeroDocumento,
-                NumeroExibicao = documento.NumeroExibicao,
-                HashDocumento = documento.GlobalHash,
-                VersaoChave = documento.VersaoChave,
-            });
-            });
         }
-        catch(Exception ex)
-        {
-            return ResponseFactory.Fail<DocumentoEmissaoDTO>(ex.Message);
-        }
+        return ResponseFactory.Fail<DocumentoEmissaoDTO>(
+            "Não foi possível atribuir numeração ao documento após múltiplas tentativas. Tente novamente."
+        );
     }
+    catch (Exception ex)
+    {
+        return ResponseFactory.Fail<DocumentoEmissaoDTO>(ex.Message);
+    }
+}
 
     public async Task<Response<DocumentoEmissaoDTO>> EmitirDocumentoDesdeAdmissaoAsync(Guid admissaoId, EmitirDocumentoDesdeAdmissaoRequest request)
     {
@@ -320,7 +423,8 @@ public class DocumentoEmissaoService(
                         Descricao = descricao,
                         Quantidade = quantidade,
                         PrecoUnitario = preco,
-                        TaxaIvaPercentagem = 0m
+                        TaxaIvaId = s.Servico?.TaxaIvaId,
+                        TaxaIvaPercentagem = request.IsentoIva ? 0m : ( s.Servico?.TaxaIva?.Taxa ?? 0m)
                     };
                 }).ToList();
 
@@ -363,39 +467,29 @@ public class DocumentoEmissaoService(
                 if(emissao.Status != ResponseStatus.Success || emissao.Data == null)
                     return emissao;
 
-                Guid documentoId = emissao.Data.Id;
                 bool faturado = request.Faturado ?? true;
                 bool pago = request.Pago ?? false;
 
-                DocumentoOrigemClinica origem = new()
+                if (pago || !faturado)
                 {
-                    Id = Guid.NewGuid(),
-                    DocumentoId = documentoId,
-                    ModuloOrigem = ModuloOrigemDocumento.Consultas,
-                    AdmissaoId = admissao.Id,
-                    ConsultaId = consulta?.Id,
-                };
+                    admissao.Faturado = faturado;
+                    admissao.Pago = pago;
+                    _ = await repository.UpdateAsync<Admissao, Guid>(admissao);
 
-                _ = await repository.CreateAsync<DocumentoOrigemClinica, Guid>(origem);
+                    if (consulta != null)
+                    {
+                        await AdmissaoFaturacaoPromocaoHelper.SincronizarComDocumentoAsync(
+                            repository,
+                            consulta.Id,
+                            emissao.Data.Id,
+                            request.TipoDocumentoId,
+                            pago,
+                            faturado);
+                    }
 
-                admissao.Faturado = faturado;
-                admissao.Pago = pago;
-
-                _ = await repository.UpdateAsync<Admissao, Guid>(admissao);
-
-                if(consulta != null)
-                {
-                    await AdmissaoFaturacaoPromocaoHelper.SincronizarComDocumentoAsync(
-                        repository,
-                        consulta.Id,
-                        documentoId,
-                        request.TipoDocumentoId,
-                        pago, 
-                        faturado
-                    );
+                    _ = await repository.SaveChangesAsync();
                 }
 
-                _ = await repository.SaveChangesAsync();
                 return emissao;
             });
         }
@@ -473,7 +567,8 @@ public class DocumentoEmissaoService(
                         Descricao = descricao,
                         Quantidade = quantidade,
                         PrecoUnitario = preco,
-                        TaxaIvaPercentagem = 0m
+                        TaxaIvaId = s.Servico?.TaxaIvaId,
+                        TaxaIvaPercentagem = request.IsentoIva ? 0m : ( s.Servico?.TaxaIva?.Taxa ?? 0m)
                     };
                 })
                 .ToList();
@@ -637,8 +732,7 @@ public class DocumentoEmissaoService(
             Query.Where(d =>
                 d.ClinicaId == clinicaId &&
                 d.TipoDocumentoId == tipoDocumentoId &&
-                d.AnoFiscal == anoFiscal &&
-                d.Anulado == false
+                d.AnoFiscal == anoFiscal
             );
 
             Query.OrderByDescending(d => d.NumeroDocumento);
@@ -691,6 +785,7 @@ public class DocumentoEmissaoService(
                         DescontoTipo2 = l.DescontoTipo2,
                         DescontoTipo3 = l.DescontoTipo3,
                         TaxaIvaId = l.TaxaIvaId,
+                        MotivoIsencaoId = l.MotivoIsencaoId,
                         TaxaIvaPercentagem = l.TaxaIvaPercentagem,
                     }).ToList();
             }
@@ -721,6 +816,7 @@ public class DocumentoEmissaoService(
                             Quantidade = qtd,
                             PrecoUnitario = l.PrecoUnitario ?? origem.PrecoUnitario,
                             TaxaIvaId = origem.TaxaIvaId,
+                            MotivoIsencaoId = origem.MotivoIsencaoId,
                             TaxaIvaPercentagem = l.TaxaIvaPercentagem ?? origem.TaxaIvaPercentagem
                         };
                     })
@@ -824,5 +920,52 @@ public class DocumentoEmissaoService(
 
         return !string.IsNullOrWhiteSpace(tipoDocumento.Descricao) &&
                tipoDocumento.Descricao.Contains("recibo", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string ResolveTipoSerieEmissao(string? requestTipoSerie, string? tipoDocumentoTipoSerie)
+    {
+        string? raw = string.IsNullOrWhiteSpace(requestTipoSerie)
+            ? tipoDocumentoTipoSerie
+            : requestTipoSerie.Trim();
+
+        if (string.IsNullOrWhiteSpace(raw))
+            return "N";
+
+        return raw.Length > 1 ? raw[..1] : raw;
+    }
+
+    private static bool IsNumeroDocumentoCollision(DbUpdateException ex)
+    {
+        Exception? sqlEx = ex.InnerException ?? ex.InnerException?.InnerException;
+        int? sqlErrorNumber = GetSqlErrorNumber(sqlEx);
+
+        if (sqlErrorNumber is 2601 or 2627)
+        {
+            string msg = sqlEx?.Message ?? ex.Message;
+            return msg.Contains(
+                    "IX_Documento_ClinicaId_TipoDocumentoId_AnoFiscal_NumeroDocumento",
+                    StringComparison.OrdinalIgnoreCase
+                )
+                || (
+                    msg.Contains("ClinicaId", StringComparison.OrdinalIgnoreCase)
+                    && msg.Contains("TipoDocumentoId", StringComparison.OrdinalIgnoreCase)
+                    && msg.Contains("AnoFiscal", StringComparison.OrdinalIgnoreCase)
+                    && msg.Contains("NumeroDocumento", StringComparison.OrdinalIgnoreCase)
+                );
+        }
+
+        return false;
+    }
+
+    private static int? GetSqlErrorNumber(Exception? ex)
+    {
+        if (ex == null)
+            return null;
+
+        var numberProp = ex.GetType().GetProperty("Number");
+        if (numberProp?.PropertyType == typeof(int))
+            return (int?)numberProp.GetValue(ex);
+
+        return null;
     }
 }

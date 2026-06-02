@@ -144,5 +144,67 @@ namespace CliCloud.WebApi.Controllers.Documentos
             return BadRequest(ex.Message);
           }
         }
+
+
+        // print
+        [Authorize(Roles = "client")]
+        [HttpGet("{id:guid}/print")]
+        public async Task<IActionResult> GetDocumentoPrintAsync(Guid id)
+        {
+          var result = await _DocumentoService.GetDocumentoPrintAsync(id);
+          return Ok(result);
+        }
+
+        // print original
+        [Authorize(Roles = "client")]
+        [HttpGet("{id:guid}/print/original")]
+        public async Task<IActionResult> GetDocumentoPrintOriginalAsync(Guid id)
+        {
+          var result = await _DocumentoService.GetDocumentoPrintOriginalAsync(id);
+          return Ok(result);
+        }
+
+        // Enviar por email
+        [Authorize(Roles = "client")]
+        [HttpPost("{id:guid}/email")]
+        public async Task<IActionResult> EnviarDocumentoPorEmailAsync(Guid id, [FromBody] EnviarDocumentoEmailRequest request)
+        {
+          var result = await _DocumentoService.EnviarDocumentoPorEmailAsync(id, request);
+          return Ok(result);
+        }
+
+        [Authorize(Roles = "client")]
+        [HttpGet("{id:guid}/detalhes-admissoes")]
+        public async Task<IActionResult> GetDocumentoDetalhesAdmissoesAsync(Guid id)
+        {
+          var result = await _DocumentoService.GetDocumentoDetalhesAdmissoesAsync(id);
+          return Ok(result);
+        }
+
+        [Authorize(Roles = "client")]
+        [HttpGet("{id:guid}/liquidacao-contexto")]
+        public async Task<IActionResult> GetDocumentoLiquidacaoContextoAsync(Guid id)
+        {
+          var result = await _DocumentoService.GetDocumentoLiquidacaoContextoAsync(id);
+          return Ok(result);
+        }
+
+        [Authorize(Roles = "client")]
+        [HttpPost("{id:guid}/liquidar")]
+        public async Task<IActionResult> LiquidarDocumentoAsync(Guid id)
+        {
+          var result = await _DocumentoService.LiquidarDocumentoAsync(id);
+          return Ok(result);
+        }
+
+        [Authorize(Roles = "client")]
+        [HttpPost("{id:guid}/validacao-transporte")]
+        public async Task<IActionResult> AtualizarValidacaoTransporteAsync(
+            Guid id,
+            [FromBody] AtualizarValidacaoTransporteRequest request)
+        {
+          var result = await _DocumentoService.AtualizarValidacaoTransporteAsync(id, request);
+          return Ok(result);
+        }
     }
 }
