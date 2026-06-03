@@ -12,6 +12,8 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService.Specificatio
                 .Include(x => x.TipoDocumento)
                 .Include(x => x.Utente)
                 .Include(x => x.Organismo)
+                .Include(x => x.CodigoPostal)
+                .Include(x => x.MotivoIsencao)
                 .Include(x => x.Linhas.OrderBy(l => l.NumeroLinha))
                 .Include(x => x.OrigemClinica);
         }

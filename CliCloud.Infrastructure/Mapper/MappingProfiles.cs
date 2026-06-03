@@ -1024,6 +1024,7 @@ namespace CliCloud.Infrastructure.Mapper
         .ForMember(d => d.EstadoDocumento, o => o.MapFrom(s => (int?)s.EstadoDocumento))
         .ForMember(d => d.EstadoDocumentoLabel, o => o.MapFrom(s => s.EstadoDocumento.HasValue ? EnumDisplayHelper.GetDisplayName(s.EstadoDocumento.Value) : null))
         .ForMember(d => d.OrigemLabel, o => o.MapFrom(s => ResolveDocumentoOrigemLabel(s)))
+        .ForMember(d => d.CodigoPostalCodigo, o => o.MapFrom(s => s.CodigoPostal != null ? s.CodigoPostal.Codigo : null))
         .ForMember(d => d.Linhas, o => o.MapFrom(s => s.Linhas.OrderBy(l => l.NumeroLinha)));
 
       _ = CreateMap<Documento, DocumentoDtos.DocumentoTableDTO>()
@@ -1034,7 +1035,9 @@ namespace CliCloud.Infrastructure.Mapper
         .ForMember(d => d.FuncionarioNome, o => o.MapFrom(s => s.Funcionario != null ? s.Funcionario.Nome : null))
         .ForMember(d => d.EstadoDocumento, o => o.MapFrom(s => (int?)s.EstadoDocumento))
         .ForMember(d => d.EstadoDocumentoLabel, o => o.MapFrom(s => s.EstadoDocumento.HasValue ? EnumDisplayHelper.GetDisplayName(s.EstadoDocumento.Value) : null))
-        .ForMember(d => d.OrigemLabel, o => o.MapFrom(s => ResolveDocumentoOrigemLabel(s)));
+        .ForMember(d => d.OrigemLabel, o => o.MapFrom(s => ResolveDocumentoOrigemLabel(s)))
+        .ForMember(d => d.ReferenciaDocumento, o => o.MapFrom(s => ResolveDocumentoReferenciaListagem(s)))
+        .ForMember(d => d.AdmissoesResumo, o => o.MapFrom(s => ResolveDocumentoAdmissoesResumo(s)));
 
       _ = CreateMap<Documento, DocumentoDtos.DocumentoLightDTO>()
         .ForMember(d => d.TipoDocumentoAbreviatura, o => o.MapFrom(s => s.TipoDocumento != null ? s.TipoDocumento.Abreviatura : null));
@@ -2488,6 +2491,80 @@ namespace CliCloud.Infrastructure.Mapper
         return documento.Origem.Value.ToString(CultureInfo.InvariantCulture);
 
       return null;
+    }
+
+    private static string? ResolveDocumentoReferenciaListagem(Documento documento)
+    {
+      if (documento.DocumentoOrigem == null)
+        return null;
+
+      if (!string.IsNullOrWhiteSpace(documento.DocumentoOrigem.NumeroExibicao))
+        return documento.DocumentoOrigem.NumeroExibicao.Trim();
+
+      if (documento.DocumentoOrigem.TipoDocumento?.Abreviatura != null
+          && documento.DocumentoOrigem.NumeroDocumento > 0)
+      {
+        return $"{documento.DocumentoOrigem.TipoDocumento.Abreviatura.Trim()} {documento.DocumentoOrigem.NumeroDocumento}";
+      }
+
+      return null;
+    }
+
+    private static string? ResolveDocumentoAdmissoesResumo(Documento documento)
+    {
+      const int maxLen = 80;
+      var tokens = new List<string>();
+
+      void TryAdd(ModuloOrigemDocumento? modulo, Admissao? admissao)
+      {
+        if (admissao == null || tokens.Count > 20)
+          return;
+
+        string prefix = modulo switch
+        {
+          ModuloOrigemDocumento.Consultas => "C-",
+          ModuloOrigemDocumento.Modalidades => "M-",
+          ModuloOrigemDocumento.Tratamentos => "T-",
+          _ => documento.ModuloOrigem switch
+          {
+            ModuloOrigemDocumento.Consultas => "C-",
+            ModuloOrigemDocumento.Modalidades => "M-",
+            ModuloOrigemDocumento.Tratamentos => "T-",
+            _ => "C-",
+          },
+        };
+
+        string codigo = admissao.Ordem?.ToString(CultureInfo.InvariantCulture)
+          ?? admissao.Id.ToString("N")[..8];
+        string token = prefix + codigo;
+        if (!tokens.Contains(token, StringComparer.Ordinal))
+          tokens.Add(token);
+      }
+
+      if (documento.OrigemClinica?.Admissao != null)
+      {
+        TryAdd(
+          documento.OrigemClinica.ModuloOrigem,
+          documento.OrigemClinica.Admissao);
+      }
+
+      if (documento.Linhas != null)
+      {
+        foreach (DocumentoLinha linha in documento.Linhas)
+        {
+          if (linha.AdmissaoServico?.Admissao != null)
+            TryAdd(documento.ModuloOrigem, linha.AdmissaoServico.Admissao);
+        }
+      }
+
+      if (tokens.Count == 0)
+        return null;
+
+      var resumo = string.Join(' ', tokens);
+      if (resumo.Length > maxLen)
+        return resumo[..maxLen] + "...";
+
+      return resumo;
     }
 
     /// <summary>Garante que o DTO da linha do subsistema tenha sempre Empresa (Id + Nome) quando existir EmpresaId, mesmo que o Include não tenha carregado a navegação.</summary>

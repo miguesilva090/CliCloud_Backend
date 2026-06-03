@@ -7,6 +7,7 @@ namespace CliCloud.Application.Services.Sinistros.SinistradoService.DTOs
         public Guid? Id { get; set; }
         public Guid? TratamentoId { get; set; }
         public Guid? AdmissaoId { get; set; }
+        public Guid? ServicoId { get; set; }
         public string CodigoServico { get; set; } = string.Empty;
         public string? DesignacaoServico { get; set; }
         public int Quantidade { get; set; }

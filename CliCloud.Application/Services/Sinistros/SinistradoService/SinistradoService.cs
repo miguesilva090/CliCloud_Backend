@@ -15,7 +15,7 @@ namespace CliCloud.Application.Services.Sinistros.SinistradoService
     {
         private readonly IRepositoryAsync _repository = repository;
         private readonly IMapper _mapper = mapper;
-        private const int CodigoServicoMaxLength = 30;
+        private const int CodigoServicoMaxLength = 40;
         private const int DesignacaoServicoMaxLength = 160;
 
         public Task<PaginatedResponse<SinistradoTableDTO>> GetPaginatedAsync(SinistradoTableFilter filter)
@@ -131,7 +131,10 @@ namespace CliCloud.Application.Services.Sinistros.SinistradoService
                     {
                         linhas.Add(new SinistradoLinhaServicoDTO
                         {
-                            CodigoServico = servico.ServicoId?.ToString() ?? servico.CodigoArtigo ?? $"CONS-{consulta.Id:N}",
+                            ServicoId = servico.ServicoId,
+                            CodigoServico = servico.ServicoId.HasValue
+                                ? servico.ServicoId.Value.ToString()
+                                : servico.CodigoArtigo ?? $"CONS-{consulta.Id:N}",
                             DesignacaoServico = servico.Servico?.Designacao ?? servico.NomeArtigo ?? consulta.TipoConsultaDesignacao ?? "Consulta",
                             Quantidade = Math.Max(1, Convert.ToInt32(servico.Quantidade ?? 1)),
                             ValorServico = servico.ValorServico ?? servico.ValorArtigo,
@@ -164,7 +167,10 @@ namespace CliCloud.Application.Services.Sinistros.SinistradoService
                     {
                         linhas.Add(new SinistradoLinhaServicoDTO
                         {
-                            CodigoServico = servico.ServicoId?.ToString() ?? $"TRAT-{tratamento.Id:N}",
+                            ServicoId = servico.ServicoId,
+                            CodigoServico = servico.ServicoId.HasValue
+                                ? servico.ServicoId.Value.ToString()
+                                : $"TRAT-{tratamento.Id:N}",
                             DesignacaoServico = servico.Servico?.Designacao ?? tratamento.Designacao ?? "Tratamento",
                             Quantidade = 1,
                             ValorServico = servico.Preco,
@@ -196,13 +202,26 @@ namespace CliCloud.Application.Services.Sinistros.SinistradoService
         {
             foreach (var linha in linhas)
             {
-                var sourceCode = string.IsNullOrWhiteSpace(linha.CodigoServico)
-                    ? $"SERV-{Guid.NewGuid():N}"
-                    : linha.CodigoServico.Trim();
+                if (linha.ServicoId.HasValue && linha.ServicoId.Value != Guid.Empty)
+                {
+                    linha.CodigoServico = TruncarCodigoServico(linha.ServicoId.Value.ToString());
+                }
+                else
+                {
+                    var sourceCode = string.IsNullOrWhiteSpace(linha.CodigoServico)
+                        ? $"SERV-{Guid.NewGuid():N}"
+                        : linha.CodigoServico.Trim();
 
-                linha.CodigoServico = sourceCode.Length > CodigoServicoMaxLength
-                    ? sourceCode[..CodigoServicoMaxLength]
-                    : sourceCode;
+                    if (Guid.TryParse(sourceCode, out Guid servicoId))
+                    {
+                        linha.ServicoId = servicoId;
+                        linha.CodigoServico = TruncarCodigoServico(servicoId.ToString());
+                    }
+                    else
+                    {
+                        linha.CodigoServico = TruncarCodigoServico(sourceCode);
+                    }
+                }
 
                 if (!string.IsNullOrWhiteSpace(linha.DesignacaoServico) &&
                     linha.DesignacaoServico.Length > DesignacaoServicoMaxLength)
@@ -211,5 +230,8 @@ namespace CliCloud.Application.Services.Sinistros.SinistradoService
                 }
             }
         }
+
+        private static string TruncarCodigoServico(string codigo) =>
+            codigo.Length > CodigoServicoMaxLength ? codigo[..CodigoServicoMaxLength] : codigo;
     }
 }

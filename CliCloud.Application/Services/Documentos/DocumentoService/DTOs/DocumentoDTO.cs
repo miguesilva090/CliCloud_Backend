@@ -43,8 +43,26 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService.DTOs
         public string? NomeCliente { get; set; }
         public string? MoradaCliente { get; set; }
         public Guid? CodigoPostalId { get; set; }
+        public string? CodigoPostalCodigo { get; set; }
         public string? LocalidadeCliente { get; set; }
         public string? NumeroContribuinteCliente { get; set; }
+        public string? Beneficiario { get; set; }
+        public string? TipoSerie { get; set; }
+        public bool IvaCaixa { get; set; }
+        public Guid? MotivoIsencaoId { get; set; }
+        public Guid? MoedaId { get; set; }
+        public decimal? TaxaCambio { get; set; }
+        public Guid? BancoId { get; set; }
+        public DateTime? DataVencimentoPagamento { get; set; }
+        public DateTime? FaturaGlobalDataInicio { get; set; }
+        public DateTime? FaturaGlobalDataFim { get; set; }
+        public string? RetencaoImposto { get; set; }
+        public decimal? RetencaoTaxa { get; set; }
+        public decimal? RetencaoValor { get; set; }
+        public string? RetencaoMotivo { get; set; }
+        public string? CodigoValidacaoTransporte { get; set; }
+        public DateTime? DataTransporte { get; set; }
+        public string? HoraTransporte { get; set; }
         public Guid? DocumentoOrigemId { get; set; }
         public string? IdentificadorUnicoDocumentoOrigem { get; set; }
         public DateTime? DataDocumentoOrigem { get; set; }

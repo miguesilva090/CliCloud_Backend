@@ -39,8 +39,5 @@ public sealed class ConsultaDoDiaDTO : IDto
   public bool? Efetuado { get; set; }
   public bool? Faltou { get; set; }
 
-  /// <summary>
-  /// Indica se o utilizador pode iniciar atendimento (alinhado com <see cref="ConsultaService.IniciarAtendimentoAsync"/>).
-  /// </summary>
   public bool PodeIniciarAtendimento { get; set; }
 }

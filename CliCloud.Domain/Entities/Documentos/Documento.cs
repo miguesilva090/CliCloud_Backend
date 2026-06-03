@@ -68,6 +68,10 @@ public class Documento : AuditableEntityWithSoftDelete
   [StringLength(20)]
   public string? NumeroContribuinteCliente { get; set; }
 
+  /// <summary>Legado: Faturacao.TFatura.Beneficiario (n.º beneficiário subsistema).</summary>
+  [StringLength(100)]
+  public string? Beneficiario { get; set; }
+
   // --- Totais ---
   [Column(TypeName = "decimal(18,2)")]
   public decimal? TotalBruto { get; set; }

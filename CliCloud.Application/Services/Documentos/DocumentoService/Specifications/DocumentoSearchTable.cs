@@ -14,6 +14,13 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService.Specificatio
                 .Include(x => x.Utente)
                 .Include(x => x.Organismo)
                 .Include(x => x.Funcionario)
+                .Include(x => x.DocumentoOrigem!)
+                    .ThenInclude(d => d.TipoDocumento)
+                .Include(x => x.OrigemClinica!)
+                    .ThenInclude(o => o.Admissao)
+                .Include(x => x.Linhas)
+                    .ThenInclude(l => l.AdmissaoServico!)
+                        .ThenInclude(a => a.Admissao)
                 .Where(d =>
                     d.TipoDocumento == null
                     || (

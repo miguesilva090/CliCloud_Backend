@@ -22,6 +22,25 @@ public class DocumentoEmissaoController(IDocumentoEmissaoService DocumentoEmissa
     }
 
     [Authorize(Roles = "client")]
+    [HttpPost("sinistrados/info-faturacao")]
+    public async Task<IActionResult> SinistradosInfoFaturacao(
+        [FromBody] SinistradosInfoFaturacaoRequest request)
+    {
+        Response<SinistradosInfoFaturacaoResponse> result =
+            await DocumentoEmissaoService.SinistradosInfoFaturacaoAsync(request);
+        return Ok(result);
+    }
+
+    [Authorize(Roles = "client")]
+    [HttpPost("fatura-global/obter")]
+    public async Task<IActionResult> FaturaGlobalObter([FromBody] FaturaGlobalObterRequest request)
+    {
+        Response<FaturaGlobalObterResponse> result =
+            await DocumentoEmissaoService.FaturaGlobalObterAsync(request);
+        return Ok(result);
+    }
+
+    [Authorize(Roles = "client")]
     [HttpPost("emitir")]
     public async Task<IActionResult> Emitir([FromBody] EmitirDocumentoRequest request)
     {

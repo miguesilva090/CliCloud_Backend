@@ -37,6 +37,10 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService.DTOs
         public bool EstaEmitido { get; set; }
         public string? NomeCliente { get; set; }
         public string? NumeroContribuinteCliente { get; set; }
+        /// <summary>Documento de origem (ex.: fatura associada a NC) — legado coluna Ref.</summary>
+        public string? ReferenciaDocumento { get; set; }
+        /// <summary>Resumo de admissões (C-/T-) — legado coluna Admissões.</summary>
+        public string? AdmissoesResumo { get; set; }
         public DateTime CreatedOn { get; set; }
     }
 }

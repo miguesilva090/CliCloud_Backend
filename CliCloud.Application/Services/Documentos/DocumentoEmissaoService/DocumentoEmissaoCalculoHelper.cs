@@ -2,9 +2,7 @@ using CliCloud.Application.Services.Documentos.DocumentoEmissaoService.DTOs;
 
 namespace CliCloud.Application.Services.Documentos.DocumentoEmissaoService;
 
-/// <summary>
-/// Cálculos alinhados a <c>TfaturaEdt.js</c> (calcularTaxaDesconto, calculosLinha, calculaTotais).
-/// </summary>
+
 internal static class DocumentoEmissaoCalculoHelper
 {
   public const int RegraPrecosSemIvaIncluido = 1;

@@ -12,6 +12,8 @@ namespace CliCloud.Infrastructure.Persistence.Configurations
 
             builder.HasIndex(x => x.SinistradoId);
             builder.HasIndex(x => x.CodigoServico);
+            builder.HasIndex(x => x.ServicoId);
+            builder.Property(x => x.CodigoServico).HasMaxLength(40);
 
             builder.HasOne(x => x.Sinistrado)
                 .WithMany(x => x.LinhasServico)

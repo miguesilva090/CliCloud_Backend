@@ -31,6 +31,15 @@ public class EmitirDocumentoRequest : IDto
     public string? NumeroContribuinteCliente { get; set; }
     public Guid? CodigoPostalId { get; set; }
 
+    /// <summary>Legado TFatura.Beneficiario.</summary>
+    [StringLength(100)]
+    public string? Beneficiario { get; set; }
+
+    /// <summary>Legado TFatura.GlobalDataDe / GlobalDataAte (preenchido por fatura global).</summary>
+    public DateTime? FaturaGlobalDataInicio { get; set; }
+
+    public DateTime? FaturaGlobalDataFim { get; set; }
+
     public CondicaoPagamento? CondicaoPagamento { get; set; }
     public TipoModoPagamento? TipoModoPagamento { get; set; }
     public Guid? MoedaId { get; set; }
@@ -83,5 +92,8 @@ public class EmitirDocumentoRequest : IDto
     public string? IdentificadorUnicoDocumentoOrigem { get; set; }
     public DateTime? DataDocumentoOrigem { get; set; }
     public int? GerarReferenciaMb { get; set; }
+
+    /// <summary>Sinistro associado (legado modFldCodigoSinistrado).</summary>
+    public Guid? SinistradoId { get; set; }
 
 }

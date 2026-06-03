@@ -16,6 +16,7 @@ using CliCloud.Application.Services.Documentos.DocumentoService.Specifications;
 using CliCloud.Application.Services.Documentos.TipoDocumentoService.Specifications;
 using CliCloud.Application.Services.Documentos.DocumentoEmissaoService.Validators;
 using CliCloud.Domain.Entities.Consultas;
+using CliCloud.Domain.Entities.Sinistros;
 using CliCloud.Application.Services.Faturacao.ReferenciasMbService;
 using CliCloud.Application.Services.Faturacao.ReferenciasMbService.DTOs;
 using Microsoft.EntityFrameworkCore;
@@ -75,6 +76,24 @@ public Task<Response<DocumentoEmissaoOpcoesPagamentoDTO>> GetOpcoesPagamentoAsyn
     };
 
     return Task.FromResult(ResponseFactory.Success(data));
+}
+
+public async Task<Response<SinistradosInfoFaturacaoResponse>> SinistradosInfoFaturacaoAsync(
+    SinistradosInfoFaturacaoRequest request)
+{
+    await currentClinicaService.SetClinicaAsync();
+    if (!Guid.TryParse(currentClinicaService.ClinicaId, out Guid clinicaId) || clinicaId == Guid.Empty)
+        return ResponseFactory.Fail<SinistradosInfoFaturacaoResponse>("Clínica atual inválida.");
+    return await SinistradosInfoFaturacaoHelper.ObterAsync(repository, request);
+}
+
+public async Task<Response<FaturaGlobalObterResponse>> FaturaGlobalObterAsync(
+    FaturaGlobalObterRequest request)
+{
+    await currentClinicaService.SetClinicaAsync();
+    if (!Guid.TryParse(currentClinicaService.ClinicaId, out Guid clinicaId) || clinicaId == Guid.Empty)
+        return ResponseFactory.Fail<FaturaGlobalObterResponse>("Clínica atual inválida.");
+    return await FaturaGlobalObterHelper.ObterAsync(repository, request);
 }
 
 public async Task<Response<DocumentoEmissaoDTO>> EmitirDocumentoAsync(EmitirDocumentoRequest request)
@@ -249,6 +268,11 @@ public async Task<Response<DocumentoEmissaoDTO>> EmitirDocumentoAsync(EmitirDocu
                     documento.Exportado = false;
                     documento.IsentoIva = request.IsentoIva;
                     documento.MotivoIsencaoId = request.IsentoIva ? request.MotivoIsencaoId : null;
+                    documento.Beneficiario = string.IsNullOrWhiteSpace(request.Beneficiario)
+                        ? null
+                        : request.Beneficiario.Trim();
+                    documento.FaturaGlobalDataInicio = request.FaturaGlobalDataInicio;
+                    documento.FaturaGlobalDataFim = request.FaturaGlobalDataFim;
                     documento.Anulado = request.Anulado;
                     documento.IvaCaixa = request.IvaCaixa;
                     documento.Emitido = 1;
@@ -294,9 +318,7 @@ public async Task<Response<DocumentoEmissaoDTO>> EmitirDocumentoAsync(EmitirDocu
                     await repository.CreateRangeAsync<DocumentoLinha, Guid>(linhas);
                     documento.Linhas = linhas;
                     await repository.SaveChangesAsync();
-                    IEnumerable<Guid> admissaoServicoIds = request.Linhas
-                        .Where(l => l.AdmissaoServicoId.HasValue)
-                        .Select(l => l.AdmissaoServicoId!.Value);
+                    IEnumerable<Guid> admissaoServicoIds = ExtrairAdmissaoServicoIds(request.Linhas);
                     await DocumentoEmissaoClinicaSyncHelper.SincronizarAposEmissaoAsync(
                         repository,
                         documento.Id,
@@ -305,6 +327,10 @@ public async Task<Response<DocumentoEmissaoDTO>> EmitirDocumentoAsync(EmitirDocu
                         moduloOrigem,
                         faturado: true,
                         pago: false);
+                    await MarcarLinhasSinistradoFaturadasAsync(
+                        request,
+                        documento.NumeroExibicao,
+                        documento.Data);
                     await repository.SaveChangesAsync();
                     string? refEntidade = null;
                     string? refCodigo = null;
@@ -679,6 +705,23 @@ public async Task<Response<DocumentoEmissaoDTO>> EmitirDocumentoAsync(EmitirDocu
             if (documento.Anulado)
                 return ResponseFactory.Fail<Guid>("Documento já se encontra anulado.");
 
+            TipoDocumento? tipoDoc = (
+                await repository.GetListAsync<TipoDocumento, Guid>(
+                    new TipoDocumentoByIdClinicaSpec(documento.TipoDocumentoId, clinicaId))
+            ).FirstOrDefault();
+
+            string abrevTipo = tipoDoc?.Abreviatura?.Trim().ToUpperInvariant() ?? string.Empty;
+            if (abrevTipo != "FP" && documento.Data.HasValue)
+            {
+                DateTime dataDoc = documento.Data.Value;
+                DateTime agora = DateTime.Now;
+                if (dataDoc.Month != agora.Month || dataDoc.Year != agora.Year)
+                {
+                    return ResponseFactory.Fail<Guid>(
+                        "Só pode anular documentos do mês corrente (exceto FP).");
+                }
+            }
+
             string motivo = request.MotivoAnulacao?.Trim() ?? string.Empty;
             if (string.IsNullOrWhiteSpace(motivo))
                 return ResponseFactory.Fail<Guid>("Motivo de anulação é obrigatório.");
@@ -950,6 +993,33 @@ public async Task<Response<DocumentoEmissaoDTO>> EmitirDocumentoAsync(EmitirDocu
         return raw.Length > 1 ? raw[..1] : raw;
     }
 
+    private async Task MarcarLinhasSinistradoFaturadasAsync(
+        EmitirDocumentoRequest request,
+        string? numeroExibicao,
+        DateTime? dataDocumento)
+    {
+        if (!request.SinistradoId.HasValue)
+            return;
+
+        string numeroFatura = numeroExibicao ?? string.Empty;
+        foreach (var linhaReq in request.Linhas)
+        {
+            if (!linhaReq.SinistradoLinhaServicoId.HasValue)
+                continue;
+            if (SinistradosInfoFaturacaoHelper.IsLinhaObservacao(linhaReq.SinistradoLinhaServicoId.Value))
+                continue;
+
+            var sl = await repository.GetByIdAsync<SinistradoLinhaServico, Guid>(
+                linhaReq.SinistradoLinhaServicoId.Value);
+            if (sl is null)
+                continue;
+
+            sl.NumeroTFatura = numeroFatura;
+            sl.DataFatura = dataDocumento;
+            await repository.UpdateAsync<SinistradoLinhaServico, Guid>(sl);
+        }
+    }
+
     private static bool IsNumeroDocumentoCollision(DbUpdateException ex)
     {
         Exception? sqlEx = ex.InnerException ?? ex.InnerException?.InnerException;
@@ -984,4 +1054,13 @@ public async Task<Response<DocumentoEmissaoDTO>> EmitirDocumentoAsync(EmitirDocu
 
         return null;
     }
+
+    private static IEnumerable<Guid> ExtrairAdmissaoServicoIds(
+        IEnumerable<EmitirDocumentoLinhaRequest> linhas) =>
+        linhas.SelectMany(l =>
+        {
+            if (l.AdmissaoServicosIds is { Count: > 0 } ids)
+                return ids.Where(x => x != Guid.Empty);
+            return l.AdmissaoServicoId is { } id && id != Guid.Empty ? [id] : [];
+        });
 }

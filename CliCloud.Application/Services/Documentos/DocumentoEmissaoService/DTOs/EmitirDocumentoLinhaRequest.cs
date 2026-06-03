@@ -17,6 +17,9 @@ public class EmitirDocumentoLinhaRequest : IDto
     public Guid? ServicoId { get; set; }
     public Guid? AdmissaoServicoId { get; set; }
 
+    /// <summary>Vários serviços de admissão na mesma linha (ex.: fatura global resumo).</summary>
+    public List<Guid> AdmissaoServicosIds { get; set; } = [];
+
     [Range(0.0000001, double.MaxValue)]
     public decimal Quantidade { get; set; }
 
@@ -34,4 +37,7 @@ public class EmitirDocumentoLinhaRequest : IDto
     
     [Range(0, 100)]
     public decimal TaxaIvaPercentagem { get; set; }
+
+    /// <summary>Ligação à linha de serviço do sinistro (legado Linha sinistro).</summary>
+    public Guid? SinistradoLinhaServicoId { get; set; }
 }

@@ -15,8 +15,12 @@ namespace CliCloud.Domain.Entities.Sinistros
         [Required]
         public Guid SinistradoId { get; set; }
 
+        /// <summary>Serviço da clínica (equivalente legado LINHASINISTRO.C_Servico resolvido).</summary>
+        public Guid? ServicoId { get; set; }
+
         [Required]
-        [StringLength(30)]
+        /// <summary>Texto auxiliar: GUID, CONS-{consulta:N} ou TRAT-{tratamento:N} quando sem ServicoId.</summary>
+        [StringLength(40)]
         public string CodigoServico { get; set; } = string.Empty;
 
         [StringLength(160)]
