@@ -15,9 +15,7 @@ public sealed class OrganismosByCodigoULSNovaSpec : Specification<Organismo>
             return;
         }
 
-        // Materializar e usar EF.Constant para gerar `IN (...)` em vez de OPENJSON(... WITH ...),
-        // que no SQL Server pode falhar (erro 156) com split queries / certos batches.
-        List<int> valores = codigosUls.Distinct().ToList();
+        int[] valores = codigosUls.Distinct().ToArray();
         Query.Where(o => o.CodigoULSNova.HasValue && EF.Constant(valores).Contains(o.CodigoULSNova.Value));
     }
 }

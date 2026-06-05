@@ -4,10 +4,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CliCloud.Application.Services.Utentes.UtenteService.Specifications
 {
-  /// <summary>
-  /// Usa <see cref="EF.Constant{T}(T)"/> no filtro para o SQL Server gerar <c>IN (...)</c> em vez de
-  /// <c>OPENJSON(...) WITH (...)</c>, que falha em motores/compatibilidade sem JSON (erro junto a <c>WITH</c>).
-  /// </summary>
   public class UtenteNumerosByIdsSpecification : Specification<Utente>
   {
     public UtenteNumerosByIdsSpecification(IEnumerable<Guid> ids)

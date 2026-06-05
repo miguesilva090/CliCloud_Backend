@@ -8,6 +8,7 @@ public class DocumentoLinhaDTO : IDto
     public int NumeroLinha { get; set; }
     public string? CodigoArtigo { get; set; }
     public Guid? ServicoId { get; set; }
+    public Guid? AdmissaoServicoId { get; set; }
     public string Descricao { get; set; } = string.Empty;
     public decimal Quantidade { get; set; }
     public decimal PrecoUnitario { get; set; }

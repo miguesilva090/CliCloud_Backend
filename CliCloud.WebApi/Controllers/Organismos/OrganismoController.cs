@@ -25,9 +25,9 @@ namespace CliCloud.WebApi.Controllers.Organismos
         // Lightweight List 
         [Authorize(Roles = "client")]
         [HttpGet("light")]
-        public async Task<IActionResult> GetOrganismoLightAsync(string keyword = "")
+        public async Task<IActionResult> GetOrganismoLightAsync(string keyword = "", string? siglaFicheiro = null)
         {
-          Response<IEnumerable<OrganismoLightDTO>> result = await _OrganismoService.GetOrganismoLightAsync(keyword);
+          Response<IEnumerable<OrganismoLightDTO>> result = await _OrganismoService.GetOrganismoLightAsync(keyword, siglaFicheiro);
           return Ok(result);
         }
 

@@ -123,6 +123,31 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService.Specificatio
                             if (!string.IsNullOrWhiteSpace(filter.Value) && Enum.TryParse<CondicaoPagamento>(filter.Value, true, out CondicaoPagamento condicaoPagamento))
                                 _ = Query.Where(x => x.CondicaoPagamento == condicaoPagamento);
                             break;
+                        case "siglaficheiro":
+                            if (!string.IsNullOrWhiteSpace(filter.Value))
+                            {
+                                string siglaFicheiro = filter.Value
+                                    .Replace("/", "", StringComparison.Ordinal)
+                                    .Replace("-", "", StringComparison.Ordinal)
+                                    .ToUpperInvariant();
+
+                                _ = Query.Where(x => x.UtenteId == null && x.OrganismoId != null);
+
+                                if (siglaFicheiro is "SADGNR")
+                                {
+                                    _ = Query.Where(x => x.Organismo != null && x.Organismo.SADGNR);
+                                }
+                                else if (siglaFicheiro is "ADM")
+                                {
+                                    _ = Query.Where(x => x.Organismo != null && x.Organismo.ADM);
+                                }
+                                else if (siglaFicheiro is "SADPSP")
+                                {
+                                    _ = Query.Where(x => x.Organismo != null && x.Organismo.SADPSP);
+                                }
+                            }
+
+                            break;
                         default:
                             break;
                     }

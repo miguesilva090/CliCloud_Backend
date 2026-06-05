@@ -275,7 +275,15 @@ namespace CliCloud.Infrastructure.Persistence.Repository
     public async Task<IEnumerable<TId>> RemoveRangeAsync<T, TId>(IEnumerable<TId> ids)
       where T : BaseEntity<TId>
     {
-      List<T> entities = await _context.Set<T>().Where(x => ids.Contains(x.Id)).ToListAsync();
+      TId[] idArray = ids.Distinct().ToArray();
+      if (idArray.Length == 0)
+      {
+        return [];
+      }
+
+      List<T> entities = await _context.Set<T>()
+        .Where(x => EF.Constant(idArray).Contains(x.Id))
+        .ToListAsync();
 
       if (entities.Count == 0)
       {

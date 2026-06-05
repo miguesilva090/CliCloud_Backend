@@ -8,7 +8,7 @@ namespace CliCloud.Application.Services.Organismos.OrganismoService
     public interface IOrganismoService : ITransientService
     {
         Task<Response<IEnumerable<OrganismoDTO>>> GetOrganismoAsync(string keyword = "");
-        Task<Response<IEnumerable<OrganismoLightDTO>>> GetOrganismoLightAsync(string keyword = "");
+        Task<Response<IEnumerable<OrganismoLightDTO>>> GetOrganismoLightAsync(string keyword = "", string? siglaFicheiro = null );
         Task<PaginatedResponse<OrganismoTableDTO>> GetOrganismoPaginatedAsync(OrganismoTableFilter filter);
         Task<Response<IEnumerable<OrganismoTableDTO>>> GetAllOrganismoAsync(OrganismoAllFilter filter);
         Task<Response<OrganismoDTO>> GetOrganismoAsync(Guid id);

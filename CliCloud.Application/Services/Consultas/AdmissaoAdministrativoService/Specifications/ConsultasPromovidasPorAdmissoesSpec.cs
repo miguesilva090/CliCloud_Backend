@@ -4,10 +4,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CliCloud.Application.Services.Consultas.AdmissaoAdministrativoService.Specifications;
 
-/// <summary>
-/// Usa <see cref="EF.Constant{T}(T)"/> para o SQL Server gerar <c>IN (...)</c> em vez de
-/// <c>OPENJSON(...) WITH (...)</c>, que falha em compatibilidades sem JSON.
-/// </summary>
 public sealed class ConsultasPromovidasPorAdmissoesSpec : Specification<Consulta>
 {
   public ConsultasPromovidasPorAdmissoesSpec(IEnumerable<Guid> admissaoIds)

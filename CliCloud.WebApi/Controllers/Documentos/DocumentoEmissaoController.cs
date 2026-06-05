@@ -49,6 +49,15 @@ public class DocumentoEmissaoController(IDocumentoEmissaoService DocumentoEmissa
     }
 
     [Authorize(Roles = "client")]
+    [HttpPut("atualizar/{documentoId:guid}")]
+    public async Task<IActionResult> Atualizar(Guid documentoId, [FromBody] EmitirDocumentoRequest request)
+    {
+        Response<DocumentoEmissaoDTO> result =
+            await DocumentoEmissaoService.AtualizarDocumentoEmissaoAsync(documentoId, request);
+        return Ok(result);
+    }
+
+    [Authorize(Roles = "client")]
     [HttpPost("emitir/admissao/{admissaoId:guid}")]
     public async Task<IActionResult> EmitirDesdeAdmissao(Guid admissaoId, [FromBody] EmitirDocumentoDesdeAdmissaoRequest request)
     {

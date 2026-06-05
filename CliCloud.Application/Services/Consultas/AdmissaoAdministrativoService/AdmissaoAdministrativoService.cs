@@ -12,7 +12,6 @@ using CliCloud.Application.Services.Utentes.UtenteService.DTOs;
 using CliCloud.Application.Services.Utentes.UtenteService.Specifications;
 using CliCloud.Application.Utility;
 using CliCloud.Domain.Entities.Consultas;
-using CliCloud.Domain.Entities.Documentos;
 using CliCloud.Domain.Entities.Core;
 using CliCloud.Domain.Entities.Utentes;
 using CliCloud.Domain.Enums;
@@ -612,14 +611,8 @@ public class AdmissaoAdministrativoService(
     }
 
     List<Guid> servicoIds = servicos.Select(s => s.Id).ToList();
-    HashSet<Guid> jaFaturados = (
-      await _repository.GetListAsync<DocumentoLinha, Guid>(
-        new DocumentoLinhaByAdmissaoServicoIdsSpec(servicoIds)
-      )
-    )
-      .Where(l => l.AdmissaoServicoId.HasValue)
-      .Select(l => l.AdmissaoServicoId!.Value)
-      .ToHashSet();
+    HashSet<Guid> jaFaturados = await AdmissaoServicoFaturacaoQueryHelper
+      .ObterAdmissaoServicoIdsJaFaturadosAsync(_repository, servicoIds);
 
     decimal debito = 0m;
     int comDebito = 0;

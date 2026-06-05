@@ -37,9 +37,9 @@ namespace CliCloud.Application.Services.Organismos.OrganismoService
         }
 
         // get lightweight list 
-        public async Task<Response<IEnumerable<OrganismoLightDTO>>> GetOrganismoLightAsync(string keyword = "")
+        public async Task<Response<IEnumerable<OrganismoLightDTO>>> GetOrganismoLightAsync(string keyword = "", string? siglaFicheiro = null)
         {
-            OrganismoSearchList specification = new(keyword);
+            OrganismoSearchList specification = new(keyword, siglaFicheiro);
             IEnumerable<OrganismoLightDTO> list = await _repository.GetListAsync<Organismo, OrganismoLightDTO, Guid>(specification);
             return ResponseFactory.Success<IEnumerable<OrganismoLightDTO>>(list);
         }

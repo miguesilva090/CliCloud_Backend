@@ -1,29 +1,25 @@
 using Ardalis.Specification;
 using CliCloud.Domain.Entities.Documentos;
+using Microsoft.EntityFrameworkCore;
 
 namespace CliCloud.Application.Services.Consultas.AdmissaoAdministrativoService.Specifications;
 
 /// <summary>
-/// Linhas de documentos não anulados que referenciam serviços de admissão.
+/// Linhas que referenciam serviços de admissão.
+/// O filtro de documento anulado é aplicado em <see cref="AdmissaoServicoFaturacaoQueryHelper"/>.
 /// </summary>
 public sealed class DocumentoLinhaByAdmissaoServicoIdsSpec : Specification<DocumentoLinha>
 {
   public DocumentoLinhaByAdmissaoServicoIdsSpec(IEnumerable<Guid> admissaoServicoIds)
   {
-    List<Guid> ids = admissaoServicoIds.Where(x => x != Guid.Empty).Distinct().ToList();
-    if (ids.Count == 0)
+    Guid[] idArray = admissaoServicoIds.Where(x => x != Guid.Empty).Distinct().ToArray();
+    if (idArray.Length == 0)
     {
       _ = Query.Where(_ => false);
       return;
     }
 
-    _ = Query
-      .Include(l => l.Documento)
-      .Where(l =>
-        l.AdmissaoServicoId.HasValue
-        && ids.Contains(l.AdmissaoServicoId.Value)
-        && l.Documento != null
-        && !l.Documento.Anulado
-      );
+    _ = Query.Where(l =>
+      l.AdmissaoServicoId.HasValue && EF.Constant(idArray).Contains(l.AdmissaoServicoId.Value));
   }
 }

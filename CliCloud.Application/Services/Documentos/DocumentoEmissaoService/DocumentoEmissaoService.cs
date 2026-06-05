@@ -390,6 +390,200 @@ public async Task<Response<DocumentoEmissaoDTO>> EmitirDocumentoAsync(EmitirDocu
     }
 }
 
+public async Task<Response<DocumentoEmissaoDTO>> AtualizarDocumentoEmissaoAsync(
+    Guid documentoId,
+    EmitirDocumentoRequest request)
+{
+    try
+    {
+        return await transactionalExecutor.ExecuteAsync(async ct =>
+        {
+            if (request.Linhas == null || request.Linhas.Count == 0)
+                return ResponseFactory.Fail<DocumentoEmissaoDTO>("Documento deve conter pelo menos uma linha");
+            if (request.Anulado)
+                return ResponseFactory.Fail<DocumentoEmissaoDTO>("Não é permitido gravar documento anulado.");
+
+            await currentClinicaService.SetClinicaAsync();
+            if (!Guid.TryParse(currentClinicaService.ClinicaId, out Guid clinicaId) || clinicaId == Guid.Empty)
+                return ResponseFactory.Fail<DocumentoEmissaoDTO>("Clínica atual inválida");
+
+            Documento? documento = (
+                await repository.GetListAsync<Documento, Guid>(
+                    new DocumentoByIdWithLinhasSpec(documentoId, clinicaId))
+            ).FirstOrDefault();
+            if (documento == null)
+                return ResponseFactory.Fail<DocumentoEmissaoDTO>("Documento não encontrado");
+            if (documento.Anulado)
+                return ResponseFactory.Fail<DocumentoEmissaoDTO>("Documento anulado não pode ser editado.");
+            if (documento.TipoDocumentoId != request.TipoDocumentoId)
+                return ResponseFactory.Fail<DocumentoEmissaoDTO>("Não é permitido alterar o tipo de documento.");
+
+            TipoDocumento? tipoDocumento = (
+                await repository.GetListAsync<TipoDocumento, Guid>(
+                    new TipoDocumentoByIdClinicaSpec(request.TipoDocumentoId, clinicaId))
+            ).FirstOrDefault();
+            if (tipoDocumento == null)
+                return ResponseFactory.Fail<DocumentoEmissaoDTO>("Tipo de documento não encontrado na clínica atual");
+
+            Clinica clinica = await repository.GetByIdAsync<Clinica, Guid>(clinicaId);
+            int regraFaturacao = DocumentoEmissaoCalculoHelper.ParseRegraFaturacao(clinica.Regrafaturacao);
+            string? erroPerfil = DocumentoEmissaoPerfilValidator.Validar(tipoDocumento, request, regraFaturacao);
+            if (erroPerfil != null)
+                return ResponseFactory.Fail<DocumentoEmissaoDTO>(erroPerfil);
+
+            DateTime dataDocumento = request.DataDocumento ?? documento.Data ?? DateTime.Today;
+            if (request.DataVencimentoPagamento.HasValue
+                && request.DataVencimentoPagamento.Value.Date < dataDocumento.Date)
+                return ResponseFactory.Fail<DocumentoEmissaoDTO>(
+                    "Data de vencimento não pode ser inferior à data do documento.");
+
+            decimal descontoCliente = request.DescontoCliente ?? 0m;
+            decimal descontoPagamento = request.DescontoPagamento ?? 0m;
+            decimal outros = request.Outros ?? 0m;
+            ModuloOrigemDocumento moduloOrigem =
+                documento.ModuloOrigem ?? request.ModuloOrigem ?? ModuloOrigemDocumento.Faturacao;
+
+            List<DocumentoEmissaoCalculoHelper.LinhaCalculoResult> linhasCalc = [];
+            List<DocumentoLinha> linhas = request.Linhas.Select((linhaReq, index) =>
+            {
+                int numeroLinha = linhaReq.NumeroLinha > 0 ? linhaReq.NumeroLinha : index + 1;
+                DocumentoEmissaoCalculoHelper.LinhaCalculoResult calc =
+                    DocumentoEmissaoCalculoHelper.CalcularLinha(
+                        linhaReq,
+                        regraFaturacao,
+                        descontoCliente,
+                        descontoPagamento,
+                        request.PercentagemDescontoGlobal,
+                        request.IsentoIva);
+                linhasCalc.Add(calc);
+                return new DocumentoLinha
+                {
+                    Id = Guid.NewGuid(),
+                    DocumentoId = documento.Id,
+                    NumeroLinha = numeroLinha,
+                    CodigoArtigo = linhaReq.CodigoArtigo,
+                    ServicoId = linhaReq.ServicoId,
+                    AdmissaoServicoId = linhaReq.AdmissaoServicoId,
+                    Descricao = linhaReq.Descricao,
+                    Quantidade = linhaReq.Quantidade,
+                    PrecoUnitario = linhaReq.PrecoUnitario,
+                    PercentagemDesconto = calc.PercentagemDescontoEfectiva,
+                    ValorDesconto = calc.DescontoValor,
+                    DescontoTipo1 = linhaReq.DescontoTipo1,
+                    DescontoTipo2 = linhaReq.DescontoTipo2,
+                    DescontoTipo3 = linhaReq.DescontoTipo3,
+                    TotalLinha = DocumentoEmissaoCalculoHelper.ResolverTotalLinhaPersistencia(
+                        calc,
+                        regraFaturacao),
+                    TaxaIvaId = linhaReq.TaxaIvaId,
+                    MotivoIsencaoId = request.IsentoIva
+                        ? (linhaReq.MotivoIsencaoId ?? request.MotivoIsencaoId)
+                        : null,
+                    TaxaIvaPercentagem = request.IsentoIva ? 0m : linhaReq.TaxaIvaPercentagem,
+                    ValorImposto = Math.Round(calc.ValorIva, 2, MidpointRounding.AwayFromZero),
+                    ModuloOrigemLinha = moduloOrigem,
+                };
+            }).ToList();
+
+            decimal retencaoValor = DocumentoEmissaoCalculoHelper.ResolverRetencaoValor(
+                request.RetencaoAtiva,
+                request.RetencaoTaxa,
+                request.RetencaoValor,
+                DocumentoEmissaoCalculoHelper.CalcularTotaisDocumento(linhasCalc, regraFaturacao, outros, 0m).Total,
+                outros);
+            DocumentoEmissaoCalculoHelper.DocumentoTotaisCalculo totaisDoc =
+                DocumentoEmissaoCalculoHelper.CalcularTotaisDocumento(
+                    linhasCalc,
+                    regraFaturacao,
+                    outros,
+                    retencaoValor);
+
+            foreach (DocumentoLinha linhaAntiga in documento.Linhas.ToList())
+                await repository.RemoveAsync<DocumentoLinha, Guid>(linhaAntiga);
+
+            documento.Data = dataDocumento;
+            documento.DataVencimentoPagamento = request.DataVencimentoPagamento ?? dataDocumento;
+            documento.UtenteId = request.UtenteId;
+            documento.OrganismoId = request.OrganismoId;
+            documento.FuncionarioId = request.FuncionarioId;
+            documento.NomeCliente = request.NomeCliente;
+            documento.MoradaCliente = request.MoradaCliente;
+            documento.LocalidadeCliente = request.LocalidadeCliente;
+            documento.NumeroContribuinteCliente = request.NumeroContribuinteCliente;
+            documento.CodigoPostalId = request.CodigoPostalId;
+            documento.TotalDocumento = totaisDoc.Total;
+            documento.TotalIva = totaisDoc.Impostos;
+            documento.TotalDesconto = totaisDoc.Descontos;
+            documento.TotalBruto = totaisDoc.Total + outros;
+            documento.TotalLiquido = totaisDoc.APagar;
+            documento.DescontoCliente = descontoCliente;
+            documento.DescontoPagamento = descontoPagamento;
+            documento.Outros = outros;
+            documento.PrecoUnitarioMercadorias = totaisDoc.Mercadorias;
+            documento.CondicaoPagamento = request.CondicaoPagamento;
+            documento.TipoModoPagamento = request.TipoModoPagamento;
+            documento.MoedaId = request.MoedaId;
+            documento.BancoId = request.BancoId;
+            documento.TaxaCambio = request.TaxaCambio;
+            documento.TipoCambio = request.TipoCambio;
+            documento.IsentoIva = request.IsentoIva;
+            documento.MotivoIsencaoId = request.IsentoIva ? request.MotivoIsencaoId : null;
+            documento.Beneficiario = string.IsNullOrWhiteSpace(request.Beneficiario)
+                ? null
+                : request.Beneficiario.Trim();
+            documento.FaturaGlobalDataInicio = request.FaturaGlobalDataInicio;
+            documento.FaturaGlobalDataFim = request.FaturaGlobalDataFim;
+            documento.IvaCaixa = request.IvaCaixa;
+            documento.Observacoes = request.Observacoes;
+            documento.CodigoValidacaoTransporte = request.CodigoValidacaoTransporte;
+            documento.DataTransporte = request.DataTransporte;
+            documento.HoraTransporte = request.HoraTransporte;
+            documento.RetencaoImposto = request.RetencaoAtiva ? request.RetencaoImposto?.Trim() : null;
+            documento.RetencaoTaxa = request.RetencaoAtiva ? request.RetencaoTaxa : null;
+            documento.RetencaoValor = request.RetencaoAtiva ? retencaoValor : null;
+            documento.RetencaoCodigoMotivo = request.RetencaoAtiva ? request.RetencaoCodigoMotivo : null;
+            documento.RetencaoMotivo = request.RetencaoAtiva ? request.RetencaoMotivo?.Trim() : null;
+            documento.DocumentoOrigemId = request.DocumentoOrigemId;
+            documento.IdentificadorUnicoDocumentoOrigem = request.IdentificadorUnicoDocumentoOrigem;
+            documento.DataDocumentoOrigem = request.DataDocumentoOrigem;
+            documento.TipoSerie = ResolveTipoSerieEmissao(request.TipoSerie, tipoDocumento.TipoSerie);
+            documento.Liquidado = request.Liquidado;
+            documento.Rectificado = request.Rectificado;
+
+            _ = await repository.UpdateAsync<Documento, Guid>(documento);
+            await repository.CreateRangeAsync<DocumentoLinha, Guid>(linhas);
+            documento.Linhas = linhas;
+            await repository.SaveChangesAsync();
+
+            IEnumerable<Guid> admissaoServicoIds = ExtrairAdmissaoServicoIds(request.Linhas);
+            await DocumentoEmissaoClinicaSyncHelper.SincronizarAposEmissaoAsync(
+                repository,
+                documento.Id,
+                request.TipoDocumentoId,
+                admissaoServicoIds,
+                moduloOrigem,
+                faturado: true,
+                pago: false);
+            await repository.SaveChangesAsync();
+
+            return ResponseFactory.Success(new DocumentoEmissaoDTO
+            {
+                Id = documento.Id,
+                TipoDocumentoId = documento.TipoDocumentoId,
+                AnoFiscal = documento.AnoFiscal,
+                NumeroDocumento = documento.NumeroDocumento,
+                NumeroExibicao = documento.NumeroExibicao,
+                HashDocumento = documento.GlobalHash,
+                VersaoChave = documento.VersaoChave,
+            });
+        });
+    }
+    catch (Exception ex)
+    {
+        return ResponseFactory.Fail<DocumentoEmissaoDTO>(ex.Message);
+    }
+}
+
     public async Task<Response<DocumentoEmissaoDTO>> EmitirDocumentoDesdeAdmissaoAsync(Guid admissaoId, EmitirDocumentoDesdeAdmissaoRequest request)
     {
         try

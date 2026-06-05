@@ -1,9 +1,7 @@
 using CliCloud.Application.Common;
 
 using CliCloud.Application.Services.Consultas.AdmissaoAdministrativoService;
-
 using CliCloud.Application.Services.Consultas.AdmissaoAdministrativoService.Specifications;
-
 using CliCloud.Application.Services.Documentos.DocumentoEmissaoService.Specifications;
 
 using CliCloud.Domain.Entities.Consultas;
@@ -192,23 +190,8 @@ internal static class DocumentoEmissaoClinicaSyncHelper
 
       List<Guid> todosServicoIds = todosServicos.Select(s => s.Id).ToList();
 
-      HashSet<Guid> jaEmDocumentos = (
-
-        await repository.GetListAsync<DocumentoLinha, Guid>(
-
-          new DocumentoLinhaByAdmissaoServicoIdsSpec(todosServicoIds),
-
-          ct
-
-        )
-
-      )
-
-        .Where(l => l.AdmissaoServicoId.HasValue)
-
-        .Select(l => l.AdmissaoServicoId!.Value)
-
-        .ToHashSet();
+      HashSet<Guid> jaEmDocumentos = await AdmissaoServicoFaturacaoQueryHelper
+        .ObterAdmissaoServicoIdsJaFaturadosAsync(repository, todosServicoIds, ct);
 
 
 

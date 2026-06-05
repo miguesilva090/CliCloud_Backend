@@ -2,7 +2,7 @@
 
 using CliCloud.Application.Common;
 using CliCloud.Application.Common.Wrapper;
-using CliCloud.Application.Services.Consultas.AdmissaoAdministrativoService.Specifications;
+using CliCloud.Application.Services.Consultas.AdmissaoAdministrativoService;
 using CliCloud.Application.Services.Documentos.DocumentoEmissaoService.DTOs;
 using CliCloud.Application.Services.Documentos.DocumentoEmissaoService.Specifications;
 using CliCloud.Domain.Entities.Utility;
@@ -76,13 +76,8 @@ internal static class FaturaGlobalObterHelper
             .Distinct()
             .ToList();
 
-        var jaFaturados = (
-            await repository.GetListAsync<Domain.Entities.Documentos.DocumentoLinha, Guid>(
-                new DocumentoLinhaByAdmissaoServicoIdsSpec(todosServicoIds))
-        )
-            .Where(l => l.AdmissaoServicoId.HasValue)
-            .Select(l => l.AdmissaoServicoId!.Value)
-            .ToHashSet();
+        var jaFaturados = await AdmissaoServicoFaturacaoQueryHelper
+            .ObterAdmissaoServicoIdsJaFaturadosAsync(repository, todosServicoIds);
 
         var opcaoTipo = request.OpcaoTipo is 1 or 2 ? request.OpcaoTipo.Value : 1;
 
