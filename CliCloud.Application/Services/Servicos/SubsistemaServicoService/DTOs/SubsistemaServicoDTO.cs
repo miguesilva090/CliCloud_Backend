@@ -22,4 +22,3 @@ namespace CliCloud.Application.Services.Servicos.SubsistemaServicoService.DTOs
     public DateTime? LastModifiedOn { get; set; }
   }
 }
-

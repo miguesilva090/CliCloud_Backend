@@ -31,12 +31,19 @@ internal static class AdmissaoServicoFaturacaoQueryHelper
     }
 
     List<Guid> documentoIds = linhas.Select(l => l.DocumentoId).Distinct().ToList();
-    HashSet<Guid> documentosValidos = (
+    List<Documento> documentos = (
       await repository.GetListAsync<Documento, Guid>(
-        new DocumentoByIdsNaoAnuladosSpec(documentoIds),
+        new DocumentoByIdsNaoAnuladosComTipoSpec(documentoIds),
         ct
       )
-    ).Select(d => d.Id).ToHashSet();
+    ).ToList();
+
+    // Legado: só fatura global ao organismo consome linhas (CodigoFaturaOrganismo / faturado na admissão).
+    // Recibos (FR) e FA avulsa desde admissão não bloqueiam a importação na fatura global.
+    HashSet<Guid> documentosValidos = documentos
+      .Where(d => d.FaturaGlobalDataInicio.HasValue)
+      .Select(d => d.Id)
+      .ToHashSet();
 
     return linhas
       .Where(l => l.AdmissaoServicoId.HasValue && documentosValidos.Contains(l.DocumentoId))

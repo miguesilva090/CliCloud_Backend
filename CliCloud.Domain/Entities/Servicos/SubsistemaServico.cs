@@ -27,4 +27,3 @@ namespace CliCloud.Domain.Entities.Servicos
     public bool Inativo { get; set; }
   }
 }
-

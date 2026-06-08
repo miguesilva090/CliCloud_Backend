@@ -24,7 +24,8 @@ internal static class FicheiroEletronicoSadGnrHelper
         var erros = new List<string>();
         string filial = FicheiroEletronicoFormatHelper.ObterFilial(clinica.Sucursal);
         string contribuinte = clinica.NumeroContribuinte!.Trim();
-        decimal totalOrganismoDoc = (documento.TotalLiquido ?? 0) + (documento.RetencaoValor ?? 0);
+        // Legado: tfatura.TotalFatura + tfatura.RetencaoFonteValor (= TotalDocumento)
+        decimal totalOrganismoDoc = documento.TotalDocumento ?? 0;
 
         decimal somaOrganismoUtentes = linhas
             .GroupBy(x => x.DocumentoUtenteId)

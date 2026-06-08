@@ -5,6 +5,7 @@ using CliCloud.Application.Common.Wrapper;
 using CliCloud.Application.Services.Consultas.AdmissaoAdministrativoService;
 using CliCloud.Application.Services.Documentos.DocumentoEmissaoService.DTOs;
 using CliCloud.Application.Services.Documentos.DocumentoEmissaoService.Specifications;
+using CliCloud.Application.Services.Servicos;
 using CliCloud.Domain.Entities.Utility;
 using CliCloud.Domain.Entities.Consultas;
 using CliCloud.Domain.Entities.Organismos;
@@ -67,8 +68,13 @@ internal static class FaturaGlobalObterHelper
             .ToList();
 
         if (admissoes.Count == 0)
+        {
+            var msgRecibo = exigirReciboPago
+                ? " Para organismos SAD GNR, a admissão tem de estar com recibo emitido (Pago)."
+                : string.Empty;
             return ResponseFactory.Fail<FaturaGlobalObterResponse>(
-                "Não existem admissões por faturar no intervalo indicado.");
+                $"Não existem admissões por faturar no intervalo indicado.{msgRecibo}");
+        }
 
         var todosServicoIds = admissoes
             .SelectMany(a => a.Servicos)
@@ -107,7 +113,8 @@ internal static class FaturaGlobalObterHelper
 
         if (response.Linhas.Count == 0)
             return ResponseFactory.Fail<FaturaGlobalObterResponse>(
-                "Não existem linhas por faturar no intervalo indicado.");
+                "Existem admissões no intervalo, mas todos os serviços já foram incluídos numa fatura global anterior ou não têm linhas disponíveis. "
+                + "Use «Por admissão» se emitiu FA avulsa por engano; anule esse documento ou crie nova admissão.");
 
         return ResponseFactory.Success(response);
     }
@@ -125,7 +132,17 @@ internal static class FaturaGlobalObterHelper
         ).FirstOrDefault();
 
         if (servicoResumo is null)
-            return (false, $"O serviço com o código {codigoResumo} não existe.");
+        {
+            servicoResumo = admissoes
+                .SelectMany(a => a.Servicos)
+                .Select(s => s.Servico)
+                .FirstOrDefault(s => s is { Inativo: false, TaxaIva: not null });
+        }
+
+        if (servicoResumo is null)
+            return (false,
+                $"O serviço com o código {codigoResumo} não existe e nenhuma linha de admissão tem taxa de IVA. "
+                + $"Configure o serviço «{codigoResumo}» em Tabelas → Serviços ou associe IVA aos serviços da admissão.");
 
         if (servicoResumo.TaxaIva is null)
             return (false, $"O serviço com o código {codigoResumo} não tem taxa de IVA associada.");
@@ -209,7 +226,7 @@ internal static class FaturaGlobalObterHelper
                 response.Linhas.Add(new FaturaGlobalLinhaDTO
                 {
                     ServicoId = srv.ServicoId,
-                    CodigoArtigo = srv.Servico?.Designacao ?? srv.CodigoArtigo,
+                    CodigoArtigo = CodigoServicoOrganismoHelper.ResolverOpcional(srv),
                     Descricao = descricao,
                     Quantidade = qty,
                     PrecoUnitario = unit,
@@ -233,7 +250,9 @@ internal static class FaturaGlobalObterHelper
         {
             var unit = srv.ValorServico.GetValueOrDefault();
             var utente = srv.ValorUt.GetValueOrDefault();
-            var organismo = srv.DescInst.GetValueOrDefault();
+            var organismo = srv.RecInst.GetValueOrDefault();
+            if (organismo == 0)
+                organismo = srv.DescInst.GetValueOrDefault();
             if (organismo == 0)
                 organismo = srv.ValorDesc.GetValueOrDefault();
             return (unit, utente, organismo);

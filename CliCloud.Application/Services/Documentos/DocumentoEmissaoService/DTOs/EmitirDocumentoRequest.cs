@@ -96,4 +96,9 @@ public class EmitirDocumentoRequest : IDto
     /// <summary>Sinistro associado (legado modFldCodigoSinistrado).</summary>
     public Guid? SinistradoId { get; set; }
 
+    /// <summary>Override sync clínica ao emitir desde admissão/consulta (ex.: FR → pago=true).</summary>
+    public bool? AdmissaoSyncPago { get; set; }
+
+    public bool? AdmissaoSyncFaturado { get; set; }
+
 }

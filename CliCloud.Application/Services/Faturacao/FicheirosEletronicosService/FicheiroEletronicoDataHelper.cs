@@ -1,8 +1,11 @@
 #nullable enable
 
 using CliCloud.Application.Common;
+using CliCloud.Application.Services.Consultas;
 using CliCloud.Application.Services.Consultas.ConsultaService.Specifications;
+using CliCloud.Application.Services.Documentos.DocumentoEmissaoService;
 using CliCloud.Application.Services.Documentos.DocumentoEmissaoService.Specifications;
+using CliCloud.Application.Services.Servicos;
 using CliCloud.Application.Services.Faturacao.FicheirosEletronicosService.DTOs;
 using CliCloud.Application.Services.Faturacao.FicheirosEletronicosService.Specifications;
 using CliCloud.Domain.Entities.Consultas;
@@ -104,41 +107,44 @@ internal static class FicheiroEletronicoDataHelper
             decimal qtd = srv.Quantidade ?? linha.Quantidade;
             if(qtd <= 0) qtd = 1;
 
+            (decimal valorServicoTotal, decimal valorUtenteTotal, decimal valorOrganismoTotal) =
+                AdmissaoServicoValoresHelper.ResolverTotaisLinha(srv, qtd);
+
             resultado.Add(new FicheiroEletronicoSadGnrLinhaDTO{
                 DocumentoUtenteId = docUtente.Id,
                 NumeroDocumentoUtente = docUtente.NumeroDocumento,
                 DataUtente = docUtente.Data ?? DateTime.Today,
                 Beneficiario = (docUtente.Beneficiario ?? docUtente.NumeroContribuinteCliente ?? string.Empty).Trim(),
-                ValorTotalReciboUtente = docUtente.TotalDocumento ?? 0,
-                ValorBeneficiarioReciboUtente = docUtente.TotalLiquido ?? 0,
-                CodigoServico = await ObterCodigoServicoAsync(repository, srv, linha, organismoId, ct),
+                ValorTotalReciboUtente = valorServicoTotal,
+                ValorBeneficiarioReciboUtente = valorUtenteTotal,
+                CodigoServico = CodigoServicoOrganismoHelper.Resolver(srv, linha),
                 DataAtoMedico = srv.Admissao.Data ?? docUtente.Data ?? DateTime.Today,
                 Quantidade = (int)Math.Round(qtd, MidpointRounding.AwayFromZero),
-                ValorAtoMedico = (srv.ValorServico ?? srv.ValorArtigo ?? linha.PrecoUnitario) * qtd,
-                ValorBeneficiarioAtoMedico = (srv.ValorUt ?? 0) * qtd,
-                ValorOrganismoAtoMedico = (srv.ValorDesc ?? 0) * qtd,
+                ValorAtoMedico = valorServicoTotal,
+                ValorBeneficiarioAtoMedico = valorUtenteTotal,
+                ValorOrganismoAtoMedico = valorOrganismoTotal,
                 Dente = srv.Dente ?? string.Empty,
             });
         }
 
         foreach(var grp in resultado.GroupBy(x => x.DocumentoUtenteId))
         {
-            Documento docUtente = await repository.GetByIdAsync<Documento, Guid>(grp.Key, cancellationToken: ct);
-            decimal totalLinhas = (
-                await repository.GetListAsync<DocumentoLinha, Guid>(
-                    new DocumentoLinhasByDocumentoIdSpec(docUtente.Id),
-                    ct)
-            ).Sum(l => l.TotalLinha ?? l.PrecoUnitario * l.Quantidade);
+            // Legado H2: SUM(PrecoUnitarioTotalArtigo*Qtd) e tfu.TotalFatura (= SUM TotalLinha utente).
+            // O novo FR pode gravar TotalDocumento = valor_serv; usar totais da admissão (como D2).
+            decimal totalLinhas = grp.Sum(x => x.ValorAtoMedico);
+            decimal totalFaturaUtente = grp.Sum(x => x.ValorBeneficiarioAtoMedico);
 
             foreach (FicheiroEletronicoSadGnrLinhaDTO item in grp)
             {
                 item.ValorTotalReciboUtente = totalLinhas;
-                item.ValorBeneficiarioReciboUtente = docUtente.TotalLiquido ?? 0;
+                item.ValorBeneficiarioReciboUtente = totalFaturaUtente;
             }
         }
 
         if (resultado.Count == 0)
-            throw new InvalidOperationException("A fatura não tem admissões associadas");
+            throw new InvalidOperationException(
+                "A fatura não tem recibos de utente (FR) emitidos para as admissões associadas. "
+                + "Emita a fatura recibo na admissão antes de gerar o ficheiro eletrónico.");
 
         return resultado;
     }
@@ -175,7 +181,7 @@ internal static class FicheiroEletronicoDataHelper
                 TotalFatura = totalFatura,
                 Beneficiario = (docUtente?.Beneficiario ?? docUtente?.NumeroContribuinteCliente ?? string.Empty).Trim(),
                 Data = srv.Admissao.Data ?? documentoOrganismo.Data ?? DateTime.Today,
-                CodigoServico = await ObterCodigoServicoAsync(repository, srv, linha, organismoId, ct),
+                CodigoServico = CodigoServicoOrganismoHelper.Resolver(srv, linha),
                 CodigoTratAdmiss = null,
                 Comparticipacao = srv.DescInst ?? 0,
                 Quantidade = (int)Math.Round(qtd, MidpointRounding.AwayFromZero),
@@ -216,7 +222,7 @@ internal static class FicheiroEletronicoDataHelper
                 resultado.Add(new FicheiroEletronicoSadPspLinhaDTO
                 {
                     Beneficiario = (docUtente?.Beneficiario ?? docUtente?.NumeroContribuinteCliente ?? string.Empty).Trim(),
-                    CodigoServico = await ObterCodigoServicoAsync(repository, srv, linha, organismoId, ct),
+                    CodigoServico = CodigoServicoOrganismoHelper.Resolver(srv, linha),
                     Data = srv.Admissao.Data ?? DateTime.Today,
                     ValorAtoMedico = (srv.ValorDesc ?? 0) * qtd,
                 });
@@ -230,53 +236,69 @@ internal static class FicheiroEletronicoDataHelper
         Guid admissaoId,
         CancellationToken ct)
     {
+        // Legado ADMISS.CodigoFatura — recibo utente (FR), distinto da FA global ao organismo.
+        List<DocumentoOrigemClinica> origens = (
+            await repository.GetListAsync<DocumentoOrigemClinica, Guid>(
+                new DocumentoOrigemClinicaByAdmissaoIdSpec(admissaoId),
+                ct)
+        ).ToList();
+
+        Documento? recibo = origens
+            .Select(o => o.Documento)
+            .Where(EhDocumentoReciboUtenteEmitido)
+            .OrderByDescending(d => d!.Data ?? d!.DataSistemaRegisto)
+            .FirstOrDefault();
+
+        if (recibo != null)
+            return recibo;
+
         Consulta? consulta = (
             await repository.GetListAsync<Consulta, Guid>(
                 new ConsultaByAdmissaoIdSpec(admissaoId),
                 ct)
         ).FirstOrDefault();
 
-        if (consulta is null) return null;
-
-        ConsultaFaturacao? fat = (
-            await repository.GetListAsync<ConsultaFaturacao, Guid>(
-                new ConsultaFaturacaoByConsultaId(consulta.Id),
-                ct)
+        if (consulta != null)
+        {
+            ConsultaFaturacao? fat = (
+                await repository.GetListAsync<ConsultaFaturacao, Guid>(
+                    new ConsultaFaturacaoByConsultaId(consulta.Id),
+                    ct)
             ).FirstOrDefault(x => x.DocumentoId != null);
 
-            if (fat?.DocumentoId is null) return null;
+            if (fat?.DocumentoId != null)
+            {
+                Documento? docFat = await repository.GetByIdAsync<Documento, Guid>(
+                    fat.DocumentoId.Value,
+                    cancellationToken: ct);
 
-            return await repository.GetByIdAsync<Documento, Guid>(fat.DocumentoId.Value, cancellationToken: ct);
-    }
-
-    private static async Task<string> ObterCodigoServicoAsync(
-        IRepositoryAsync repository,
-        AdmissaoServico srv,
-        DocumentoLinha linha,
-        Guid organismoId,
-        CancellationToken ct)
-    {
-        if (!string.IsNullOrWhiteSpace(srv.CodigoArtigo))
-            return srv.CodigoArtigo.Trim();
-
-        if(!string.IsNullOrWhiteSpace(linha.CodigoArtigo))
-            return linha.CodigoArtigo.Trim();
-
-        if (linha.ServicoId is Guid servicoId)
-        {
-            SubsistemaServico? map = (
-                await repository.GetListAsync<SubsistemaServico, Guid>(
-                    new SubsistemaServicoByServicoOrganismoSpec(servicoId, organismoId),
-                    ct)
-                ).FirstOrDefault();
-
-                if (map is not null && !string.IsNullOrWhiteSpace(linha.Servico?.EAN))
-                    return linha.Servico!.EAN!.Trim();
+                if (EhDocumentoReciboUtenteEmitido(docFat))
+                    return docFat;
+            }
         }
 
-        if (!string.IsNullOrWhiteSpace(linha.Servico?.EAN))
-            return linha.Servico!.EAN!.Trim();
+        List<DocumentoLinha> linhas = (
+            await repository.GetListAsync<DocumentoLinha, Guid>(
+                new DocumentoLinhasReciboUtentePorAdmissaoSpec(admissaoId),
+                ct)
+        ).ToList();
 
-        throw new InvalidOperationException("Certifique-se que os serviços das consultas estão configurados ( código artigo / subsistema).");
+        return linhas
+            .Select(l => l.Documento)
+            .Where(EhDocumentoReciboUtenteEmitido)
+            .OrderByDescending(d => d!.Data ?? d!.DataSistemaRegisto)
+            .FirstOrDefault();
+    }
+
+    private static bool EhDocumentoReciboUtenteEmitido(Documento? doc)
+    {
+        if (doc == null || doc.Anulado || doc.EstadoDocumento != EstadoDocumento.Emitido)
+            return false;
+
+        TipoDocumento? tipo = doc.TipoDocumento;
+        if (tipo == null)
+            return false;
+
+        return DocumentoEmissaoAdmissaoFlagsHelper.IsFaturaRecibo(tipo);
     }
 }

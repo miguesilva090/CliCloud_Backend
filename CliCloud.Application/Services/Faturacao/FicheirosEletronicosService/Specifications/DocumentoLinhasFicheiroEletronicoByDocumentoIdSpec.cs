@@ -11,6 +11,8 @@ public sealed class DocumentoLinhasFicheiroEletronicoByDocumentoIdSpec : Specifi
             .Where(x => x.DocumentoId == documentoId && x.AdmissaoServicoId != null && x.DeletedOn == null)
             .Include(x => x.AdmissaoServico!)
                 .ThenInclude(a => a.Admissao)
+            .Include(x => x.AdmissaoServico!)
+                .ThenInclude(a => a.Servico)
             .Include(x => x.Servico);
     }
 }

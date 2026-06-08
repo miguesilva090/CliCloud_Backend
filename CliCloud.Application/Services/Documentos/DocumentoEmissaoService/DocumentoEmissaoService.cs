@@ -16,6 +16,7 @@ using CliCloud.Application.Services.Documentos.DocumentoService.Specifications;
 using CliCloud.Application.Services.Documentos.TipoDocumentoService.Specifications;
 using CliCloud.Application.Services.Documentos.DocumentoEmissaoService.Validators;
 using CliCloud.Domain.Entities.Consultas;
+using CliCloud.Domain.Entities.Organismos;
 using CliCloud.Domain.Entities.Sinistros;
 using CliCloud.Application.Services.Faturacao.ReferenciasMbService;
 using CliCloud.Application.Services.Faturacao.ReferenciasMbService.DTOs;
@@ -203,6 +204,14 @@ public async Task<Response<DocumentoEmissaoDTO>> EmitirDocumentoAsync(EmitirDocu
                     decimal totalDocumentoBase = totaisDoc.Total;
                     decimal totalIva = totaisDoc.Impostos;
                     decimal totalDescontoHeader = totaisDoc.Descontos;
+
+                    string? erroDescontoOrganismo = await ValidarDescontosOrganismoEspecialAsync(
+                        request,
+                        totalDescontoHeader
+                    );
+                    if ( erroDescontoOrganismo != null ) 
+                        return ResponseFactory.Fail<DocumentoEmissaoDTO>(erroDescontoOrganismo);
+
                     retencaoValor = DocumentoEmissaoCalculoHelper.ResolverRetencaoValor(
                         request.RetencaoAtiva,
                         request.RetencaoTaxa,
@@ -325,8 +334,8 @@ public async Task<Response<DocumentoEmissaoDTO>> EmitirDocumentoAsync(EmitirDocu
                         request.TipoDocumentoId,
                         admissaoServicoIds,
                         moduloOrigem,
-                        faturado: true,
-                        pago: false);
+                        faturado: request.AdmissaoSyncFaturado ?? true,
+                        pago: request.AdmissaoSyncPago ?? false);
                     await MarcarLinhasSinistradoFaturadasAsync(
                         request,
                         documento.NumeroExibicao,
@@ -498,6 +507,14 @@ public async Task<Response<DocumentoEmissaoDTO>> AtualizarDocumentoEmissaoAsync(
                     outros,
                     retencaoValor);
 
+            string? erroDescontoOrganismo = await ValidarDescontosOrganismoEspecialAsync(
+                request,
+                totaisDoc.Descontos
+            );
+            
+            if(erroDescontoOrganismo != null)
+                return ResponseFactory.Fail<DocumentoEmissaoDTO>(erroDescontoOrganismo);
+
             foreach (DocumentoLinha linhaAntiga in documento.Linhas.ToList())
                 await repository.RemoveAsync<DocumentoLinha, Guid>(linhaAntiga);
 
@@ -601,6 +618,15 @@ public async Task<Response<DocumentoEmissaoDTO>> AtualizarDocumentoEmissaoAsync(
             if(admissao.Servicos == null || admissao.Servicos.Count == 0)
                 return ResponseFactory.Fail<DocumentoEmissaoDTO>("Admissão não tem serviços para faturar");
 
+            TipoDocumento? tipoDocumento = await repository.GetByIdAsync<TipoDocumento, Guid>(request.TipoDocumentoId);
+            if (tipoDocumento == null)
+                return ResponseFactory.Fail<DocumentoEmissaoDTO>("Tipo de documento não encontrado");
+
+            (bool pago, bool faturado) = DocumentoEmissaoAdmissaoFlagsHelper.ResolverFlags(
+                tipoDocumento,
+                request.Pago,
+                request.Faturado);
+
             Consulta? consulta = (
                 await repository.GetListAsync<Consulta, Guid>(new ConsultaPorAdmissaoSpec(admissao.Id))
             ).FirstOrDefault();
@@ -634,9 +660,11 @@ public async Task<Response<DocumentoEmissaoDTO>> AtualizarDocumentoEmissaoAsync(
                     decimal quantidade = s.Quantidade.GetValueOrDefault(1m);
                     if(quantidade <= 0) quantidade = 1m;
 
-                    decimal preco = s.ValorServico
-                        ?? s.ValorArtigo
-                        ?? 0m;
+                    // Legado FR: TotalLinha / TotalFatura = valor_ut (PrecoUnitario na emissão).
+                    decimal totalUtenteLinha = s.ValorUt ?? 0m;
+                    decimal precoEmissao = quantidade > 0
+                        ? totalUtenteLinha / quantidade
+                        : totalUtenteLinha;
 
                     string descricao = !string.IsNullOrWhiteSpace(s.NomeArtigo)
                         ? s.NomeArtigo
@@ -650,7 +678,7 @@ public async Task<Response<DocumentoEmissaoDTO>> AtualizarDocumentoEmissaoAsync(
                         AdmissaoServicoId = s.Id,
                         Descricao = descricao,
                         Quantidade = quantidade,
-                        PrecoUnitario = preco,
+                        PrecoUnitario = precoEmissao,
                         TaxaIvaId = s.Servico?.TaxaIvaId,
                         TaxaIvaPercentagem = request.IsentoIva ? 0m : ( s.Servico?.TaxaIva?.Taxa ?? 0m)
                     };
@@ -689,34 +717,30 @@ public async Task<Response<DocumentoEmissaoDTO>> AtualizarDocumentoEmissaoAsync(
                     CodigoTipoDocSaft = request.CodigoTipoDocSaft,
 
                     Linhas = linhas,
+                    AdmissaoSyncPago = pago,
+                    AdmissaoSyncFaturado = faturado,
                 };
 
                 Response<DocumentoEmissaoDTO> emissao = await EmitirDocumentoAsync(emitirRequest);
                 if(emissao.Status != ResponseStatus.Success || emissao.Data == null)
                     return emissao;
 
-                bool faturado = request.Faturado ?? true;
-                bool pago = request.Pago ?? false;
+                admissao.Pago = pago;
+                admissao.Faturado = faturado;
+                _ = await repository.UpdateAsync<Admissao, Guid>(admissao);
 
-                if (pago || !faturado)
+                if (consulta != null)
                 {
-                    admissao.Faturado = faturado;
-                    admissao.Pago = pago;
-                    _ = await repository.UpdateAsync<Admissao, Guid>(admissao);
-
-                    if (consulta != null)
-                    {
-                        await AdmissaoFaturacaoPromocaoHelper.SincronizarComDocumentoAsync(
-                            repository,
-                            consulta.Id,
-                            emissao.Data.Id,
-                            request.TipoDocumentoId,
-                            pago,
-                            faturado);
-                    }
-
-                    _ = await repository.SaveChangesAsync();
+                    await AdmissaoFaturacaoPromocaoHelper.SincronizarComDocumentoAsync(
+                        repository,
+                        consulta.Id,
+                        emissao.Data.Id,
+                        request.TipoDocumentoId,
+                        pago,
+                        faturado);
                 }
+
+                _ = await repository.SaveChangesAsync();
 
                 return emissao;
             });
@@ -1212,6 +1236,24 @@ public async Task<Response<DocumentoEmissaoDTO>> AtualizarDocumentoEmissaoAsync(
             sl.DataFatura = dataDocumento;
             await repository.UpdateAsync<SinistradoLinhaServico, Guid>(sl);
         }
+    }
+
+    private async Task<string?> ValidarDescontosOrganismoEspecialAsync(
+        EmitirDocumentoRequest request,
+        decimal totalDescontoDocumento
+    )
+    {
+        if (!DocumentoEmissaoOrganismoDescontoValidator.EhFaturacaoAOrganismo(request))
+            return null;
+
+        Organismo organismo = await repository.GetByIdAsync<Organismo, Guid>(
+            request.OrganismoId!.Value);
+        
+        return DocumentoEmissaoOrganismoDescontoValidator.Validar(
+            organismo,
+            request,
+            totalDescontoDocumento
+        );
     }
 
     private static bool IsNumeroDocumentoCollision(DbUpdateException ex)

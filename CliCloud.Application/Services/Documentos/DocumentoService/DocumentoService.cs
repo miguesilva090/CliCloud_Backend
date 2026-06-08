@@ -94,12 +94,13 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
                 if (!TryGetClinicaId(out Guid clinicaId, out Response<DocumentoDTO>? clinicaError))
                     return clinicaError!;
 
-                IEnumerable<DocumentoDTO> results = await _repository.GetListAsync<Documento, DocumentoDTO, Guid>(
-                    new DocumentoByIdClinicaSpec(id, clinicaId));
-                DocumentoDTO? dto = results.FirstOrDefault();
-                if (dto == null)
+                Documento? documento = (
+                    await _repository.GetListAsync<Documento, Guid>(new DocumentoByIdClinicaSpec(id, clinicaId))
+                ).FirstOrDefault();
+                if (documento == null)
                     return ResponseFactory.Fail<DocumentoDTO>("Documento não encontrado");
 
+                DocumentoDTO dto = _mapper.Map<DocumentoDTO>(documento);
                 return ResponseFactory.Success(dto);
             }
             catch (Exception ex)

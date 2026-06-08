@@ -7,9 +7,14 @@ public sealed class ServicoComTaxaIvaByCodigoLegadoSpec : Specification<Servico>
 {
     public ServicoComTaxaIvaByCodigoLegadoSpec(string codigoLegado)
     {
-        var c = codigoLegado.Trim();
+        var c = codigoLegado.Trim().ToLower();
         _ = Query
             .Include(x => x.TaxaIva)
-            .Where(x => !x.Inativo && (x.Designacao == c || x.EAN == c));
+            .Where(x =>
+                !x.Inativo
+                && (
+                    x.Designacao.ToLower() == c
+                    || (x.EAN != null && x.EAN.ToLower() == c)
+                ));
     }
 }

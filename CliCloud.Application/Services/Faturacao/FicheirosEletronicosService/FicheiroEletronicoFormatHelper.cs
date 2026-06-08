@@ -1,9 +1,16 @@
 using System.Globalization;
+using CliCloud.Domain.Entities.Documentos;
 
 namespace CliCloud.Application.Services.Faturacao.FicheirosEletronicosService;
 
 internal static class FicheiroEletronicoFormatHelper
 {
+    /// <summary>
+    /// Equivalente legado a <c>TFatura.TotalFatura</c>
+    /// (<c>TotalDocumento − RetencaoFonte</c>; relação <c>TotalFatura + Retencao = TotalDocumento</c>).
+    /// </summary>
+    public static decimal ResolverTotalFaturaLegado(Documento doc) =>
+        (doc.TotalDocumento ?? 0m) - (doc.RetencaoValor ?? 0m);
     public static string Pad(string value, int length, char padChar = ' ')
         => value.Length >= length ? value[..length] : value + new string(padChar, length - value.Length);
 
