@@ -69,6 +69,12 @@ namespace CliCloud.Application.Services.TaxasIva.MotivoIsencaoService
 
         public async Task<Response<Guid>> CreateMotivoIsencaoAsync(CreateMotivoIsencaoRequest request)
         {
+            request.Codigo = request.Codigo.Trim();
+            request.CodigoSaft = request.CodigoSaft.Trim();
+            request.Descricao = request.Descricao.Trim();
+            request.Norma = string.IsNullOrWhiteSpace(request.Norma) ? null : request.Norma.Trim();
+            request.Mencao = string.IsNullOrWhiteSpace(request.Mencao) ? null : request.Mencao.Trim();
+
             var entity = _mapper.Map<MotivoIsencao>(request);
             try
             {
@@ -81,6 +87,12 @@ namespace CliCloud.Application.Services.TaxasIva.MotivoIsencaoService
 
         public async Task<Response<Guid>> UpdateMotivoIsencaoAsync(UpdateMotivoIsencaoRequest request, Guid id)
         {
+            request.Codigo = request.Codigo.Trim();
+            request.CodigoSaft = request.CodigoSaft.Trim();
+            request.Descricao = request.Descricao.Trim();
+            request.Norma = string.IsNullOrWhiteSpace(request.Norma) ? null : request.Norma.Trim();
+            request.Mencao = string.IsNullOrWhiteSpace(request.Mencao) ? null : request.Mencao.Trim();
+
             var existing = await _repository.GetByIdAsync<MotivoIsencao, Guid>(id);
             _mapper.Map(request, existing);
             try

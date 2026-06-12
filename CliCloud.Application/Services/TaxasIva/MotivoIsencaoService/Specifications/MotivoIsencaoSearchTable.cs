@@ -19,9 +19,21 @@ namespace CliCloud.Application.Services.TaxasIva.MotivoIsencaoService.Specificat
                             if (!string.IsNullOrWhiteSpace(f.Value))
                                 _ = Query.Where(x => x.Codigo.Contains(f.Value));
                             break;
+                        case "codigosaft":
+                            if (!string.IsNullOrWhiteSpace(f.Value))
+                                _ = Query.Where(x => x.CodigoSaft != null && x.CodigoSaft.Contains(f.Value));
+                            break;
                         case "descricao":
                             if (!string.IsNullOrWhiteSpace(f.Value))
                                 _ = Query.Where(x => x.Descricao.Contains(f.Value));
+                            break;
+                        case "norma":
+                            if (!string.IsNullOrWhiteSpace(f.Value))
+                                _ = Query.Where(x => x.Norma != null && x.Norma.Contains(f.Value));
+                            break;
+                        case "mencao":
+                            if (!string.IsNullOrWhiteSpace(f.Value))
+                                _ = Query.Where(x => x.Mencao != null && x.Mencao.Contains(f.Value));
                             break;
                     }
                 }

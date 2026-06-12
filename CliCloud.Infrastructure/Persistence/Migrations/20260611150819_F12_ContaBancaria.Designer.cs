@@ -4,6 +4,7 @@ using CliCloud.Infrastructure.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CliCloud.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260611150819_F12_ContaBancaria")]
+    partial class F12_ContaBancaria
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -9689,10 +9692,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<string>("CodigoSaft")
-                        .HasMaxLength(12)
-                        .HasColumnType("nvarchar(12)");
-
                     b.Property<Guid>("CreatedBy")
                         .HasColumnType("uniqueidentifier");
 
@@ -9707,8 +9706,8 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Descricao")
                         .IsRequired()
-                        .HasMaxLength(254)
-                        .HasColumnType("nvarchar(254)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<Guid?>("LastModifiedBy")
                         .HasColumnType("uniqueidentifier");
@@ -9716,17 +9715,7 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("LastModifiedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Mencao")
-                        .HasMaxLength(254)
-                        .HasColumnType("nvarchar(254)");
-
-                    b.Property<string>("Norma")
-                        .HasMaxLength(254)
-                        .HasColumnType("nvarchar(254)");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("CodigoSaft");
 
                     b.ToTable("MotivoIsencao", "Utility");
                 });

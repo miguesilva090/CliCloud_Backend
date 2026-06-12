@@ -71,6 +71,7 @@ using SeguradoraDtos = CliCloud.Application.Services.Seguradoras.SeguradoraServi
 using ReciboDtos = CliCloud.Application.Services.Documentos.ReciboService.DTOs;
 using DocumentoDtos = CliCloud.Application.Services.Documentos.DocumentoService.DTOs;
 using TipoDocumentoDtos = CliCloud.Application.Services.Documentos.TipoDocumentoService.DTOs;
+using NaturezaDocumentoDtos = CliCloud.Application.Services.Documentos.NaturezaDocumentoService.DTOs;
 using UtenteDtos = CliCloud.Application.Services.Utentes.UtenteService.DTOs;
 using MedicoDtos = CliCloud.Application.Services.Medicos.MedicoService.DTOs;
 using MedicoExternoDtos = CliCloud.Application.Services.Medicos.MedicoExternoService.DTOs;
@@ -178,6 +179,7 @@ using HistoriaDentariaDtos = CliCloud.Application.Services.ProcessoClinico.Estom
 using SmsDtos = CliCloud.Application.Services.Core.SmsService.DTOs;
 using NotificacaoTipoDtos = CliCloud.Application.Services.Notificacoes.NotificacaoTipoService.DTOs;
 using NotificacaoDtos = CliCloud.Application.Services.Notificacoes.NotificacaoService.DTOs;
+using ContaBancariaDtos = CliCloud.Application.Services.Bancos.ContaBancariaService.DTOs;
 
 
 
@@ -1003,6 +1005,17 @@ namespace CliCloud.Infrastructure.Mapper
       _ = CreateMap<Banco, BancoDtos.BancoTableDTO>()
         .ForMember(d => d.Status, o => o.MapFrom(s => (int?)s.Status));
 
+      // ---- ContaBancaria ----
+      _ = CreateMap<ContaBancaria, ContaBancariaDtos.ContaBancariaDTO>()
+        .ForMember(d => d.BancoNome, o => o.MapFrom(s => s.Banco != null ? s.Banco.Nome : null));
+      _ = CreateMap<ContaBancaria, ContaBancariaDtos.ContaBancariaLightDTO>();
+      _ = CreateMap<ContaBancaria, ContaBancariaDtos.ContaBancariaTableDTO>()
+        .ForMember(d => d.BancoNome, o => o.MapFrom(s => s.Banco != null ? s.Banco.Nome : null));
+      _ = CreateMap<ContaBancariaDtos.CreateContaBancariaRequest, ContaBancaria>()
+        .ForMember(d => d.Banco, o => o.Ignore());
+      _ = CreateMap<ContaBancariaDtos.UpdateContaBancariaRequest, ContaBancaria>()
+        .ForMember(d => d.Banco, o => o.Ignore());
+
       // Na criação/atualização, usamos Nome como Descricao e mapeamos Abreviatura para a entidade específica.
       _ = CreateMap<BancoDtos.CreateBancoRequest, Banco>()
         .ForMember(d => d.Descricao, o => o.MapFrom(s => s.Nome))
@@ -1045,6 +1058,13 @@ namespace CliCloud.Infrastructure.Mapper
       _ = CreateMap<TipoDocumento, TipoDocumentoDtos.TipoDocumentoDTO>();
       _ = CreateMap<TipoDocumento, TipoDocumentoDtos.TipoDocumentoTableDTO>();
       _ = CreateMap<TipoDocumento, TipoDocumentoDtos.TipoDocumentoLightDTO>();
+
+      // ---- NaturezaDocumento ----
+      _ = CreateMap<NaturezaDocumento, NaturezaDocumentoDtos.NaturezaDocumentoDTO>();
+      _ = CreateMap<NaturezaDocumento, NaturezaDocumentoDtos.NaturezaDocumentoLightDTO>();
+      _ = CreateMap<NaturezaDocumento, NaturezaDocumentoDtos.NaturezaDocumentoTableDTO>();
+      _ = CreateMap<NaturezaDocumentoDtos.CreateNaturezaDocumentoRequest, NaturezaDocumento>();
+      _ = CreateMap<NaturezaDocumentoDtos.UpdateNaturezaDocumentoRequest, NaturezaDocumento>();
 
       // ---- Utente ----
       _ = CreateMap<UtenteSubsistemaLinha, UtenteDtos.UtenteSubsistemaLinhaDTO>()

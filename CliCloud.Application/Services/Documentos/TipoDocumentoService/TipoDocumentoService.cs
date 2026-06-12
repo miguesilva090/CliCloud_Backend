@@ -7,6 +7,7 @@ using CliCloud.Domain.Entities.Documentos;
 using CliCloud.Application.Services.Documentos.TipoDocumentoService.DTOs;
 using CliCloud.Application.Services.Documentos.TipoDocumentoService.Filters;
 using CliCloud.Application.Services.Documentos.TipoDocumentoService.Specifications;
+using CliCloud.Application.Services.Documentos.NaturezaDocumentoService.Specifications;
 
 namespace CliCloud.Application.Services.Documentos.TipoDocumentoService
 {
@@ -179,6 +180,10 @@ namespace CliCloud.Application.Services.Documentos.TipoDocumentoService
             {
                 return ResponseFactory.Fail<Guid>("Já existe um TipoDocumento com este NumeroSerie na clínica");
             }
+            // validate natureza sigla
+            Response<Guid>? naturezaError = await ValidateNaturezaSiglaAsync(request.Natureza);
+            if (naturezaError != null)
+                return naturezaError;
 
             TipoDocumento newTipoDocumento = _mapper.Map(request, new TipoDocumento());
             newTipoDocumento.NumeroSerie = numeroSerie;
@@ -233,6 +238,12 @@ namespace CliCloud.Application.Services.Documentos.TipoDocumentoService
                 }
             }
 
+            // validate natureza sigla
+            Response<Guid>? naturezaError = await ValidateNaturezaSiglaAsync(request.Natureza);
+            if (naturezaError != null)
+                return naturezaError;
+            
+
             TipoDocumento updatedTipoDocumento = _mapper.Map(request, TipoDocumentoInDb);
             updatedTipoDocumento.NumeroSerie = numeroSerie;
             updatedTipoDocumento.ClinicaId = clinicaId;
@@ -267,6 +278,11 @@ namespace CliCloud.Application.Services.Documentos.TipoDocumentoService
                 {
                     return ResponseFactory.Fail<Guid>("TipoDocumento não encontrado");
                 }
+
+                // validate if there are any documentos associated with this tipo documento
+                DocumentoByTipoDocumentoIdSpec docSpec = new(TipoDocumento.Id);
+                if (await _repository.ExistsAsync<Documento, Guid>(docSpec))
+                    return ResponseFactory.Fail<Guid>("Não é possível eliminar pois existem documentos emitidos com esta série");
                 await _repository.RemoveAsync<TipoDocumento, Guid>(TipoDocumento);
                 _ = await _repository.SaveChangesAsync();
                 return ResponseFactory.Success<Guid>(TipoDocumento.Id);
@@ -302,6 +318,13 @@ namespace CliCloud.Application.Services.Documentos.TipoDocumentoService
                 if(entity == null)
                 {
                   failedDeletions.Add($"TipoDocumento com ID {id} não encontrado.");
+                  continue;
+                }
+
+                DocumentoByTipoDocumentoIdSpec docSpec = new(entity.Id);
+                if (await _repository.ExistsAsync<Documento, Guid>(docSpec))
+                {
+                  failedDeletions.Add($"TipoDocumento com ID {id} tem documentos emitidos.");
                   continue;
                 }
 
@@ -346,5 +369,21 @@ namespace CliCloud.Application.Services.Documentos.TipoDocumentoService
 
             return null;
         }
+
+        private async Task<Response<Guid>?> ValidateNaturezaSiglaAsync(string? natureza)
+        {
+            if (string.IsNullOrWhiteSpace(natureza))
+                return null;
+
+            string sigla = natureza.Trim();
+            if (sigla.Length != 1)
+                return ResponseFactory.Fail<Guid>("A natureza deve ter exatamente 1 caractere");
+
+            NaturezaDocumentoMatchSigla spec = new(sigla);
+            if (!await _repository.ExistsAsync<NaturezaDocumento, Guid>(spec))
+                return ResponseFactory.Fail<Guid>("Natureza do documento não encontrada");
+            
+            return null;
+        } 
     }
 }

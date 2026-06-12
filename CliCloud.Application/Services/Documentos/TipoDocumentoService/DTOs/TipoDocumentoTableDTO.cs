@@ -18,5 +18,8 @@ namespace CliCloud.Application.Services.Documentos.TipoDocumentoService.DTOs
         public bool DescarregarTesouraria { get; set; }
         public bool Habilitado { get; set; }
         public DateTime CreatedOn { get; set; }
+        public string? CodigoATCUD { get; set; }
+        public string? ATCUDEstado { get; set; }
+        public string? TipoSerie { get; set; }
     }
 }

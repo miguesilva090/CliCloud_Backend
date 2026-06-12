@@ -4,6 +4,7 @@ using CliCloud.Infrastructure.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CliCloud.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260611105956_F11_NaturezaDocumento")]
+    partial class F11_NaturezaDocumento
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -657,86 +660,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.HasIndex("CartaConducaoRestricaoId");
 
                     b.ToTable("AtestadoRestricaoAnterior", "Atestados");
-                });
-
-            modelBuilder.Entity("CliCloud.Domain.Entities.Bancos.ContaBancaria", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int?>("AlertaSaldo")
-                        .HasColumnType("int");
-
-                    b.Property<string>("BIC")
-                        .HasMaxLength(11)
-                        .HasColumnType("nvarchar(11)");
-
-                    b.Property<Guid?>("BancoId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DataAbertura")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("DeletedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("DeletedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("Ficheiro")
-                        .HasColumnType("int");
-
-                    b.Property<string>("GestorConta")
-                        .HasMaxLength(24)
-                        .HasColumnType("nvarchar(24)");
-
-                    b.Property<string>("IBAN")
-                        .HasMaxLength(34)
-                        .HasColumnType("nvarchar(34)");
-
-                    b.Property<Guid?>("LastModifiedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("LastModifiedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("NIB")
-                        .HasMaxLength(24)
-                        .HasColumnType("nvarchar(24)");
-
-                    b.Property<string>("Numero")
-                        .IsRequired()
-                        .HasMaxLength(24)
-                        .HasColumnType("nvarchar(24)");
-
-                    b.Property<string>("OBS")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal?>("SaldoActual")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("TipoConta")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.Property<decimal?>("ValorAlertaSaldo")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BancoId");
-
-                    b.HasIndex("Numero");
-
-                    b.ToTable("ContaBancaria", "Bancos");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.CartaConducao.CartaConducao", b =>
@@ -9689,10 +9612,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<string>("CodigoSaft")
-                        .HasMaxLength(12)
-                        .HasColumnType("nvarchar(12)");
-
                     b.Property<Guid>("CreatedBy")
                         .HasColumnType("uniqueidentifier");
 
@@ -9707,8 +9626,8 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Descricao")
                         .IsRequired()
-                        .HasMaxLength(254)
-                        .HasColumnType("nvarchar(254)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<Guid?>("LastModifiedBy")
                         .HasColumnType("uniqueidentifier");
@@ -9716,17 +9635,7 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("LastModifiedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Mencao")
-                        .HasMaxLength(254)
-                        .HasColumnType("nvarchar(254)");
-
-                    b.Property<string>("Norma")
-                        .HasMaxLength(254)
-                        .HasColumnType("nvarchar(254)");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("CodigoSaft");
 
                     b.ToTable("MotivoIsencao", "Utility");
                 });
@@ -13346,16 +13255,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Navigation("Atestado");
 
                     b.Navigation("CartaConducaoRestricao");
-                });
-
-            modelBuilder.Entity("CliCloud.Domain.Entities.Bancos.ContaBancaria", b =>
-                {
-                    b.HasOne("CliCloud.Domain.Entities.Bancos.Banco", "Banco")
-                        .WithMany()
-                        .HasForeignKey("BancoId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Banco");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.Common.Configurations.ConfigCartaConducao", b =>

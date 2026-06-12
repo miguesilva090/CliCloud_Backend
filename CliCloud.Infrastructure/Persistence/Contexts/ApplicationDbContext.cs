@@ -172,6 +172,9 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     
     // DbSets - Bancos
     public DbSet<Banco> Bancos { get; set; }
+
+    // DbSets - Contas Bancarias
+    public DbSet<ContaBancaria> ContasBancarias { get; set; }
     
     // DbSets - CentroSaude
     public DbSet<CentroSaude> CentrosSaude { get; set; }
@@ -206,6 +209,7 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     public DbSet<DocumentoOrigemClinica> DocumentosOrigemClinica { get; set; }
     public DbSet<Recibo> Recibos { get; set; }
     public DbSet<TipoDocumento> TiposDocumento { get; set; }
+    public DbSet<NaturezaDocumento> NaturezasDocumento { get; set; }
     public DbSet<ReferenciaMB> ReferenciasMB { get; set; }
     
     // DbSets - Servicos
@@ -540,6 +544,9 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
       
       // Bancos configurations
       _ = modelBuilder.ApplyConfiguration(new BancoConfiguration());
+
+      // Contas Bancarias configurations
+      _ = modelBuilder.ApplyConfiguration(new ContaBancariaConfiguration());
       
       // CentroSaude configurations
       _ = modelBuilder.ApplyConfiguration(new CentroSaudeConfiguration());
@@ -571,6 +578,7 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
       _ = modelBuilder.ApplyConfiguration(new DocumentoOrigemClinicaConfiguration());
       _ = modelBuilder.ApplyConfiguration(new ReciboConfiguration());
       _ = modelBuilder.ApplyConfiguration(new TipoDocumentoConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new NaturezaDocumentoConfiguration());
       
       // Servicos configurations
       _ = modelBuilder.ApplyConfiguration(new TipoServicoConfiguration());

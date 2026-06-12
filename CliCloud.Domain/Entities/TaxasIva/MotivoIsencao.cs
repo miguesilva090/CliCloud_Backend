@@ -19,8 +19,20 @@ namespace CliCloud.Domain.Entities.TaxasIva
         [StringLength(20)]
         public string Codigo { get; set; } = string.Empty;
 
+        /// <summary>Código SAFT-PT do motivo de isenção (legado: CodigoSAFT).</summary>
+        [StringLength(12)]
+        public string? CodigoSaft { get; set; }
+
         [Required]
-        [StringLength(200)]
+        [StringLength(254)]
         public string Descricao { get; set; } = string.Empty;
+
+        /// <summary>Norma legal aplicável (legado: Norma).</summary>
+        [StringLength(254)]
+        public string? Norma { get; set; }
+
+        /// <summary>Menção obrigatória no documento (legado: Mencao).</summary>
+        [StringLength(254)]
+        public string? Mencao { get; set; }
     }
 }
