@@ -2,7 +2,6 @@
 
 using System.ComponentModel.DataAnnotations;
 using CliCloud.Application.Common.Marker;
-using CliCloud.Domain.Enums;
 
 namespace CliCloud.Application.Services.Documentos.DocumentoEmissaoService.DTOs;
 
@@ -17,8 +16,8 @@ public class EmitirDocumentoDesdeAdmissaoRequest : IDto
     public DateTime? DataDocumento { get; set; }
     public DateTime? DataVencimentoPagamento { get; set; }
     public Guid? FuncionarioId { get; set; }
-    public CondicaoPagamento? CondicaoPagamento { get; set; }
-    public TipoModoPagamento? TipoModoPagamento { get; set; }
+    public Guid? CondicaoPagamentoId { get; set; }
+    public Guid? ModoPagamentoId { get; set; }
     public Guid? MoedaId { get; set; }
     public Guid? BancoId { get; set; }
 

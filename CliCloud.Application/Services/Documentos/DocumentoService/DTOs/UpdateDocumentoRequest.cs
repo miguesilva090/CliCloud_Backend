@@ -1,7 +1,6 @@
 using FluentValidation;
 using CliCloud.Application.Common.Marker;
 using CliCloud.Application.Utility;
-using CliCloud.Domain.Enums;
 
 namespace CliCloud.Application.Services.Documentos.DocumentoService.DTOs
 {
@@ -19,8 +18,8 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService.DTOs
         public decimal? TotalDesconto { get; set; }
         public decimal? TotalLiquido { get; set; }
         public decimal? Outros { get; set; }
-        public CondicaoPagamento? CondicaoPagamento { get; set; }
-        public TipoModoPagamento? TipoModoPagamento { get; set; }
+        public Guid? CondicaoPagamentoId { get; set; }
+        public Guid? ModoPagamentoId { get; set; }
         public string? Observacoes { get; set; }
         public int? Estado { get; set; }
         public bool Liquidado { get; set; }

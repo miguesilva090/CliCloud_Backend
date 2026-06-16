@@ -15,12 +15,16 @@ using CliCloud.Application.Services.Documentos.DocumentoEmissaoService.Specifica
 using CliCloud.Application.Services.Documentos.DocumentoService.Specifications;
 using CliCloud.Application.Services.Documentos.TipoDocumentoService.Specifications;
 using CliCloud.Application.Services.Documentos.DocumentoEmissaoService.Validators;
+using CliCloud.Application.Services.Pagamentos.CondicaoPagamentoService.Specifications;
+using CliCloud.Application.Services.Pagamentos.ModoPagamentoService.Specifications;
 using CliCloud.Domain.Entities.Consultas;
 using CliCloud.Domain.Entities.Organismos;
 using CliCloud.Domain.Entities.Sinistros;
 using CliCloud.Application.Services.Faturacao.ReferenciasMbService;
 using CliCloud.Application.Services.Faturacao.ReferenciasMbService.DTOs;
 using Microsoft.EntityFrameworkCore;
+using CondicaoPagamentoEntity = CliCloud.Domain.Entities.Pagamentos.CondicaoPagamento;
+using ModoPagamentoEntity = CliCloud.Domain.Entities.Pagamentos.ModoPagamento;
 
 namespace CliCloud.Application.Services.Documentos.DocumentoEmissaoService;
 
@@ -31,21 +35,30 @@ public class DocumentoEmissaoService(
     IReferenciasMbService referenciasMbService
 ) : IDocumentoEmissaoService
 {
-public Task<Response<DocumentoEmissaoOpcoesPagamentoDTO>> GetOpcoesPagamentoAsync()
+public async Task<Response<DocumentoEmissaoOpcoesPagamentoDTO>> GetOpcoesPagamentoAsync()
 {
-    var condicoes = Enum.GetValues<CondicaoPagamento>()
-        .Select(v => new PagamentoOpcaoDTO
+    await currentClinicaService.SetClinicaAsync();
+    if (!Guid.TryParse(currentClinicaService.ClinicaId, out Guid clinicaId) || clinicaId == Guid.Empty)
+        return ResponseFactory.Fail<DocumentoEmissaoOpcoesPagamentoDTO>("Clínica atual inválida.");
+
+    var condicoes = (await repository.GetListAsync<CondicaoPagamentoEntity, Guid>(new CondicaoPagamentoByClinicaSpec(clinicaId)))
+        .OrderBy(x => x.Descricao)
+        .Select(x => new PagamentoOpcaoDTO
         {
-            Valor = (int)v,
-            Descricao = EnumDisplayHelper.GetDisplayName(v)
+            Valor = x.Codigo,
+            Descricao = x.Descricao
         })
         .ToList();
 
-    var modos = Enum.GetValues<TipoModoPagamento>()
-        .Select(v => new PagamentoOpcaoDTO
+    var modos = (await repository.GetListAsync<ModoPagamentoEntity, Guid>(new ModoPagamentoByClinicaSpec(clinicaId)))
+        .Where(x => !x.Historico)
+        .OrderBy(x => x.Descricao)
+        .Select(x => new PagamentoOpcaoDTO
         {
-            Valor = (int)v,
-            Descricao = EnumDisplayHelper.GetDisplayName(v)
+            Valor = x.Codigo,
+            Descricao = string.IsNullOrWhiteSpace(x.Abreviatura)
+                ? x.Descricao
+                : $"{x.Descricao} ({x.Abreviatura})"
         })
         .ToList();
     var tiposSerie = new List<OpcaoTextoDTO>
@@ -76,7 +89,7 @@ public Task<Response<DocumentoEmissaoOpcoesPagamentoDTO>> GetOpcoesPagamentoAsyn
         ReferenciasMb = referenciasMb
     };
 
-    return Task.FromResult(ResponseFactory.Success(data));
+    return ResponseFactory.Success(data);
 }
 
 public async Task<Response<SinistradosInfoFaturacaoResponse>> SinistradosInfoFaturacaoAsync(
@@ -181,7 +194,7 @@ public async Task<Response<DocumentoEmissaoDTO>> EmitirDocumentoAsync(EmitirDocu
                                 regraFaturacao
                             ),
                             TaxaIvaId = linhaReq.TaxaIvaId,
-                            MotivoIsencaoId = request.IsentoIva
+                            MotivoIsencaoId = request.IsentoIva || linhaReq.TaxaIvaPercentagem == 0m
                                 ? (linhaReq.MotivoIsencaoId ?? request.MotivoIsencaoId)
                                 : null,
                             TaxaIvaPercentagem = request.IsentoIva ? 0m : linhaReq.TaxaIvaPercentagem,
@@ -263,8 +276,8 @@ public async Task<Response<DocumentoEmissaoDTO>> EmitirDocumentoAsync(EmitirDocu
                     documento.DescontoPagamento = descontoPagamento;
                     documento.Outros = outros;
                     documento.PrecoUnitarioMercadorias = precoUnitarioMercadorias;
-                    documento.CondicaoPagamento = request.CondicaoPagamento;
-                    documento.TipoModoPagamento = request.TipoModoPagamento;
+                    documento.CondicaoPagamentoId = request.CondicaoPagamentoId;
+                    documento.ModoPagamentoId = request.ModoPagamentoId;
                     documento.MoedaId = request.MoedaId;
                     documento.BancoId = request.BancoId;
                     documento.TaxaCambio = request.TaxaCambio;
@@ -485,7 +498,7 @@ public async Task<Response<DocumentoEmissaoDTO>> AtualizarDocumentoEmissaoAsync(
                         calc,
                         regraFaturacao),
                     TaxaIvaId = linhaReq.TaxaIvaId,
-                    MotivoIsencaoId = request.IsentoIva
+                    MotivoIsencaoId = request.IsentoIva || linhaReq.TaxaIvaPercentagem == 0m
                         ? (linhaReq.MotivoIsencaoId ?? request.MotivoIsencaoId)
                         : null,
                     TaxaIvaPercentagem = request.IsentoIva ? 0m : linhaReq.TaxaIvaPercentagem,
@@ -537,8 +550,8 @@ public async Task<Response<DocumentoEmissaoDTO>> AtualizarDocumentoEmissaoAsync(
             documento.DescontoPagamento = descontoPagamento;
             documento.Outros = outros;
             documento.PrecoUnitarioMercadorias = totaisDoc.Mercadorias;
-            documento.CondicaoPagamento = request.CondicaoPagamento;
-            documento.TipoModoPagamento = request.TipoModoPagamento;
+            documento.CondicaoPagamentoId = request.CondicaoPagamentoId;
+            documento.ModoPagamentoId = request.ModoPagamentoId;
             documento.MoedaId = request.MoedaId;
             documento.BancoId = request.BancoId;
             documento.TaxaCambio = request.TaxaCambio;
@@ -700,8 +713,8 @@ public async Task<Response<DocumentoEmissaoDTO>> AtualizarDocumentoEmissaoAsync(
                     NumeroContribuinteCliente = nifCliente,
                     CodigoPostalId = codigoPostalId,
                     
-                    CondicaoPagamento = request.CondicaoPagamento,
-                    TipoModoPagamento = request.TipoModoPagamento,
+                    CondicaoPagamentoId = request.CondicaoPagamentoId,
+                    ModoPagamentoId = request.ModoPagamentoId,
                     MoedaId = request.MoedaId ,
                     BancoId = request.BancoId,
                     DataVencimentoPagamento = request.DataVencimentoPagamento,
@@ -841,8 +854,8 @@ public async Task<Response<DocumentoEmissaoDTO>> AtualizarDocumentoEmissaoAsync(
                 NumeroContribuinteCliente = nifCliente,
                 CodigoPostalId = codigoPostalId,
 
-                CondicaoPagamento = request.CondicaoPagamento,
-                TipoModoPagamento = request.TipoModoPagamento,
+                CondicaoPagamentoId = request.CondicaoPagamentoId,
+                ModoPagamentoId = request.ModoPagamentoId,
                 MoedaId = request.MoedaId,
                 BancoId = request.BancoId,
                 DataVencimentoPagamento = request.DataVencimentoPagamento,
@@ -1113,8 +1126,8 @@ public async Task<Response<DocumentoEmissaoDTO>> AtualizarDocumentoEmissaoAsync(
                 NumeroContribuinteCliente = documentoOrigem.NumeroContribuinteCliente,
                 CodigoPostalId = documentoOrigem.CodigoPostalId,
 
-                CondicaoPagamento = documentoOrigem.CondicaoPagamento,
-                TipoModoPagamento = documentoOrigem.TipoModoPagamento,
+                CondicaoPagamentoId = documentoOrigem.CondicaoPagamentoId,
+                ModoPagamentoId = documentoOrigem.ModoPagamentoId,
                 MoedaId = documentoOrigem.MoedaId,
                 BancoId = documentoOrigem.BancoId,
                 TaxaCambio = documentoOrigem.TaxaCambio,

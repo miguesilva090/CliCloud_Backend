@@ -120,8 +120,8 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService.Specificatio
                                 _ = Query.Where(x => x.Anulado == anulado);
                             break;
                         case "condicaopagamento":
-                            if (!string.IsNullOrWhiteSpace(filter.Value) && Enum.TryParse<CondicaoPagamento>(filter.Value, true, out CondicaoPagamento condicaoPagamento))
-                                _ = Query.Where(x => x.CondicaoPagamento == condicaoPagamento);
+                            if (!string.IsNullOrWhiteSpace(filter.Value) && Guid.TryParse(filter.Value, out Guid condicaoPagamentoId))
+                                _ = Query.Where(x => x.CondicaoPagamentoId == condicaoPagamentoId);
                             break;
                         case "siglaficheiro":
                             if (!string.IsNullOrWhiteSpace(filter.Value))

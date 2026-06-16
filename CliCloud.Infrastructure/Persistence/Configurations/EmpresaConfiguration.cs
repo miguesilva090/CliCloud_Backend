@@ -10,17 +10,20 @@ namespace CliCloud.Infrastructure.Persistence.Configurations
     {
       builder.ToTable("Empresa", "Empresas");
 
-      // Conversões de enums
-      builder.Property(e => e.CondicaoPagamento)
-        .HasConversion<int>();
-
-      builder.Property(e => e.TipoModoPagamento)
-        .HasConversion<int>();
-
       // Relação N:1 com Banco
       builder.HasOne(e => e.Banco)
         .WithMany()
         .HasForeignKey(e => e.BancoId)
+        .OnDelete(DeleteBehavior.SetNull);
+
+      builder.HasOne(e => e.CondicaoPagamento)
+        .WithMany()
+        .HasForeignKey(e => e.CondicaoPagamentoId)
+        .OnDelete(DeleteBehavior.SetNull);
+
+      builder.HasOne(e => e.ModoPagamento)
+        .WithMany()
+        .HasForeignKey(e => e.ModoPagamentoId)
         .OnDelete(DeleteBehavior.SetNull);
 
       // Legado: CInstit (Organismo associado à Empresa)

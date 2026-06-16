@@ -8,6 +8,7 @@ using CliCloud.Domain.Entities.Core;
 using CliCloud.Domain.Entities.Funcionarios;
 using CliCloud.Domain.Entities.Moedas;
 using CliCloud.Domain.Entities.Organismos;
+using CliCloud.Domain.Entities.Pagamentos;
 using CliCloud.Domain.Entities.TaxasIva;
 using CliCloud.Domain.Entities.Utentes;
 using CliCloud.Domain.Entities.Utility;
@@ -101,8 +102,10 @@ public class Documento : AuditableEntityWithSoftDelete
   public decimal? PrecoUnitarioMercadorias { get; set; }
 
   // --- Pagamento ---
-  public CondicaoPagamento? CondicaoPagamento { get; set; }
-  public TipoModoPagamento? TipoModoPagamento { get; set; }
+  public Guid? CondicaoPagamentoId { get; set; }
+  public CliCloud.Domain.Entities.Pagamentos.CondicaoPagamento? CondicaoPagamento { get; set; }
+  public Guid? ModoPagamentoId { get; set; }
+  public ModoPagamento? ModoPagamento { get; set; }
 
   public Guid? MoedaId { get; set; }
   public Entities.Moedas.Moeda? Moeda { get; set; }

@@ -4608,8 +4608,8 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<int?>("CondicaoPagamento")
-                        .HasColumnType("int");
+                    b.Property<Guid?>("CondicaoPagamentoId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("CreatedBy")
                         .HasColumnType("uniqueidentifier");
@@ -4709,6 +4709,9 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .HasMaxLength(40)
                         .HasColumnType("nvarchar(40)");
 
+                    b.Property<Guid?>("ModoPagamentoId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<int?>("ModuloOrigem")
                         .HasColumnType("int");
 
@@ -4792,9 +4795,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("TipoDocumentoId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int?>("TipoModoPagamento")
-                        .HasColumnType("int");
-
                     b.Property<string>("TipoSerie")
                         .HasMaxLength(1)
                         .HasColumnType("nvarchar(1)");
@@ -4828,6 +4828,8 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CodigoPostalId");
 
+                    b.HasIndex("CondicaoPagamentoId");
+
                     b.HasIndex("Data");
 
                     b.HasIndex("DocumentoOrigemId");
@@ -4837,6 +4839,8 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.HasIndex("EstadoDocumento");
 
                     b.HasIndex("FuncionarioId");
+
+                    b.HasIndex("ModoPagamentoId");
 
                     b.HasIndex("MoedaId");
 
@@ -6698,6 +6702,168 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("NotificacaoTipo", "Notificacoes");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Pagamentos.CondicaoPagamento", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ClinicaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Codigo")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("Desconto")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Descricao")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("NDiasPagamento")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClinicaId");
+
+                    b.HasIndex("ClinicaId", "Codigo")
+                        .IsUnique()
+                        .HasFilter("[DeletedOn] IS NULL");
+
+                    b.ToTable("CondicaoPagamento", "Pagamentos");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Pagamentos.ModoPagamento", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Abreviatura")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.Property<Guid>("ClinicaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Codigo")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("ContaBancariaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Descricao")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("Historico")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("TemContaBancaria")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("TemNumAssociado")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Abreviatura");
+
+                    b.HasIndex("ClinicaId");
+
+                    b.HasIndex("ContaBancariaId");
+
+                    b.HasIndex("ClinicaId", "Codigo")
+                        .IsUnique()
+                        .HasFilter("[DeletedOn] IS NULL");
+
+                    b.ToTable("ModoPagamento", "Pagamentos");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Pagamentos.TipoPagamento", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Descricao")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique()
+                        .HasFilter("[DeletedOn] IS NULL");
+
+                    b.ToTable("TipoPagamento", "Pagamentos");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.ProcessoClinico.BodyChart.MapaBodyChart", b =>
@@ -9731,6 +9897,53 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.ToTable("MotivoIsencao", "Utility");
                 });
 
+            modelBuilder.Entity("CliCloud.Domain.Entities.TaxasIva.MotivoRetencao", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Codigo")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Descricao")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TipoImposto")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique();
+
+                    b.HasIndex("TipoImposto");
+
+                    b.ToTable("MotivoRetencao", "Utility");
+                });
+
             modelBuilder.Entity("CliCloud.Domain.Entities.TaxasIva.TaxaIva", b =>
                 {
                     b.Property<Guid>("Id")
@@ -12485,8 +12698,8 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .HasMaxLength(15)
                         .HasColumnType("nvarchar(15)");
 
-                    b.Property<int?>("CondicaoPagamento")
-                        .HasColumnType("int");
+                    b.Property<Guid?>("CondicaoPagamentoId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Contacto")
                         .HasMaxLength(40)
@@ -12503,6 +12716,9 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
 
                     b.Property<decimal?>("DescontoUtente")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid?>("ModoPagamentoId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("NumeroIdentificacaoBancaria")
                         .HasMaxLength(21)
@@ -12523,13 +12739,14 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Property<int?>("Rescindindo")
                         .HasColumnType("int");
 
-                    b.Property<int?>("TipoModoPagamento")
-                        .HasColumnType("int");
-
                     b.Property<decimal?>("ValorTrabalhador")
                         .HasColumnType("decimal(18,2)");
 
                     b.HasIndex("BancoId");
+
+                    b.HasIndex("CondicaoPagamentoId");
+
+                    b.HasIndex("ModoPagamentoId");
 
                     b.HasIndex("OrganismoId");
 
@@ -12569,8 +12786,8 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Property<int?>("Aprovado")
                         .HasColumnType("int");
 
-                    b.Property<int?>("CondicaoPagamento")
-                        .HasColumnType("int");
+                    b.Property<Guid?>("CondicaoPagamentoId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateOnly?>("DataAprovacao")
                         .HasColumnType("date");
@@ -12588,6 +12805,9 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid?>("InstituicaoFinanceiraId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ModoPagamentoId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int?>("Moeda")
@@ -12608,11 +12828,12 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Property<int?>("TipoFornecedor")
                         .HasColumnType("int");
 
-                    b.Property<int?>("TipoModoPagamento")
-                        .HasColumnType("int");
-
                     b.Property<decimal?>("TotalDebito")
                         .HasColumnType("decimal(18,2)");
+
+                    b.HasIndex("CondicaoPagamentoId");
+
+                    b.HasIndex("ModoPagamentoId");
 
                     b.ToTable("Fornecedor", "Fornecedores");
                 });
@@ -12682,8 +12903,8 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Property<int?>("CodigoULSNova")
                         .HasColumnType("int");
 
-                    b.Property<int?>("CondicaoPagamento")
-                        .HasColumnType("int");
+                    b.Property<Guid?>("CondicaoPagamentoId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ContabContaFA")
                         .HasMaxLength(10)
@@ -12749,6 +12970,9 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Property<bool>("LimitarConsultas")
                         .HasColumnType("bit");
 
+                    b.Property<Guid?>("ModoPagamentoId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<int>("Nacional")
                         .HasColumnType("int");
 
@@ -12786,13 +13010,14 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Property<bool>("TRUST")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("TipoModoPagamento")
-                        .HasColumnType("int");
-
                     b.Property<int?>("TratamentoCred")
                         .HasColumnType("int");
 
                     b.HasIndex("BancoId");
+
+                    b.HasIndex("CondicaoPagamentoId");
+
+                    b.HasIndex("ModoPagamentoId");
 
                     b.ToTable("Organismo", "Organismos");
                 });
@@ -14146,6 +14371,11 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .HasForeignKey("CodigoPostalId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("CliCloud.Domain.Entities.Pagamentos.CondicaoPagamento", "CondicaoPagamento")
+                        .WithMany()
+                        .HasForeignKey("CondicaoPagamentoId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("CliCloud.Domain.Entities.Documentos.Documento", "DocumentoOrigem")
                         .WithMany("DocumentosDerivados")
                         .HasForeignKey("DocumentoOrigemId")
@@ -14154,6 +14384,11 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.HasOne("CliCloud.Domain.Entities.Funcionarios.Funcionario", "Funcionario")
                         .WithMany()
                         .HasForeignKey("FuncionarioId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("CliCloud.Domain.Entities.Pagamentos.ModoPagamento", "ModoPagamento")
+                        .WithMany()
+                        .HasForeignKey("ModoPagamentoId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("CliCloud.Domain.Entities.Moedas.Moeda", "Moeda")
@@ -14188,9 +14423,13 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
 
                     b.Navigation("CodigoPostal");
 
+                    b.Navigation("CondicaoPagamento");
+
                     b.Navigation("DocumentoOrigem");
 
                     b.Navigation("Funcionario");
+
+                    b.Navigation("ModoPagamento");
 
                     b.Navigation("Moeda");
 
@@ -14517,6 +14756,25 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("NotificacaoTipo");
+                });
+
+            modelBuilder.Entity("CliCloud.Domain.Entities.Pagamentos.ModoPagamento", b =>
+                {
+                    b.HasOne("CliCloud.Domain.Entities.Pagamentos.TipoPagamento", "TipoPagamento")
+                        .WithMany()
+                        .HasForeignKey("Abreviatura")
+                        .HasPrincipalKey("Codigo")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CliCloud.Domain.Entities.Bancos.ContaBancaria", "ContaBancaria")
+                        .WithMany()
+                        .HasForeignKey("ContaBancariaId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ContaBancaria");
+
+                    b.Navigation("TipoPagamento");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.ProcessoClinico.BodyChart.MarcadorBodyChart", b =>
@@ -15510,11 +15768,21 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .HasForeignKey("BancoId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("CliCloud.Domain.Entities.Pagamentos.CondicaoPagamento", "CondicaoPagamento")
+                        .WithMany()
+                        .HasForeignKey("CondicaoPagamentoId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("CliCloud.Domain.Entities.Utility.Entidade", null)
                         .WithOne()
                         .HasForeignKey("CliCloud.Domain.Entities.Empresas.Empresa", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("CliCloud.Domain.Entities.Pagamentos.ModoPagamento", "ModoPagamento")
+                        .WithMany()
+                        .HasForeignKey("ModoPagamentoId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("CliCloud.Domain.Entities.Organismos.Organismo", "Organismo")
                         .WithMany()
@@ -15522,6 +15790,10 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Banco");
+
+                    b.Navigation("CondicaoPagamento");
+
+                    b.Navigation("ModoPagamento");
 
                     b.Navigation("Organismo");
                 });
@@ -15545,11 +15817,25 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("CliCloud.Domain.Entities.Fornecedores.Fornecedor", b =>
                 {
+                    b.HasOne("CliCloud.Domain.Entities.Pagamentos.CondicaoPagamento", "CondicaoPagamento")
+                        .WithMany()
+                        .HasForeignKey("CondicaoPagamentoId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("CliCloud.Domain.Entities.Utility.Entidade", null)
                         .WithOne()
                         .HasForeignKey("CliCloud.Domain.Entities.Fornecedores.Fornecedor", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("CliCloud.Domain.Entities.Pagamentos.ModoPagamento", "ModoPagamento")
+                        .WithMany()
+                        .HasForeignKey("ModoPagamentoId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("CondicaoPagamento");
+
+                    b.Navigation("ModoPagamento");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.Organismos.Organismo", b =>
@@ -15559,13 +15845,27 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .HasForeignKey("BancoId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("CliCloud.Domain.Entities.Pagamentos.CondicaoPagamento", "CondicaoPagamento")
+                        .WithMany()
+                        .HasForeignKey("CondicaoPagamentoId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("CliCloud.Domain.Entities.Utility.Entidade", null)
                         .WithOne()
                         .HasForeignKey("CliCloud.Domain.Entities.Organismos.Organismo", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("CliCloud.Domain.Entities.Pagamentos.ModoPagamento", "ModoPagamento")
+                        .WithMany()
+                        .HasForeignKey("ModoPagamentoId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Banco");
+
+                    b.Navigation("CondicaoPagamento");
+
+                    b.Navigation("ModoPagamento");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.Seguradoras.Seguradora", b =>

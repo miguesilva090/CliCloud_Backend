@@ -14,17 +14,21 @@ namespace CliCloud.Infrastructure.Persistence.Configurations
       builder.Property(f => f.Moeda)
         .HasConversion<int>();
 
-      builder.Property(f => f.TipoModoPagamento)
-        .HasConversion<int>();
-
       builder.Property(f => f.TipoFornecedor)
-        .HasConversion<int>();
-
-      builder.Property(f => f.CondicaoPagamento)
         .HasConversion<int>();
 
       builder.Property(f => f.Origem)
         .HasConversion<int>();
+
+      builder.HasOne(f => f.CondicaoPagamento)
+        .WithMany()
+        .HasForeignKey(f => f.CondicaoPagamentoId)
+        .OnDelete(DeleteBehavior.SetNull);
+
+      builder.HasOne(f => f.ModoPagamento)
+        .WithMany()
+        .HasForeignKey(f => f.ModoPagamentoId)
+        .OnDelete(DeleteBehavior.SetNull);
     }
   }
 }

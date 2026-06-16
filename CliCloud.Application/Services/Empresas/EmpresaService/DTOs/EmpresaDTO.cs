@@ -7,7 +7,6 @@ using CliCloud.Application.Services.Utility.ConcelhoService.DTOs;
 using CliCloud.Application.Services.Utility.DistritoService.DTOs;
 using CliCloud.Application.Services.Utility.PaisService.DTOs;
 using CliCloud.Application.Services.Bancos.BancoService.DTOs;
-using CliCloud.Domain.Enums;
 
 namespace CliCloud.Application.Services.Empresas.EmpresaService.DTOs
 {
@@ -43,8 +42,8 @@ namespace CliCloud.Application.Services.Empresas.EmpresaService.DTOs
         public int? PrazoPagamento { get; set; }
         public decimal? Desconto { get; set; }
         public decimal? DescontoUtente { get; set; }
-        public CondicaoPagamento? CondicaoPagamento { get; set; }
-        public TipoModoPagamento? TipoModoPagamento { get; set; }
+        public Guid? CondicaoPagamentoId { get; set; }
+        public Guid? ModoPagamentoId { get; set; }
         public Guid? BancoId { get; set; }
         public BancoDTO? Banco { get; set; }
         public Guid? OrganismoId { get; set; }

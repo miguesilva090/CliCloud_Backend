@@ -659,8 +659,8 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
                     Outros = documento.Outros,
                     PrecoUnitarioMercadorias = documento.PrecoUnitarioMercadorias,
 
-                    CondicaoPagamento = documento.CondicaoPagamento,
-                    TipoModoPagamento = documento.TipoModoPagamento,
+                    CondicaoPagamentoId = documento.CondicaoPagamentoId,
+                    ModoPagamentoId = documento.ModoPagamentoId,
                     MoedaId = documento.MoedaId,
                     TaxaCambio = documento.TaxaCambio,
                     TipoCambio = documento.TipoCambio,

@@ -3,6 +3,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using CliCloud.Domain.Entities.Bancos;
+using CliCloud.Domain.Entities.Pagamentos;
 using CliCloud.Domain.Entities.Utility;
 using CliCloud.Domain.Enums;
 
@@ -21,8 +22,10 @@ namespace CliCloud.Domain.Entities.Organismos
     public int? PrazoPagamento { get; set; }
     public decimal? Desconto { get; set; }
     public decimal? DescontoUtente { get; set; }
-    public CondicaoPagamento? CondicaoPagamento { get; set; }
-    public TipoModoPagamento? TipoModoPagamento { get; set; }
+    public Guid? CondicaoPagamentoId { get; set; }
+    public CliCloud.Domain.Entities.Pagamentos.CondicaoPagamento? CondicaoPagamento { get; set; }
+    public Guid? ModoPagamentoId { get; set; }
+    public ModoPagamento? ModoPagamento { get; set; }
     public Guid? BancoId { get; set; }
     public Banco? Banco { get; set; }
     [StringLength(21)]

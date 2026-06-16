@@ -42,13 +42,13 @@ namespace CliCloud.Application.Services.FornecedoresService.FornecedorService.DT
         public Guid? InstituicaoFinanceiraId { get; set; }
         public string? NumeroConta { get; set; }
         public decimal? Plafond { get; set; }
-        public CondicaoPagamento? CondicaoPagamento { get; set; }
+        public Guid? CondicaoPagamentoId { get; set; }
         public decimal? Desconto { get; set; }
         public Moeda? Moeda { get; set; }
         public decimal? TotalDebito { get; set; }
         public OrigemFornecedor? Origem { get; set; }
         public TipoFornecedor? TipoFornecedor { get; set; }
-        public TipoModoPagamento? TipoModoPagamento { get; set; }
+        public Guid? ModoPagamentoId { get; set; }
         public string? NumeroNib { get; set; }
         public int? Aprovado { get; set; }
         public DateOnly? DataAprovacao { get; set; }

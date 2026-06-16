@@ -35,7 +35,7 @@ namespace CliCloud.Application.Services.FornecedoresService.FornecedorService.DT
         public string? Fax { get; set; }
         public OrigemFornecedor? Origem { get; set; }
         public TipoFornecedor? TipoFornecedor { get; set; }
-        public CondicaoPagamento? CondicaoPagamento { get; set; }
+        public Guid? CondicaoPagamentoId { get; set; }
         public decimal? Desconto { get; set; }
         public Moeda? Moeda { get; set; }
         public int? Aprovado { get; set; }

@@ -48,6 +48,23 @@ public static class DocumentoEmissaoPerfilValidator
         if (request.IsentoIva && !request.MotivoIsencaoId.HasValue)
             return "Indique o motivo de isenção de IVA.";
 
+        foreach (var linha in request.Linhas)
+        {
+            if (linha.TaxaIvaPercentagem == 0m
+                && !linha.MotivoIsencaoId.HasValue
+                && !request.MotivoIsencaoId.HasValue)
+            {
+                return $"Linha {linha.NumeroLinha}: indique o motivo de isenção (taxa 0%).";
+            }
+        }
+
+        if (request.RetencaoAtiva
+            && !request.RetencaoCodigoMotivo.HasValue
+            && string.IsNullOrWhiteSpace(request.RetencaoMotivo))
+        {
+            return "Indique o motivo da retenção na fonte.";
+        }
+
         if (request.GerarReferenciaMb is 1 or 2)
         {
             decimal totalEstimado = DocumentoEmissaoCalculoHelper.CalcularTotalEstimadoAPagar(

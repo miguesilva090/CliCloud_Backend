@@ -114,6 +114,13 @@ using SexoDtos = CliCloud.Application.Services.Sexos.SexoService.DTOs;
 using GrauParentescoDtos = CliCloud.Application.Services.GrausParentesco.GrauParentescoService.DTOs;
 using TaxaIvaDtos = CliCloud.Application.Services.TaxasIva.TaxaIvaService.DTOs;
 using MotivoIsencaoDtos = CliCloud.Application.Services.TaxasIva.MotivoIsencaoService.DTOs;
+using MotivoRetencaoDtos = CliCloud.Application.Services.TaxasIva.MotivoRetencaoService.DTOs;
+using CondicaoPagamentoDtos = CliCloud.Application.Services.Pagamentos.CondicaoPagamentoService.DTOs;
+using TipoPagamentoDtos = CliCloud.Application.Services.Pagamentos.TipoPagamentoService.DTOs;
+using ModoPagamentoDtos = CliCloud.Application.Services.Pagamentos.ModoPagamentoService.DTOs;
+using CondicaoPagamentoEntity = CliCloud.Domain.Entities.Pagamentos.CondicaoPagamento;
+using TipoPagamentoEntity = CliCloud.Domain.Entities.Pagamentos.TipoPagamento;
+using ModoPagamentoEntity = CliCloud.Domain.Entities.Pagamentos.ModoPagamento;
 using ProvenienciaUtenteDtos = CliCloud.Application.Services.ProvenienciasUtente.ProvenienciaUtenteService.DTOs;
 using ProfissaoDtos = CliCloud.Application.Services.Profissoes.ProfissaoService.DTOs;
 using MoedaDtos = CliCloud.Application.Services.Moedas.MoedaService.DTOs;
@@ -830,6 +837,51 @@ namespace CliCloud.Infrastructure.Mapper
       _ = CreateMap<CliCloud.Domain.Entities.TaxasIva.MotivoIsencao, MotivoIsencaoDtos.MotivoIsencaoTableDTO>();
       _ = CreateMap<MotivoIsencaoDtos.CreateMotivoIsencaoRequest, CliCloud.Domain.Entities.TaxasIva.MotivoIsencao>();
       _ = CreateMap<MotivoIsencaoDtos.UpdateMotivoIsencaoRequest, CliCloud.Domain.Entities.TaxasIva.MotivoIsencao>();
+
+      // ---- MotivoRetencao ----
+      _ = CreateMap<CliCloud.Domain.Entities.TaxasIva.MotivoRetencao, MotivoRetencaoDtos.MotivoRetencaoDTO>();
+      _ = CreateMap<CliCloud.Domain.Entities.TaxasIva.MotivoRetencao, MotivoRetencaoDtos.MotivoRetencaoLightDTO>();
+      _ = CreateMap<CliCloud.Domain.Entities.TaxasIva.MotivoRetencao, MotivoRetencaoDtos.MotivoRetencaoTableDTO>();
+      _ = CreateMap<MotivoRetencaoDtos.CreateMotivoRetencaoRequest, CliCloud.Domain.Entities.TaxasIva.MotivoRetencao>();
+      _ = CreateMap<MotivoRetencaoDtos.UpdateMotivoRetencaoRequest, CliCloud.Domain.Entities.TaxasIva.MotivoRetencao>();
+
+      // ---- CondicaoPagamento ----
+      _ = CreateMap<CondicaoPagamentoEntity, CondicaoPagamentoDtos.CondicaoPagamentoDTO>();
+      _ = CreateMap<CondicaoPagamentoEntity, CondicaoPagamentoDtos.CondicaoPagamentoLightDTO>();
+      _ = CreateMap<CondicaoPagamentoEntity, CondicaoPagamentoDtos.CondicaoPagamentoTableDTO>();
+      _ = CreateMap<CondicaoPagamentoDtos.CreateCondicaoPagamentoRequest, CondicaoPagamentoEntity>()
+          .ForMember(d => d.Id, o => o.Ignore())
+          .ForMember(d => d.ClinicaId, o => o.Ignore())
+          .ForMember(d => d.Codigo, o => o.Ignore());
+      _ = CreateMap<CondicaoPagamentoDtos.UpdateCondicaoPagamentoRequest, CondicaoPagamentoEntity>()
+          .ForMember(d => d.Id, o => o.Ignore())
+          .ForMember(d => d.ClinicaId, o => o.Ignore())
+          .ForMember(d => d.Codigo, o => o.Ignore());
+
+      // ---- TipoPagamento (lookup SAFT) ----
+      _ = CreateMap<TipoPagamentoEntity, TipoPagamentoDtos.TipoPagamentoLightDTO>();
+
+      // ---- ModoPagamento ----
+      _ = CreateMap<ModoPagamentoEntity, ModoPagamentoDtos.ModoPagamentoDTO>()
+          .ForMember(d => d.TipoPagamentoDescricao, o => o.MapFrom(s => s.TipoPagamento != null ? s.TipoPagamento.Descricao : string.Empty))
+          .ForMember(d => d.ContaBancariaNumero, o => o.MapFrom(s => s.ContaBancaria != null ? s.ContaBancaria.Numero : null));
+      _ = CreateMap<ModoPagamentoEntity, ModoPagamentoDtos.ModoPagamentoLightDTO>()
+          .ForMember(d => d.ContaBancariaNumero, o => o.MapFrom(s => s.ContaBancaria != null ? s.ContaBancaria.Numero : null));
+      _ = CreateMap<ModoPagamentoEntity, ModoPagamentoDtos.ModoPagamentoTableDTO>();
+      _ = CreateMap<ModoPagamentoDtos.CreateModoPagamentoRequest, ModoPagamentoEntity>()
+          .ForMember(d => d.Id, o => o.Ignore())
+          .ForMember(d => d.ClinicaId, o => o.Ignore())
+          .ForMember(d => d.Codigo, o => o.Ignore())
+          .ForMember(d => d.Historico, o => o.Ignore())
+          .ForMember(d => d.TipoPagamento, o => o.Ignore())
+          .ForMember(d => d.ContaBancaria, o => o.Ignore());
+      _ = CreateMap<ModoPagamentoDtos.UpdateModoPagamentoRequest, ModoPagamentoEntity>()
+          .ForMember(d => d.Id, o => o.Ignore())
+          .ForMember(d => d.ClinicaId, o => o.Ignore())
+          .ForMember(d => d.Codigo, o => o.Ignore())
+          .ForMember(d => d.Historico, o => o.Ignore())
+          .ForMember(d => d.TipoPagamento, o => o.Ignore())
+          .ForMember(d => d.ContaBancaria, o => o.Ignore());
 
       // ---- ProvenienciaUtente ----
       _ = CreateMap<CliCloud.Domain.Entities.ProvenienciasUtente.ProvenienciaUtente, ProvenienciaUtenteDtos.ProvenienciaUtenteDTO>();

@@ -17,6 +17,7 @@ using CliCloud.Domain.Entities.Habilitacoes;
 using CliCloud.Domain.Entities.Profissoes;
 using CliCloud.Domain.Entities.Sexos;
 using CliCloud.Domain.Entities.Moedas;
+using CliCloud.Domain.Entities.Pagamentos;
 using CliCloud.Domain.Entities.Fornecedores;
 using CliCloud.Domain.Entities.Empresas;
 using CliCloud.Domain.Entities.Funcionarios;
@@ -157,12 +158,18 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     // DbSets - Taxas IVA (Utility)
     public DbSet<TaxaIva> TaxasIva { get; set; }
     public DbSet<MotivoIsencao> MotivosIsencao { get; set; }
+    public DbSet<MotivoRetencao> MotivosRetencao { get; set; }
 
     // DbSets - Proveniências Utente (Utility)
     public DbSet<ProvenienciaUtente> ProvenienciasUtente { get; set; }
 
     // DbSets - Moedas (Utility)
     public DbSet<Moeda> Moedas { get; set; }
+
+    // DbSets - Pagamentos
+    public DbSet<CondicaoPagamento> CondicoesPagamento { get; set; }
+    public DbSet<TipoPagamento> TiposPagamentoSaft { get; set; }
+    public DbSet<ModoPagamento> ModosPagamento { get; set; }
     
     // DbSets - TipoEntidadeFinanceira
     public DbSet<TipoEntidadeFinanceira> TiposEntidadeFinanceira { get; set; }
@@ -529,6 +536,12 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
       // Taxas IVA configurations
       _ = modelBuilder.ApplyConfiguration(new TaxaIvaConfiguration());
       _ = modelBuilder.ApplyConfiguration(new MotivoIsencaoConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new MotivoRetencaoConfiguration());
+
+      // Pagamentos configurations
+      _ = modelBuilder.ApplyConfiguration(new CondicaoPagamentoConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new TipoPagamentoConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new ModoPagamentoConfiguration());
 
       // Proveniências Utente configurations
       _ = modelBuilder.ApplyConfiguration(new ProvenienciaUtenteConfiguration());

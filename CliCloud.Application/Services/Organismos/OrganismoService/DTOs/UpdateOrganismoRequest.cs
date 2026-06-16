@@ -2,7 +2,6 @@ using FluentValidation;
 using CliCloud.Application.Common.Marker;
 using CliCloud.Application.Utility;
 using CliCloud.Application.Services.Utility.EntidadeContactoService.DTOs;
-using CliCloud.Domain.Enums;
 
 namespace CliCloud.Application.Services.Organismos.OrganismoService.DTOs
 {
@@ -32,8 +31,8 @@ namespace CliCloud.Application.Services.Organismos.OrganismoService.DTOs
         public int? PrazoPagamento { get; set; }
         public decimal? Desconto { get; set; }
         public decimal? DescontoUtente { get; set; }
-        public CondicaoPagamento? CondicaoPagamento { get; set; }
-        public TipoModoPagamento? TipoModoPagamento { get; set; }
+        public Guid? CondicaoPagamentoId { get; set; }
+        public Guid? ModoPagamentoId { get; set; }
         public string? BancoId { get; set; }
         public string? NumeroIdentificacaoBancaria { get; set; }
         public string? Apolice { get; set; }

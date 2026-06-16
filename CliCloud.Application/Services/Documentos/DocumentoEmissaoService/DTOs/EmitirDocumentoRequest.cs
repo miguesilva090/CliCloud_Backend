@@ -40,8 +40,8 @@ public class EmitirDocumentoRequest : IDto
 
     public DateTime? FaturaGlobalDataFim { get; set; }
 
-    public CondicaoPagamento? CondicaoPagamento { get; set; }
-    public TipoModoPagamento? TipoModoPagamento { get; set; }
+    public Guid? CondicaoPagamentoId { get; set; }
+    public Guid? ModoPagamentoId { get; set; }
     public Guid? MoedaId { get; set; }
     public Guid? BancoId { get; set; }
     public decimal? TaxaCambio { get; set; }

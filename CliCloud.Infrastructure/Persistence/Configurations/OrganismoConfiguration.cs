@@ -11,17 +11,20 @@ namespace CliCloud.Infrastructure.Persistence.Configurations
       // Configure TPT (Table Per Type) inheritance
       builder.ToTable("Organismo", "Organismos");
 
-      // Configurar enum conversions
-      builder.Property(o => o.CondicaoPagamento)
-        .HasConversion<int>();
-
-      builder.Property(o => o.TipoModoPagamento)
-        .HasConversion<int>();
-
       // Relacionamento N:1 com Banco
       builder.HasOne(o => o.Banco)
         .WithMany()
         .HasForeignKey(o => o.BancoId)
+        .OnDelete(DeleteBehavior.SetNull);
+
+      builder.HasOne(o => o.CondicaoPagamento)
+        .WithMany()
+        .HasForeignKey(o => o.CondicaoPagamentoId)
+        .OnDelete(DeleteBehavior.SetNull);
+
+      builder.HasOne(o => o.ModoPagamento)
+        .WithMany()
+        .HasForeignKey(o => o.ModoPagamentoId)
         .OnDelete(DeleteBehavior.SetNull);
     }
   }

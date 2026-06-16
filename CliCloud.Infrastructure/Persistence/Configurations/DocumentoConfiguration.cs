@@ -10,12 +10,6 @@ public class DocumentoConfiguration : IEntityTypeConfiguration<Documento>
   {
     builder.ToTable("Documento", "Documentos");
 
-    builder.Property(d => d.CondicaoPagamento)
-      .HasConversion<int>();
-
-    builder.Property(d => d.TipoModoPagamento)
-      .HasConversion<int>();
-
     builder.Property(d => d.EstadoDocumento)
       .HasConversion<int>();
 
@@ -62,6 +56,16 @@ public class DocumentoConfiguration : IEntityTypeConfiguration<Documento>
       .HasForeignKey(d => d.BancoId)
       .OnDelete(DeleteBehavior.NoAction);
 
+    builder.HasOne(d => d.CondicaoPagamento)
+      .WithMany()
+      .HasForeignKey(d => d.CondicaoPagamentoId)
+      .OnDelete(DeleteBehavior.SetNull);
+
+    builder.HasOne(d => d.ModoPagamento)
+      .WithMany()
+      .HasForeignKey(d => d.ModoPagamentoId)
+      .OnDelete(DeleteBehavior.SetNull);
+
     builder.HasOne(d => d.DocumentoOrigem)
       .WithMany(d => d.DocumentosDerivados)
       .HasForeignKey(d => d.DocumentoOrigemId)
@@ -79,5 +83,7 @@ public class DocumentoConfiguration : IEntityTypeConfiguration<Documento>
     builder.HasIndex(d => d.ClinicaId);
     builder.HasIndex(d => d.NumeroExibicao);
     builder.HasIndex(d => d.DocumentoOrigemId);
+    builder.HasIndex(d => d.CondicaoPagamentoId);
+    builder.HasIndex(d => d.ModoPagamentoId);
   }
 }
