@@ -9,6 +9,7 @@ using CliCloud.Domain.Enums;
 using CliCloud.Application.Services.Core.ClinicaService.DTOs;
 using CliCloud.Application.Services.Core.ClinicaService.Filters;
 using CliCloud.Application.Services.Core.ClinicaService.Specifications;
+using CliCloud.Application.Services.Stocks.ArmazemService;
 using CliCloud.Domain.Entities.Core.Tratamentos;
 using CliCloud.Domain.Entities.Consultas;
 using CliCloud.Domain.Entities.TaxasIva;
@@ -169,6 +170,7 @@ namespace CliCloud.Application.Services.Core.ClinicaService
       await EnsureClinicaMotivosIsencaoDefaultsAsync(clinica.Id);
       await EnsureClinicaTiposConsultaDefaultsAsync(clinica.Id);
       await EnsureClinicaArmazemGeralDefaultAsync(clinica.Id, clinica.Nome);
+      await ArmazemService.EnsureArmazemGeralDefaultAsync(_repository, clinica.Id, clinica.Nome);
       _ = await _repository.SaveChangesAsync();
     }
 

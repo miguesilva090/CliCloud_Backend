@@ -59,6 +59,7 @@ using CliCloud.Domain.Entities.Notificacoes;
 using CliCloud.Domain.Entities.Sinistros;
 using CliCloud.Domain.Entities.Credenciais;
 using CliCloud.Domain.Entities.Faturacao;
+using CliCloud.Domain.Entities.Stocks;
 using Microsoft.EntityFrameworkCore;
 
 //---------------------------------- CLI COMMANDS --------------------------------------------------
@@ -165,6 +166,10 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
 
     // DbSets - Moedas (Utility)
     public DbSet<Moeda> Moedas { get; set; }
+
+    // DbSets - Stocks
+    public DbSet<Armazem> Armazens { get; set; }
+    public DbSet<FamiliaArtigo> FamiliasArtigo { get; set; }
 
     // DbSets - Pagamentos
     public DbSet<CondicaoPagamento> CondicoesPagamento { get; set; }
@@ -537,6 +542,10 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
       _ = modelBuilder.ApplyConfiguration(new TaxaIvaConfiguration());
       _ = modelBuilder.ApplyConfiguration(new MotivoIsencaoConfiguration());
       _ = modelBuilder.ApplyConfiguration(new MotivoRetencaoConfiguration());
+
+      // Stocks configurations
+      _ = modelBuilder.ApplyConfiguration(new ArmazemConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new FamiliaArtigoConfiguration());
 
       // Pagamentos configurations
       _ = modelBuilder.ApplyConfiguration(new CondicaoPagamentoConfiguration());

@@ -118,9 +118,13 @@ using MotivoRetencaoDtos = CliCloud.Application.Services.TaxasIva.MotivoRetencao
 using CondicaoPagamentoDtos = CliCloud.Application.Services.Pagamentos.CondicaoPagamentoService.DTOs;
 using TipoPagamentoDtos = CliCloud.Application.Services.Pagamentos.TipoPagamentoService.DTOs;
 using ModoPagamentoDtos = CliCloud.Application.Services.Pagamentos.ModoPagamentoService.DTOs;
+using ArmazemDtos = CliCloud.Application.Services.Stocks.ArmazemService.DTOs;
+using FamiliaArtigoDtos = CliCloud.Application.Services.Stocks.FamiliaArtigoService.DTOs;
 using CondicaoPagamentoEntity = CliCloud.Domain.Entities.Pagamentos.CondicaoPagamento;
 using TipoPagamentoEntity = CliCloud.Domain.Entities.Pagamentos.TipoPagamento;
 using ModoPagamentoEntity = CliCloud.Domain.Entities.Pagamentos.ModoPagamento;
+using ArmazemEntity = CliCloud.Domain.Entities.Stocks.Armazem;
+using FamiliaArtigoEntity = CliCloud.Domain.Entities.Stocks.FamiliaArtigo;
 using ProvenienciaUtenteDtos = CliCloud.Application.Services.ProvenienciasUtente.ProvenienciaUtenteService.DTOs;
 using ProfissaoDtos = CliCloud.Application.Services.Profissoes.ProfissaoService.DTOs;
 using MoedaDtos = CliCloud.Application.Services.Moedas.MoedaService.DTOs;
@@ -860,6 +864,44 @@ namespace CliCloud.Infrastructure.Mapper
 
       // ---- TipoPagamento (lookup SAFT) ----
       _ = CreateMap<TipoPagamentoEntity, TipoPagamentoDtos.TipoPagamentoLightDTO>();
+
+      // ---- Armazem (Stocks) ----
+      _ = CreateMap<ArmazemEntity, ArmazemDtos.ArmazemDTO>()
+          .ForMember(d => d.CodigoPostalCodigo, o => o.MapFrom(s => s.CodigoPostal != null ? s.CodigoPostal.Codigo : null))
+          .ForMember(d => d.CodigoPostalLocalidade, o => o.MapFrom(s => s.CodigoPostal != null ? s.CodigoPostal.Localidade : null));
+      _ = CreateMap<ArmazemEntity, ArmazemDtos.ArmazemLightDTO>();
+      _ = CreateMap<ArmazemEntity, ArmazemDtos.ArmazemTableDTO>();
+      _ = CreateMap<ArmazemDtos.CreateArmazemRequest, ArmazemEntity>()
+          .ForMember(d => d.Id, o => o.Ignore())
+          .ForMember(d => d.ClinicaId, o => o.Ignore())
+          .ForMember(d => d.Codigo, o => o.Ignore())
+          .ForMember(d => d.CodigoPostal, o => o.Ignore());
+      _ = CreateMap<ArmazemDtos.UpdateArmazemRequest, ArmazemEntity>()
+          .ForMember(d => d.Id, o => o.Ignore())
+          .ForMember(d => d.ClinicaId, o => o.Ignore())
+          .ForMember(d => d.Codigo, o => o.Ignore())
+          .ForMember(d => d.CodigoPostal, o => o.Ignore());
+
+      // ---- FamiliaArtigo (Stocks) ----
+      _ = CreateMap<FamiliaArtigoEntity, FamiliaArtigoDtos.FamiliaArtigoDTO>()
+          .ForMember(d => d.Path, o => o.Ignore());
+      _ = CreateMap<FamiliaArtigoEntity, FamiliaArtigoDtos.FamiliaArtigoTableDTO>()
+          .ForMember(d => d.TemFilhos, o => o.Ignore());
+      _ = CreateMap<FamiliaArtigoDtos.CreateFamiliaArtigoRequest, FamiliaArtigoEntity>()
+          .ForMember(d => d.Id, o => o.Ignore())
+          .ForMember(d => d.ClinicaId, o => o.Ignore())
+          .ForMember(d => d.Codigo, o => o.Ignore())
+          .ForMember(d => d.Nivel, o => o.Ignore())
+          .ForMember(d => d.Parent, o => o.Ignore())
+          .ForMember(d => d.Children, o => o.Ignore());
+      _ = CreateMap<FamiliaArtigoDtos.UpdateFamiliaArtigoRequest, FamiliaArtigoEntity>()
+          .ForMember(d => d.Id, o => o.Ignore())
+          .ForMember(d => d.ClinicaId, o => o.Ignore())
+          .ForMember(d => d.Codigo, o => o.Ignore())
+          .ForMember(d => d.ParentId, o => o.Ignore())
+          .ForMember(d => d.Nivel, o => o.Ignore())
+          .ForMember(d => d.Parent, o => o.Ignore())
+          .ForMember(d => d.Children, o => o.Ignore());
 
       // ---- ModoPagamento ----
       _ = CreateMap<ModoPagamentoEntity, ModoPagamentoDtos.ModoPagamentoDTO>()

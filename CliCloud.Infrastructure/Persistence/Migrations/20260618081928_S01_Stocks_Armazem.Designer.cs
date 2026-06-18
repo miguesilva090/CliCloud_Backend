@@ -4,6 +4,7 @@ using CliCloud.Infrastructure.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CliCloud.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260618081928_S01_Stocks_Armazem")]
+    partial class S01_Stocks_Armazem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -9914,66 +9917,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.ToTable("Armazem", "Stocks");
                 });
 
-            modelBuilder.Entity("CliCloud.Domain.Entities.Stocks.FamiliaArtigo", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("ClinicaId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Codigo")
-                        .HasColumnType("int");
-
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("DeletedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("DeletedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Descricao")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<Guid?>("LastModifiedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("LastModifiedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Nivel")
-                        .HasColumnType("int");
-
-                    b.Property<Guid?>("ParentId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("UrlFoto")
-                        .HasMaxLength(512)
-                        .HasColumnType("nvarchar(512)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClinicaId");
-
-                    b.HasIndex("ParentId");
-
-                    b.HasIndex("ClinicaId", "Codigo")
-                        .IsUnique()
-                        .HasFilter("[DeletedOn] IS NULL");
-
-                    b.HasIndex("ClinicaId", "ParentId");
-
-                    b.ToTable("FamiliaArtigo", "Stocks");
-                });
-
             modelBuilder.Entity("CliCloud.Domain.Entities.TaxasIva.MotivoIsencao", b =>
                 {
                     b.Property<Guid>("Id")
@@ -15384,16 +15327,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Navigation("CodigoPostal");
                 });
 
-            modelBuilder.Entity("CliCloud.Domain.Entities.Stocks.FamiliaArtigo", b =>
-                {
-                    b.HasOne("CliCloud.Domain.Entities.Stocks.FamiliaArtigo", "Parent")
-                        .WithMany("Children")
-                        .HasForeignKey("ParentId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Parent");
-                });
-
             modelBuilder.Entity("CliCloud.Domain.Entities.Tecnicos.FolgasTecnico", b =>
                 {
                     b.HasOne("CliCloud.Domain.Entities.Tecnicos.Tecnico", "Tecnico")
@@ -16293,11 +16226,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("CliCloud.Domain.Entities.Sinistros.Sinistrado", b =>
                 {
                     b.Navigation("LinhasServico");
-                });
-
-            modelBuilder.Entity("CliCloud.Domain.Entities.Stocks.FamiliaArtigo", b =>
-                {
-                    b.Navigation("Children");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.Tecnicos.HorarioTecnico", b =>
