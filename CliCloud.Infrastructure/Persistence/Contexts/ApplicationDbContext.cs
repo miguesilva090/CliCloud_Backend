@@ -170,6 +170,8 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     // DbSets - Stocks
     public DbSet<Armazem> Armazens { get; set; }
     public DbSet<FamiliaArtigo> FamiliasArtigo { get; set; }
+    public DbSet<UnidadeMedida> UnidadesMedida { get; set; }
+    public DbSet<Artigo> Artigos { get; set; }
 
     // DbSets - Pagamentos
     public DbSet<CondicaoPagamento> CondicoesPagamento { get; set; }
@@ -470,7 +472,6 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     // DbSets - FicheiroEletronico
     public DbSet<FicheiroEletronicoRegisto> FicheiroEletronicoRegistos => Set<FicheiroEletronicoRegisto>();
 
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
       base.OnModelCreating(modelBuilder);
@@ -546,6 +547,8 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
       // Stocks configurations
       _ = modelBuilder.ApplyConfiguration(new ArmazemConfiguration());
       _ = modelBuilder.ApplyConfiguration(new FamiliaArtigoConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new UnidadeMedidaConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new ArtigoConfiguration());
 
       // Pagamentos configurations
       _ = modelBuilder.ApplyConfiguration(new CondicaoPagamentoConfiguration());

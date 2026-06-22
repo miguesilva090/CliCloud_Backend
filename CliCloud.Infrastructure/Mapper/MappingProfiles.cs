@@ -119,11 +119,15 @@ using CondicaoPagamentoDtos = CliCloud.Application.Services.Pagamentos.CondicaoP
 using TipoPagamentoDtos = CliCloud.Application.Services.Pagamentos.TipoPagamentoService.DTOs;
 using ModoPagamentoDtos = CliCloud.Application.Services.Pagamentos.ModoPagamentoService.DTOs;
 using ArmazemDtos = CliCloud.Application.Services.Stocks.ArmazemService.DTOs;
+using UnidadeMedidaDtos = CliCloud.Application.Services.Stocks.UnidadeMedidaService.DTOs;
+using ArtigoDtos = CliCloud.Application.Services.Stocks.ArtigoService.DTOs;
 using FamiliaArtigoDtos = CliCloud.Application.Services.Stocks.FamiliaArtigoService.DTOs;
 using CondicaoPagamentoEntity = CliCloud.Domain.Entities.Pagamentos.CondicaoPagamento;
 using TipoPagamentoEntity = CliCloud.Domain.Entities.Pagamentos.TipoPagamento;
 using ModoPagamentoEntity = CliCloud.Domain.Entities.Pagamentos.ModoPagamento;
 using ArmazemEntity = CliCloud.Domain.Entities.Stocks.Armazem;
+using UnidadeMedidaEntity = CliCloud.Domain.Entities.Stocks.UnidadeMedida;
+using ArtigoEntity = CliCloud.Domain.Entities.Stocks.Artigo;
 using FamiliaArtigoEntity = CliCloud.Domain.Entities.Stocks.FamiliaArtigo;
 using ProvenienciaUtenteDtos = CliCloud.Application.Services.ProvenienciasUtente.ProvenienciaUtenteService.DTOs;
 using ProfissaoDtos = CliCloud.Application.Services.Profissoes.ProfissaoService.DTOs;
@@ -881,6 +885,57 @@ namespace CliCloud.Infrastructure.Mapper
           .ForMember(d => d.ClinicaId, o => o.Ignore())
           .ForMember(d => d.Codigo, o => o.Ignore())
           .ForMember(d => d.CodigoPostal, o => o.Ignore());
+
+      // ---- UnidadeMedida (Stocks) ----
+      _ = CreateMap<UnidadeMedidaEntity, UnidadeMedidaDtos.UnidadeMedidaDTO>();
+      _ = CreateMap<UnidadeMedidaEntity, UnidadeMedidaDtos.UnidadeMedidaLightDTO>();
+      _ = CreateMap<UnidadeMedidaEntity, UnidadeMedidaDtos.UnidadeMedidaTableDTO>();
+      _ = CreateMap<UnidadeMedidaDtos.CreateUnidadeMedidaRequest, UnidadeMedidaEntity>()
+          .ForMember(d => d.Id, o => o.Ignore())
+          .ForMember(d => d.ClinicaId, o => o.Ignore())
+          .ForMember(d => d.Codigo, o => o.Ignore());
+
+      // ---- Artigo (Stocks) ----
+      _ = CreateMap<ArtigoEntity, ArtigoDtos.ArtigoDTO>()
+          .ForMember(d => d.UnidadeMedidaDescricao, o => o.MapFrom(s => s.UnidadeMedida.Descricao))
+          .ForMember(d => d.FamiliaArtigoDescricao, o => o.MapFrom(s => s.FamiliaArtigo != null ? s.FamiliaArtigo.Descricao : null))
+          .ForMember(d => d.TaxaIvaDescricao, o => o.MapFrom(s => s.TaxaIva.Descricao))
+          .ForMember(d => d.TaxaIvaPercentagem, o => o.MapFrom(s => s.TaxaIva.Taxa))
+          .ForMember(d => d.MotivoIsencaoDescricao, o => o.MapFrom(s => s.MotivoIsencao != null ? s.MotivoIsencao.Descricao : null))
+          .ForMember(d => d.ArmazemNome, o => o.MapFrom(s => s.Armazem.Nome));
+      _ = CreateMap<ArtigoEntity, ArtigoDtos.ArtigoLightDTO>();
+      _ = CreateMap<ArtigoEntity, ArtigoDtos.ArtigoTableDTO>()
+          .ForMember(d => d.ArmazemNome, o => o.MapFrom(s => s.Armazem.Nome));
+      _ = CreateMap<ArtigoDtos.CreateArtigoRequest, ArtigoEntity>()
+          .ForMember(d => d.Id, o => o.Ignore())
+          .ForMember(d => d.ClinicaId, o => o.Ignore())
+          .ForMember(d => d.Codigo, o => o.Ignore())
+          .ForMember(d => d.StockReal, o => o.Ignore())
+          .ForMember(d => d.UltimoPrecoFinal, o => o.Ignore())
+          .ForMember(d => d.PrecoMedioFinal, o => o.Ignore())
+          .ForMember(d => d.UltimoPrecoVenda, o => o.Ignore())
+          .ForMember(d => d.PrecoMedioVenda, o => o.Ignore())
+          .ForMember(d => d.CodigoInternoLegado, o => o.Ignore())
+          .ForMember(d => d.UnidadeMedida, o => o.Ignore())
+          .ForMember(d => d.FamiliaArtigo, o => o.Ignore())
+          .ForMember(d => d.TaxaIva, o => o.Ignore())
+          .ForMember(d => d.MotivoIsencao, o => o.Ignore())
+          .ForMember(d => d.Armazem, o => o.Ignore());
+      _ = CreateMap<ArtigoDtos.UpdateArtigoRequest, ArtigoEntity>()
+          .ForMember(d => d.Id, o => o.Ignore())
+          .ForMember(d => d.ClinicaId, o => o.Ignore())
+          .ForMember(d => d.Codigo, o => o.Ignore())
+          .ForMember(d => d.StockReal, o => o.Ignore())
+          .ForMember(d => d.UltimoPrecoFinal, o => o.Ignore())
+          .ForMember(d => d.PrecoMedioFinal, o => o.Ignore())
+          .ForMember(d => d.UltimoPrecoVenda, o => o.Ignore())
+          .ForMember(d => d.PrecoMedioVenda, o => o.Ignore())
+          .ForMember(d => d.CodigoInternoLegado, o => o.Ignore())
+          .ForMember(d => d.UnidadeMedida, o => o.Ignore())
+          .ForMember(d => d.FamiliaArtigo, o => o.Ignore())
+          .ForMember(d => d.TaxaIva, o => o.Ignore())
+          .ForMember(d => d.MotivoIsencao, o => o.Ignore())
+          .ForMember(d => d.Armazem, o => o.Ignore());
 
       // ---- FamiliaArtigo (Stocks) ----
       _ = CreateMap<FamiliaArtigoEntity, FamiliaArtigoDtos.FamiliaArtigoDTO>()

@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using CliCloud.Domain.Entities.Common;
 using CliCloud.Domain.Entities.Consultas;
 using CliCloud.Domain.Entities.Servicos;
+using CliCloud.Domain.Entities.Stocks;
 using CliCloud.Domain.Entities.TaxasIva;
 using CliCloud.Domain.Enums;
 
@@ -22,9 +23,12 @@ public class DocumentoLinha : AuditableEntityWithSoftDelete
   /// <summary>Ordem da linha no documento (1-based).</summary>
   public int NumeroLinha { get; set; }
 
-  /// <summary>Código de artigo legado / stocks (texto até existir entidade Artigo).</summary>
+  /// <summary>Código textual legado; preferir <see cref="ArtigoId"/> quando disponível.</summary>
   [StringLength(50)]
   public string? CodigoArtigo { get; set; }
+
+  public Guid? ArtigoId { get; set; }
+  public Artigo? Artigo { get; set; }
 
   public Guid? ServicoId { get; set; }
   public Servico? Servico { get; set; }

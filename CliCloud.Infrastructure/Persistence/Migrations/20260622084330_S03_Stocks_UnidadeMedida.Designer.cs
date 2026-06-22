@@ -4,6 +4,7 @@ using CliCloud.Infrastructure.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CliCloud.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260622084330_S03_Stocks_UnidadeMedida")]
+    partial class S03_Stocks_UnidadeMedida
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -4871,9 +4874,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("AdmissaoServicoId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("ArtigoId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("CodigoArtigo")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
@@ -4952,8 +4952,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AdmissaoServicoId");
-
-                    b.HasIndex("ArtigoId");
 
                     b.HasIndex("MotivoIsencaoId");
 
@@ -9919,167 +9917,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.ToTable("Armazem", "Stocks");
                 });
 
-            modelBuilder.Entity("CliCloud.Domain.Entities.Stocks.Artigo", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("ActHotel")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("ActPOS")
-                        .HasColumnType("bit");
-
-                    b.Property<Guid>("ArmazemId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("ClinicaId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Codigo")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CodigoBarras")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int?>("CodigoInternoLegado")
-                        .HasColumnType("int");
-
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("DeletedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("DeletedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("Descontinuado")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Descricao")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("EAN")
-                        .HasMaxLength(13)
-                        .HasColumnType("nvarchar(13)");
-
-                    b.Property<Guid?>("FamiliaArtigoId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("Inativo")
-                        .HasColumnType("bit");
-
-                    b.Property<Guid?>("LastModifiedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("LastModifiedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("MotivoIsencaoId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("NumeroArtigo")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<bool>("PermitirAlterarPreco")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("PermitirDescontos")
-                        .HasColumnType("bit");
-
-                    b.Property<decimal>("PrecoCusto")
-                        .HasColumnType("decimal(18, 4)");
-
-                    b.Property<decimal>("PrecoMedioFinal")
-                        .HasColumnType("decimal(18, 4)");
-
-                    b.Property<decimal>("PrecoMedioVenda")
-                        .HasColumnType("decimal(18, 4)");
-
-                    b.Property<decimal>("PrecoUnitarioSemIva1")
-                        .HasColumnType("decimal(18, 4)");
-
-                    b.Property<decimal>("PrecoUnitarioSemIva2")
-                        .HasColumnType("decimal(18, 4)");
-
-                    b.Property<decimal>("PrecoUnitarioSemIva3")
-                        .HasColumnType("decimal(18, 4)");
-
-                    b.Property<decimal>("PrecoVendaComIva1")
-                        .HasColumnType("decimal(18, 4)");
-
-                    b.Property<decimal>("PrecoVendaComIva2")
-                        .HasColumnType("decimal(18, 4)");
-
-                    b.Property<decimal>("PrecoVendaComIva3")
-                        .HasColumnType("decimal(18, 4)");
-
-                    b.Property<decimal?>("StockMaximo")
-                        .HasColumnType("decimal(18, 4)");
-
-                    b.Property<decimal?>("StockMinimo")
-                        .HasColumnType("decimal(18, 4)");
-
-                    b.Property<decimal>("StockReal")
-                        .HasColumnType("decimal(18, 4)");
-
-                    b.Property<decimal?>("StockReposicao")
-                        .HasColumnType("decimal(18, 4)");
-
-                    b.Property<Guid>("TaxaIvaId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("TipoArtigo")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("UltimoPrecoFinal")
-                        .HasColumnType("decimal(18, 4)");
-
-                    b.Property<decimal>("UltimoPrecoVenda")
-                        .HasColumnType("decimal(18, 4)");
-
-                    b.Property<Guid>("UnidadeMedidaId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("UrlFoto")
-                        .HasMaxLength(512)
-                        .HasColumnType("nvarchar(512)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ArmazemId");
-
-                    b.HasIndex("ClinicaId");
-
-                    b.HasIndex("FamiliaArtigoId");
-
-                    b.HasIndex("MotivoIsencaoId");
-
-                    b.HasIndex("TaxaIvaId");
-
-                    b.HasIndex("UnidadeMedidaId");
-
-                    b.HasIndex("ClinicaId", "Codigo")
-                        .IsUnique()
-                        .HasFilter("[DeletedOn] IS NULL");
-
-                    b.HasIndex("ClinicaId", "NumeroArtigo")
-                        .IsUnique()
-                        .HasFilter("[DeletedOn] IS NULL");
-
-                    b.ToTable("Artigo", "Stocks");
-                });
-
             modelBuilder.Entity("CliCloud.Domain.Entities.Stocks.FamiliaArtigo", b =>
                 {
                     b.Property<Guid>("Id")
@@ -14791,11 +14628,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .HasForeignKey("AdmissaoServicoId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("CliCloud.Domain.Entities.Stocks.Artigo", "Artigo")
-                        .WithMany()
-                        .HasForeignKey("ArtigoId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
                     b.HasOne("CliCloud.Domain.Entities.Documentos.Documento", "Documento")
                         .WithMany("Linhas")
                         .HasForeignKey("DocumentoId")
@@ -14818,8 +14650,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("AdmissaoServico");
-
-                    b.Navigation("Artigo");
 
                     b.Navigation("Documento");
 
@@ -15601,47 +15431,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("CodigoPostal");
-                });
-
-            modelBuilder.Entity("CliCloud.Domain.Entities.Stocks.Artigo", b =>
-                {
-                    b.HasOne("CliCloud.Domain.Entities.Stocks.Armazem", "Armazem")
-                        .WithMany()
-                        .HasForeignKey("ArmazemId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CliCloud.Domain.Entities.Stocks.FamiliaArtigo", "FamiliaArtigo")
-                        .WithMany()
-                        .HasForeignKey("FamiliaArtigoId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("CliCloud.Domain.Entities.TaxasIva.MotivoIsencao", "MotivoIsencao")
-                        .WithMany()
-                        .HasForeignKey("MotivoIsencaoId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("CliCloud.Domain.Entities.TaxasIva.TaxaIva", "TaxaIva")
-                        .WithMany()
-                        .HasForeignKey("TaxaIvaId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("CliCloud.Domain.Entities.Stocks.UnidadeMedida", "UnidadeMedida")
-                        .WithMany()
-                        .HasForeignKey("UnidadeMedidaId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Armazem");
-
-                    b.Navigation("FamiliaArtigo");
-
-                    b.Navigation("MotivoIsencao");
-
-                    b.Navigation("TaxaIva");
-
-                    b.Navigation("UnidadeMedida");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.Stocks.FamiliaArtigo", b =>

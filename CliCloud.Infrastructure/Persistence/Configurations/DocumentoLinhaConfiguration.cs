@@ -23,6 +23,11 @@ public class DocumentoLinhaConfiguration : IEntityTypeConfiguration<DocumentoLin
       .HasForeignKey(l => l.ServicoId)
       .OnDelete(DeleteBehavior.NoAction);
 
+    builder.HasOne(l => l.Artigo)
+      .WithMany()
+      .HasForeignKey(l => l.ArtigoId)
+      .OnDelete(DeleteBehavior.NoAction);
+
     builder.HasOne(l => l.TaxaIva)
       .WithMany()
       .HasForeignKey(l => l.TaxaIvaId)
@@ -37,6 +42,7 @@ public class DocumentoLinhaConfiguration : IEntityTypeConfiguration<DocumentoLin
       .IsUnique();
 
     builder.HasIndex(l => l.ServicoId);
+    builder.HasIndex(l => l.ArtigoId);
     builder.HasIndex(l => l.TaxaIvaId);
   }
 }
