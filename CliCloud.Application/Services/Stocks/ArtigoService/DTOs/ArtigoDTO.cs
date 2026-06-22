@@ -54,6 +54,15 @@ public class ArtigoDTO : IDto
     public bool ActHotel { get; set; }
     public bool ActPOS { get; set; }
 
+    public string? NumSerieUCentral { get; set; }
+    public decimal? Desconto { get; set; }
+    public decimal? Capacidade { get; set; }
+    public bool TemGarantia { get; set; }
+    public int? MesesGarantia { get; set; }
+    public int? AmpliacaoGarantia { get; set; }
+    public bool VisualizarNaNet { get; set; }
+    public TipoMedidaArtigo? TipoMedida { get; set; }
+
     public DateTime CreatedOn { get; set; } 
     public DateTime? LastModifiedOn { get; set; }
 

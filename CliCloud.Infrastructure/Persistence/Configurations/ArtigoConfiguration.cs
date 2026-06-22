@@ -16,7 +16,9 @@ public class ArtigoConfiguration : IEntityTypeConfiguration<Artigo>
         builder.Property(x => x.EAN).HasMaxLength(13);
         builder.Property(x => x.CodigoBarras).HasMaxLength(50);
         builder.Property(x => x.UrlFoto).HasMaxLength(512);
+        builder.Property(x => x.NumSerieUCentral).HasMaxLength(100);
         builder.Property(x => x.TipoArtigo).HasConversion<int>();
+        builder.Property(x => x.TipoMedida).HasConversion<int>();
 
         builder.HasIndex(x => new { x.ClinicaId, x.Codigo })
             .IsUnique()

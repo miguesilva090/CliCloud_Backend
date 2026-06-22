@@ -107,6 +107,21 @@ public class Artigo : AuditableEntityWithSoftDelete
     public bool ActHotel { get; set; }
     public bool ActPOS { get; set; }
 
+    [StringLength(100)]
+    public string? NumSerieUCentral { get; set; }
+
+    [Column(TypeName = "decimal(18, 4)")]
+    public decimal? Desconto { get; set; }
+
+    [Column(TypeName = "decimal(18, 4)")]
+    public decimal? Capacidade { get; set; }
+
+    public bool TemGarantia { get; set; }
+    public int? MesesGarantia { get; set; }
+    public int? AmpliacaoGarantia { get; set; }
+    public bool VisualizarNaNet { get; set; }
+    public TipoMedidaArtigo? TipoMedida { get; set; }
+
     public int? CodigoInternoLegado { get; set; }
 
 }

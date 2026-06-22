@@ -41,6 +41,15 @@ public class CreateArtigoRequest : IDto
     public bool ActHotel { get; set; }
     public bool ActPOS { get; set; }
 
+    public string? NumSerieUCentral { get; set; }
+    public decimal? Desconto { get; set; }
+    public decimal? Capacidade { get; set; }
+    public bool TemGarantia { get; set; }
+    public int? MesesGarantia { get; set; }
+    public int? AmpliacaoGarantia { get; set; }
+    public bool VisualizarNaNet { get; set; }
+    public TipoMedidaArtigo? TipoMedida { get; set; }
+
 }
 
 public class CreateArtigoValidator : AbstractValidator<CreateArtigoRequest>
@@ -52,6 +61,7 @@ public class CreateArtigoValidator : AbstractValidator<CreateArtigoRequest>
         _ = RuleFor(x => x.EAN).MaximumLength(13);
         _ = RuleFor(x => x.CodigoBarras).MaximumLength(50);
         _ = RuleFor(x => x.UrlFoto).MaximumLength(512);
+        _ = RuleFor(x => x.NumSerieUCentral).MaximumLength(100);
         _ = RuleFor(x => x.UnidadeMedidaId).NotEmpty();
         _ = RuleFor(x => x.TaxaIvaId).NotEmpty();
         _ = RuleFor(x => x.ArmazemId).NotEmpty();
