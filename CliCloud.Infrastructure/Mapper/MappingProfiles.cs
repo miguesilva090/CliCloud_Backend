@@ -129,6 +129,8 @@ using ArmazemEntity = CliCloud.Domain.Entities.Stocks.Armazem;
 using UnidadeMedidaEntity = CliCloud.Domain.Entities.Stocks.UnidadeMedida;
 using ArtigoEntity = CliCloud.Domain.Entities.Stocks.Artigo;
 using FamiliaArtigoEntity = CliCloud.Domain.Entities.Stocks.FamiliaArtigo;
+using SubsistemaArtigoDtos = CliCloud.Application.Services.Stocks.SubsistemaArtigoService.DTOs;
+using SubsistemaArtigoEntity = CliCloud.Domain.Entities.Stocks.SubsistemaArtigo;
 using ProvenienciaUtenteDtos = CliCloud.Application.Services.ProvenienciasUtente.ProvenienciaUtenteService.DTOs;
 using ProfissaoDtos = CliCloud.Application.Services.Profissoes.ProfissaoService.DTOs;
 using MoedaDtos = CliCloud.Application.Services.Moedas.MoedaService.DTOs;
@@ -906,6 +908,22 @@ namespace CliCloud.Infrastructure.Mapper
       _ = CreateMap<ArtigoEntity, ArtigoDtos.ArtigoLightDTO>();
       _ = CreateMap<ArtigoEntity, ArtigoDtos.ArtigoTableDTO>()
           .ForMember(d => d.ArmazemNome, o => o.MapFrom(s => s.Armazem.Nome));
+      // ---- SubsistemaArtigo (Stocks) ----
+      _ = CreateMap<SubsistemaArtigoEntity, SubsistemaArtigoDtos.SubsistemaArtigoDTO>()
+          .ForMember(d => d.ArtigoCodigo, o => o.MapFrom(s => s.Artigo.Codigo))
+          .ForMember(d => d.ArtigoNumero, o => o.MapFrom(s => s.Artigo.NumeroArtigo))
+          .ForMember(d => d.ArtigoDescricao, o => o.MapFrom(s => s.Artigo.Descricao))
+          .ForMember(d => d.OrganismoNome, o => o.MapFrom(s => s.Organismo.Nome));
+      _ = CreateMap<SubsistemaArtigoEntity, SubsistemaArtigoDtos.SubsistemaArtigoTableDTO>()
+          .ForMember(d => d.ArtigoNumero, o => o.MapFrom(s => s.Artigo.NumeroArtigo))
+          .ForMember(d => d.ArtigoDescricao, o => o.MapFrom(s => s.Artigo.Descricao))
+          .ForMember(d => d.OrganismoNome, o => o.MapFrom(s => s.Organismo.Nome));
+      _ = CreateMap<SubsistemaArtigoDtos.CreateSubsistemaArtigoRequest, SubsistemaArtigoEntity>()
+          .ForMember(d => d.Id, o => o.Ignore())
+          .ForMember(d => d.ClinicaId, o => o.Ignore())
+          .ForMember(d => d.Artigo, o => o.Ignore())
+          .ForMember(d => d.Organismo, o => o.Ignore());
+
       _ = CreateMap<ArtigoDtos.CreateArtigoRequest, ArtigoEntity>()
           .ForMember(d => d.Id, o => o.Ignore())
           .ForMember(d => d.ClinicaId, o => o.Ignore())

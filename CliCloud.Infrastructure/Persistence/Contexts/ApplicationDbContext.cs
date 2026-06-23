@@ -172,6 +172,7 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     public DbSet<FamiliaArtigo> FamiliasArtigo { get; set; }
     public DbSet<UnidadeMedida> UnidadesMedida { get; set; }
     public DbSet<Artigo> Artigos { get; set; }
+    public DbSet<SubsistemaArtigo> SubsistemasArtigo { get; set; }
 
     // DbSets - Pagamentos
     public DbSet<CondicaoPagamento> CondicoesPagamento { get; set; }
@@ -549,6 +550,7 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
       _ = modelBuilder.ApplyConfiguration(new FamiliaArtigoConfiguration());
       _ = modelBuilder.ApplyConfiguration(new UnidadeMedidaConfiguration());
       _ = modelBuilder.ApplyConfiguration(new ArtigoConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new SubsistemaArtigoConfiguration());
 
       // Pagamentos configurations
       _ = modelBuilder.ApplyConfiguration(new CondicaoPagamentoConfiguration());
