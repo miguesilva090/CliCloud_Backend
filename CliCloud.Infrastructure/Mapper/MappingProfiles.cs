@@ -120,6 +120,7 @@ using TipoPagamentoDtos = CliCloud.Application.Services.Pagamentos.TipoPagamento
 using ModoPagamentoDtos = CliCloud.Application.Services.Pagamentos.ModoPagamentoService.DTOs;
 using ArmazemDtos = CliCloud.Application.Services.Stocks.ArmazemService.DTOs;
 using UnidadeMedidaDtos = CliCloud.Application.Services.Stocks.UnidadeMedidaService.DTOs;
+using ZonaComercialDtos = CliCloud.Application.Services.Faturacao.ZonaComercialService.DTOs;
 using ArtigoDtos = CliCloud.Application.Services.Stocks.ArtigoService.DTOs;
 using FamiliaArtigoDtos = CliCloud.Application.Services.Stocks.FamiliaArtigoService.DTOs;
 using CondicaoPagamentoEntity = CliCloud.Domain.Entities.Pagamentos.CondicaoPagamento;
@@ -127,6 +128,7 @@ using TipoPagamentoEntity = CliCloud.Domain.Entities.Pagamentos.TipoPagamento;
 using ModoPagamentoEntity = CliCloud.Domain.Entities.Pagamentos.ModoPagamento;
 using ArmazemEntity = CliCloud.Domain.Entities.Stocks.Armazem;
 using UnidadeMedidaEntity = CliCloud.Domain.Entities.Stocks.UnidadeMedida;
+using ZonaComercialEntity = CliCloud.Domain.Entities.Faturacao.ZonaComercial;
 using ArtigoEntity = CliCloud.Domain.Entities.Stocks.Artigo;
 using FamiliaArtigoEntity = CliCloud.Domain.Entities.Stocks.FamiliaArtigo;
 using SubsistemaArtigoDtos = CliCloud.Application.Services.Stocks.SubsistemaArtigoService.DTOs;
@@ -887,6 +889,19 @@ namespace CliCloud.Infrastructure.Mapper
           .ForMember(d => d.ClinicaId, o => o.Ignore())
           .ForMember(d => d.Codigo, o => o.Ignore())
           .ForMember(d => d.CodigoPostal, o => o.Ignore());
+
+      // ---- ZonaComercial (Faturacao) ----
+      _ = CreateMap<ZonaComercialEntity, ZonaComercialDtos.ZonaComercialDTO>();
+      _ = CreateMap<ZonaComercialEntity, ZonaComercialDtos.ZonaComercialLightDTO>();
+      _ = CreateMap<ZonaComercialEntity, ZonaComercialDtos.ZonaComercialTableDTO>();
+      _ = CreateMap<ZonaComercialDtos.CreateZonaComercialRequest, ZonaComercialEntity>()
+          .ForMember(d => d.Id, o => o.Ignore())
+          .ForMember(d => d.ClinicaId, o => o.Ignore())
+          .ForMember(d => d.Codigo, o => o.Ignore());
+      _ = CreateMap<ZonaComercialDtos.UpdateZonaComercialRequest, ZonaComercialEntity>()
+          .ForMember(d => d.Id, o => o.Ignore())
+          .ForMember(d => d.ClinicaId, o => o.Ignore())
+          .ForMember(d => d.Codigo, o => o.Ignore());
 
       // ---- UnidadeMedida (Stocks) ----
       _ = CreateMap<UnidadeMedidaEntity, UnidadeMedidaDtos.UnidadeMedidaDTO>();

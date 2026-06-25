@@ -58,7 +58,6 @@ using CliCloud.Domain.Entities.Faturacao;
 using CliCloud.Domain.Entities.Notificacoes;
 using CliCloud.Domain.Entities.Sinistros;
 using CliCloud.Domain.Entities.Credenciais;
-using CliCloud.Domain.Entities.Faturacao;
 using CliCloud.Domain.Entities.Stocks;
 using Microsoft.EntityFrameworkCore;
 
@@ -173,6 +172,9 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     public DbSet<UnidadeMedida> UnidadesMedida { get; set; }
     public DbSet<Artigo> Artigos { get; set; }
     public DbSet<SubsistemaArtigo> SubsistemasArtigo { get; set; }
+
+    // DbSets - Faturacao
+    public DbSet<ZonaComercial> ZonasComerciais { get; set; }
 
     // DbSets - Pagamentos
     public DbSet<CondicaoPagamento> CondicoesPagamento { get; set; }
@@ -551,6 +553,9 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
       _ = modelBuilder.ApplyConfiguration(new UnidadeMedidaConfiguration());
       _ = modelBuilder.ApplyConfiguration(new ArtigoConfiguration());
       _ = modelBuilder.ApplyConfiguration(new SubsistemaArtigoConfiguration());
+
+      // Faturacao configurations
+      _ = modelBuilder.ApplyConfiguration(new ZonaComercialConfiguration());
 
       // Pagamentos configurations
       _ = modelBuilder.ApplyConfiguration(new CondicaoPagamentoConfiguration());
