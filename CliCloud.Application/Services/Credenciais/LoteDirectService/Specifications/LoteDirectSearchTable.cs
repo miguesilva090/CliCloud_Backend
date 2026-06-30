@@ -39,6 +39,10 @@ namespace CliCloud.Application.Services.Credenciais.LoteDirectService.Specificat
                         if(bool.TryParse(filter.Value, out var historico))
                             Query.Where(x => x.Historico == historico);
                         break;
+                    case "indicelote":
+                        if(int.TryParse(filter.Value, out var indiceLote))
+                            Query.Where(x => x.IndiceLote == indiceLote);
+                        break;
                 }
             }
 

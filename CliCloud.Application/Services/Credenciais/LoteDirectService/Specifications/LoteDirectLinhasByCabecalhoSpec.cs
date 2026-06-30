@@ -7,6 +7,9 @@ public sealed class LoteDirectLinhasByCabecalhoSpec : Specification<LoteDirectLi
 {
     public LoteDirectLinhasByCabecalhoSpec(Guid loteDirectId)
     {
-        Query.Where(x => x.LoteDirectId == loteDirectId);
+        Query
+            .Where(x => x.LoteDirectId == loteDirectId)
+            .Include(x => x.Servico)
+            .OrderBy(x => x.CreatedOn);
     }
 }

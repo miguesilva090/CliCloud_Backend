@@ -1,4 +1,5 @@
 using CliCloud.Application.Common.Marker;
+using FluentValidation;
 
 namespace CliCloud.Application.Services.Credenciais.LoteDirectService.DTOs
 {
@@ -47,5 +48,27 @@ namespace CliCloud.Application.Services.Credenciais.LoteDirectService.DTOs
 
         public List<LoteDirectLinhaUpsertRequest>? Linhas { get; set; }
         public List<LoteDirectLinhaUpsertRequest>? Linhas789 { get; set; }
+    }
+
+    public class CreateLoteDirectValidator : AbstractValidator<CreateLoteDirectRequest>
+    {
+        public CreateLoteDirectValidator()
+        {
+            _ = RuleFor(x => x.UtenteId)
+                .NotEmpty()
+                .WithMessage("Utente em falta.");
+
+            _ = RuleFor(x => x.Credencial)
+                .NotEmpty()
+                .WithMessage("Nº credencial em falta.");
+
+            _ = RuleFor(x => x.Mes)
+                .InclusiveBetween(1, 12)
+                .WithMessage("Mês inválido.");
+
+            _ = RuleFor(x => x.Ano)
+                .GreaterThanOrEqualTo(1900)
+                .WithMessage("Ano inválido.");
+        }
     }
 }

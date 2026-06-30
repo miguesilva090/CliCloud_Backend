@@ -12,7 +12,10 @@ namespace CliCloud.Application.Services.Credenciais.LoteDirectService
         Task<Response<Guid>> CreateAsync(CreateLoteDirectRequest request);
         Task<Response<Guid>> UpdateAsync(Guid id, UpdateLoteDirectRequest request);
         Task<Response<Guid>> DeleteAsync(Guid id);
-        Task<Response<int>> CorrigirLotesAsync(CorrigirLotesRequest request);
+        Task<Response<CorrigirLotesResultDTO>> CorrigirLotesAsync(CorrigirLotesRequest request);
+        Task<Response<ValidarCorrigirLotesDTO>> ValidarCorrigirLotesAsync(CorrigirLotesRequest request);
+        Task<PaginatedResponse<LoteDirectAgregadoTableDTO>> GetAgregadosPaginatedAsync(LoteDirectAgregadoTableFilter filter);
         Task<Response<IEnumerable<TipoLoteLightDTO>>> GetTiposLoteLightAsync();
+        Task<Response<PassarParaHistoricoResultDTO>> PassarParaHistoricoAsync(PassarParaHistoricoRequest request);
     }
 }

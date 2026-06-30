@@ -1,4 +1,5 @@
 using CliCloud.Application.Services.Credenciais.LoteDirectService;
+using CliCloud.Application.Services.Credenciais.LoteDirectService.DTOs;
 using CliCloud.Domain.Entities.Credenciais;
 using CliCloud.Domain.Entities.Organismos;
 using CliCloud.Domain.Entities.Servicos;
@@ -19,8 +20,10 @@ public sealed class LoteDirectCorrecaoLotesExecutor(ApplicationDbContext dbConte
     decimal ValorOrganismo
   );
 
-  public async Task ExecutarAsync(int ano, int mes, CancellationToken cancellationToken = default)
+  public async Task<CorrigirLotesResultDTO> ExecutarAsync(int ano, int mes, CancellationToken cancellationToken = default)
   {
+    List<string> avisos = [];
+
     await using IDbContextTransaction tx =
       await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
@@ -34,6 +37,34 @@ public sealed class LoteDirectCorrecaoLotesExecutor(ApplicationDbContext dbConte
       .ThenBy(x => x.TipoLote)
       .ThenBy(x => x.Id)
       .ToListAsync(cancellationToken);
+
+    if (cabecalhos.Count == 0)
+    {
+      await dbContext
+        .Set<LoteDirectDetalhe>()
+        .Where(x => x.Ano == ano && x.Mes == mes)
+        .ExecuteDeleteAsync(cancellationToken);
+
+      await dbContext
+        .Set<LoteDirectAgregado>()
+        .Where(x => x.Ano == ano && x.Mes == mes)
+        .ExecuteDeleteAsync(cancellationToken);
+
+      await tx.CommitAsync(cancellationToken);
+      return new CorrigirLotesResultDTO
+      {
+        Ano = ano,
+        Mes = mes,
+        CabecalhosProcessados = 0,
+        AgregadosCriados = 0,
+        DetalhesCriados = 0,
+        Avisos = ["Nenhum lançamento encontrado para o período."],
+      };
+    }
+
+    int semOrganismo = cabecalhos.Count(x => x.CodigoOrganismo is null);
+    if (semOrganismo > 0)
+      avisos.Add($"{semOrganismo} lançamento(s) sem organismo.");
 
     await dbContext
       .Set<LoteDirectDetalhe>()
@@ -109,6 +140,16 @@ public sealed class LoteDirectCorrecaoLotesExecutor(ApplicationDbContext dbConte
 
     await dbContext.SaveChangesAsync(cancellationToken);
     await tx.CommitAsync(cancellationToken);
+
+    return new CorrigirLotesResultDTO
+    {
+      Ano = ano,
+      Mes = mes,
+      CabecalhosProcessados = cabecalhos.Count,
+      AgregadosCriados = agregados.Count,
+      DetalhesCriados = detalhes.Count,
+      Avisos = avisos,
+    };
   }
 
   private async Task<int?> EnsureTipoLoteExamesSemPapelAsync(CancellationToken cancellationToken)

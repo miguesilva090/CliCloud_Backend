@@ -10,6 +10,9 @@ public sealed class ConsultaByIdWithServicosSpec : Specification<Consulta>
         _ = Query
             .Where(x => x.Id == consultaId && x.DeletedOn == null)
             .Include(x => x.Utente)
+                .ThenInclude(u => u!.Rua)
+            .Include(x => x.Utente)
+                .ThenInclude(u => u!.CodigoPostal)
             .Include(x => x.Organismo)
             .Include(x => x.Servicos)
                 .ThenInclude(x => x.Servico)

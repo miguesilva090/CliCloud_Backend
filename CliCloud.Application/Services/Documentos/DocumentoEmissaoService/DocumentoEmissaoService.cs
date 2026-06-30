@@ -178,10 +178,15 @@ public async Task<Response<DocumentoEmissaoDTO>> EmitirDocumentoAsync(EmitirDocu
                         {
                             Id = Guid.NewGuid(),
                             NumeroLinha = numeroLinha,
-                            CodigoArtigo = linhaReq.CodigoArtigo,
+                            CodigoArtigo = DocumentoEmissaoSnapshotHelper.TruncateOptional(
+                                linhaReq.CodigoArtigo,
+                                DocumentoEmissaoSnapshotHelper.CodigoArtigoMax),
                             ServicoId = linhaReq.ServicoId,
                             AdmissaoServicoId = linhaReq.AdmissaoServicoId,
-                            Descricao = linhaReq.Descricao,
+                            Descricao = DocumentoEmissaoSnapshotHelper.TruncateRequired(
+                                linhaReq.Descricao,
+                                DocumentoEmissaoSnapshotHelper.DescricaoLinhaMax,
+                                "Linha"),
                             Quantidade = linhaReq.Quantidade,
                             PrecoUnitario = linhaReq.PrecoUnitario,
                             PercentagemDesconto = calc.PercentagemDescontoEfectiva,
@@ -262,10 +267,20 @@ public async Task<Response<DocumentoEmissaoDTO>> EmitirDocumentoAsync(EmitirDocu
                     documento.UtenteId = request.UtenteId;
                     documento.OrganismoId = request.OrganismoId;
                     documento.FuncionarioId = request.FuncionarioId;
-                    documento.NomeCliente = request.NomeCliente;
-                    documento.MoradaCliente = request.MoradaCliente;
-                    documento.LocalidadeCliente = request.LocalidadeCliente;
-                    documento.NumeroContribuinteCliente = request.NumeroContribuinteCliente;
+                    documento.NomeCliente = DocumentoEmissaoSnapshotHelper.TruncateRequired(
+                        request.NomeCliente,
+                        DocumentoEmissaoSnapshotHelper.NomeClienteMax,
+                        "Cliente sem nome");
+                    documento.MoradaCliente = DocumentoEmissaoSnapshotHelper.TruncateRequired(
+                        request.MoradaCliente,
+                        DocumentoEmissaoSnapshotHelper.MoradaClienteMax,
+                        "Morada não definida");
+                    documento.LocalidadeCliente = DocumentoEmissaoSnapshotHelper.TruncateOptional(
+                        request.LocalidadeCliente,
+                        DocumentoEmissaoSnapshotHelper.LocalidadeClienteMax);
+                    documento.NumeroContribuinteCliente = DocumentoEmissaoSnapshotHelper.TruncateOptional(
+                        request.NumeroContribuinteCliente,
+                        DocumentoEmissaoSnapshotHelper.NumeroContribuinteClienteMax);
                     documento.CodigoPostalId = request.CodigoPostalId;
                     documento.TotalDocumento = totalDocumentoBase;
                     documento.TotalIva = totalIva;
@@ -290,9 +305,9 @@ public async Task<Response<DocumentoEmissaoDTO>> EmitirDocumentoAsync(EmitirDocu
                     documento.Exportado = false;
                     documento.IsentoIva = request.IsentoIva;
                     documento.MotivoIsencaoId = request.IsentoIva ? request.MotivoIsencaoId : null;
-                    documento.Beneficiario = string.IsNullOrWhiteSpace(request.Beneficiario)
-                        ? null
-                        : request.Beneficiario.Trim();
+                    documento.Beneficiario = DocumentoEmissaoSnapshotHelper.TruncateOptional(
+                        request.Beneficiario,
+                        DocumentoEmissaoSnapshotHelper.BeneficiarioMax);
                     documento.FaturaGlobalDataInicio = request.FaturaGlobalDataInicio;
                     documento.FaturaGlobalDataFim = request.FaturaGlobalDataFim;
                     documento.Anulado = request.Anulado;
@@ -483,10 +498,15 @@ public async Task<Response<DocumentoEmissaoDTO>> AtualizarDocumentoEmissaoAsync(
                     Id = Guid.NewGuid(),
                     DocumentoId = documento.Id,
                     NumeroLinha = numeroLinha,
-                    CodigoArtigo = linhaReq.CodigoArtigo,
+                    CodigoArtigo = DocumentoEmissaoSnapshotHelper.TruncateOptional(
+                        linhaReq.CodigoArtigo,
+                        DocumentoEmissaoSnapshotHelper.CodigoArtigoMax),
                     ServicoId = linhaReq.ServicoId,
                     AdmissaoServicoId = linhaReq.AdmissaoServicoId,
-                    Descricao = linhaReq.Descricao,
+                    Descricao = DocumentoEmissaoSnapshotHelper.TruncateRequired(
+                        linhaReq.Descricao,
+                        DocumentoEmissaoSnapshotHelper.DescricaoLinhaMax,
+                        "Linha"),
                     Quantidade = linhaReq.Quantidade,
                     PrecoUnitario = linhaReq.PrecoUnitario,
                     PercentagemDesconto = calc.PercentagemDescontoEfectiva,
@@ -536,10 +556,20 @@ public async Task<Response<DocumentoEmissaoDTO>> AtualizarDocumentoEmissaoAsync(
             documento.UtenteId = request.UtenteId;
             documento.OrganismoId = request.OrganismoId;
             documento.FuncionarioId = request.FuncionarioId;
-            documento.NomeCliente = request.NomeCliente;
-            documento.MoradaCliente = request.MoradaCliente;
-            documento.LocalidadeCliente = request.LocalidadeCliente;
-            documento.NumeroContribuinteCliente = request.NumeroContribuinteCliente;
+            documento.NomeCliente = DocumentoEmissaoSnapshotHelper.TruncateRequired(
+                request.NomeCliente,
+                DocumentoEmissaoSnapshotHelper.NomeClienteMax,
+                "Cliente sem nome");
+            documento.MoradaCliente = DocumentoEmissaoSnapshotHelper.TruncateRequired(
+                request.MoradaCliente,
+                DocumentoEmissaoSnapshotHelper.MoradaClienteMax,
+                "Morada não definida");
+            documento.LocalidadeCliente = DocumentoEmissaoSnapshotHelper.TruncateOptional(
+                request.LocalidadeCliente,
+                DocumentoEmissaoSnapshotHelper.LocalidadeClienteMax);
+            documento.NumeroContribuinteCliente = DocumentoEmissaoSnapshotHelper.TruncateOptional(
+                request.NumeroContribuinteCliente,
+                DocumentoEmissaoSnapshotHelper.NumeroContribuinteClienteMax);
             documento.CodigoPostalId = request.CodigoPostalId;
             documento.TotalDocumento = totaisDoc.Total;
             documento.TotalIva = totaisDoc.Impostos;
@@ -558,9 +588,9 @@ public async Task<Response<DocumentoEmissaoDTO>> AtualizarDocumentoEmissaoAsync(
             documento.TipoCambio = request.TipoCambio;
             documento.IsentoIva = request.IsentoIva;
             documento.MotivoIsencaoId = request.IsentoIva ? request.MotivoIsencaoId : null;
-            documento.Beneficiario = string.IsNullOrWhiteSpace(request.Beneficiario)
-                ? null
-                : request.Beneficiario.Trim();
+            documento.Beneficiario = DocumentoEmissaoSnapshotHelper.TruncateOptional(
+                request.Beneficiario,
+                DocumentoEmissaoSnapshotHelper.BeneficiarioMax);
             documento.FaturaGlobalDataInicio = request.FaturaGlobalDataInicio;
             documento.FaturaGlobalDataFim = request.FaturaGlobalDataFim;
             documento.IvaCaixa = request.IvaCaixa;
@@ -639,31 +669,29 @@ public async Task<Response<DocumentoEmissaoDTO>> AtualizarDocumentoEmissaoAsync(
                 tipoDocumento,
                 request.Pago,
                 request.Faturado);
+            bool isFaturaRecibo = DocumentoEmissaoAdmissaoFlagsHelper.IsFaturaRecibo(tipoDocumento);
 
             Consulta? consulta = (
                 await repository.GetListAsync<Consulta, Guid>(new ConsultaPorAdmissaoSpec(admissao.Id))
             ).FirstOrDefault();
 
-            string nomeCliente = 
-                request.NomeCliente 
-                ?? admissao.Utente?.Nome
-                ?? admissao.Organismo?.Nome
-                ?? "Cliente sem nome";
+            string nomeCliente = DocumentoEmissaoSnapshotHelper.ResolverNomeCliente(
+                request.NomeCliente,
+                admissao.Utente,
+                admissao.Organismo);
 
-            string moradaCliente = 
-                request.MoradaCliente
-                ?? admissao.Utente?.Observacoes
-                ?? "Morada não definida";
+            string moradaCliente = DocumentoEmissaoSnapshotHelper.ResolverMoradaCliente(
+                request.MoradaCliente,
+                admissao.Utente);
 
-            string? localidadeCliente = 
-                request.LocalidadeCliente
-                ?? admissao.Utente?.CodigoPostal?.Localidade
-                ?? null;
+            string? localidadeCliente = DocumentoEmissaoSnapshotHelper.ResolverLocalidadeCliente(
+                request.LocalidadeCliente,
+                admissao.Utente);
 
-            string? nifCliente = 
-                request.NumeroContribuinteCliente
-                ?? admissao.Utente?.NumeroContribuinte
-                ?? admissao.Organismo?.NumeroContribuinte;
+            string? nifCliente = DocumentoEmissaoSnapshotHelper.ResolverNumeroContribuinteCliente(
+                request.NumeroContribuinteCliente,
+                admissao.Utente,
+                admissao.Organismo);
 
             Guid? codigoPostalId = admissao.Utente?.CodigoPostalId;
 
@@ -673,15 +701,19 @@ public async Task<Response<DocumentoEmissaoDTO>> AtualizarDocumentoEmissaoAsync(
                     decimal quantidade = s.Quantidade.GetValueOrDefault(1m);
                     if(quantidade <= 0) quantidade = 1m;
 
-                    // Legado FR: TotalLinha / TotalFatura = valor_ut (PrecoUnitario na emissão).
-                    decimal totalUtenteLinha = s.ValorUt ?? 0m;
+                    // Legado FR: TotalLinha = valor_ut; FA/outros: valor_servico.
+                    decimal totalLinhaBase = isFaturaRecibo
+                        ? (s.ValorUt ?? 0m)
+                        : (s.ValorServico ?? s.ValorArtigo ?? 0m);
                     decimal precoEmissao = quantidade > 0
-                        ? totalUtenteLinha / quantidade
-                        : totalUtenteLinha;
+                        ? totalLinhaBase / quantidade
+                        : totalLinhaBase;
 
                     string descricao = !string.IsNullOrWhiteSpace(s.NomeArtigo)
                         ? s.NomeArtigo
                         : "Serviço de admissão";
+
+                    decimal taxaPct = request.IsentoIva ? 0m : (s.Servico?.TaxaIva?.Taxa ?? 0m);
 
                     return new EmitirDocumentoLinhaRequest
                     {
@@ -693,7 +725,10 @@ public async Task<Response<DocumentoEmissaoDTO>> AtualizarDocumentoEmissaoAsync(
                         Quantidade = quantidade,
                         PrecoUnitario = precoEmissao,
                         TaxaIvaId = s.Servico?.TaxaIvaId,
-                        TaxaIvaPercentagem = request.IsentoIva ? 0m : ( s.Servico?.TaxaIva?.Taxa ?? 0m)
+                        TaxaIvaPercentagem = taxaPct,
+                        MotivoIsencaoId = request.IsentoIva || taxaPct == 0m
+                            ? (s.Servico?.MotivoIsencaoId ?? request.MotivoIsencaoId)
+                            : null,
                     };
                 }).ToList();
 
@@ -724,6 +759,7 @@ public async Task<Response<DocumentoEmissaoDTO>> AtualizarDocumentoEmissaoAsync(
                     Outros = request.Outros,
 
                     IsentoIva = request.IsentoIva,
+                    MotivoIsencaoId = request.IsentoIva ? request.MotivoIsencaoId : null,
                     IvaCaixa = request.IvaCaixa,
 
                     ModuloOrigem = ModuloOrigemDocumento.Consultas,
@@ -788,25 +824,23 @@ public async Task<Response<DocumentoEmissaoDTO>> AtualizarDocumentoEmissaoAsync(
                 await repository.GetListAsync<Admissao, Guid>(new AdmissaoByConsultaIdSpec(consulta.Id))
             ).FirstOrDefault();
 
-            string nomeCliente =
-                request.NomeCliente
-                ?? consulta.Utente?.Nome
-                ?? consulta.Organismo?.Nome
-                ?? "Cliente sem nome";
+            string nomeCliente = DocumentoEmissaoSnapshotHelper.ResolverNomeCliente(
+                request.NomeCliente,
+                consulta.Utente,
+                consulta.Organismo);
 
-            string moradaCliente =
-                request.MoradaCliente
-                ?? consulta.Utente?.Observacoes
-                ?? "Morada não definida";
+            string moradaCliente = DocumentoEmissaoSnapshotHelper.ResolverMoradaCliente(
+                request.MoradaCliente,
+                consulta.Utente);
 
-            string? localidadeCliente =
-                request.LocalidadeCliente
-                ?? consulta.Utente?.CodigoPostal?.Localidade;
+            string? localidadeCliente = DocumentoEmissaoSnapshotHelper.ResolverLocalidadeCliente(
+                request.LocalidadeCliente,
+                consulta.Utente);
 
-            string? nifCliente =
-                request.NumeroContribuinteCliente
-                ?? consulta.Utente?.NumeroContribuinte
-                ?? consulta.Organismo?.NumeroContribuinte;
+            string? nifCliente = DocumentoEmissaoSnapshotHelper.ResolverNumeroContribuinteCliente(
+                request.NumeroContribuinteCliente,
+                consulta.Utente,
+                consulta.Organismo);
 
             Guid? codigoPostalId = consulta.Utente?.CodigoPostalId;
 
@@ -824,6 +858,8 @@ public async Task<Response<DocumentoEmissaoDTO>> AtualizarDocumentoEmissaoAsync(
                         ? s.NomeArtigo!
                         : "Serviço de consulta";
 
+                    decimal taxaPct = request.IsentoIva ? 0m : (s.Servico?.TaxaIva?.Taxa ?? 0m);
+
                     return new EmitirDocumentoLinhaRequest
                     {
                         NumeroLinha = index + 1,
@@ -833,7 +869,10 @@ public async Task<Response<DocumentoEmissaoDTO>> AtualizarDocumentoEmissaoAsync(
                         Quantidade = quantidade,
                         PrecoUnitario = preco,
                         TaxaIvaId = s.Servico?.TaxaIvaId,
-                        TaxaIvaPercentagem = request.IsentoIva ? 0m : ( s.Servico?.TaxaIva?.Taxa ?? 0m)
+                        TaxaIvaPercentagem = taxaPct,
+                        MotivoIsencaoId = request.IsentoIva || taxaPct == 0m
+                            ? (s.Servico?.MotivoIsencaoId ?? request.MotivoIsencaoId)
+                            : null,
                     };
                 })
                 .ToList();
@@ -865,6 +904,7 @@ public async Task<Response<DocumentoEmissaoDTO>> AtualizarDocumentoEmissaoAsync(
                 Outros = request.Outros,
 
                 IsentoIva = request.IsentoIva,
+                MotivoIsencaoId = request.IsentoIva ? request.MotivoIsencaoId : null,
                 IvaCaixa = request.IvaCaixa,
 
                 ModuloOrigem = ModuloOrigemDocumento.Consultas,

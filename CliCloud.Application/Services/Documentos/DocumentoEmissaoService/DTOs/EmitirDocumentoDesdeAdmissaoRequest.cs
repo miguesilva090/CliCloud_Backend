@@ -26,6 +26,7 @@ public class EmitirDocumentoDesdeAdmissaoRequest : IDto
     public decimal? Outros { get; set; }
 
     public bool IsentoIva { get; set; }
+    public Guid? MotivoIsencaoId { get; set; }
     public bool IvaCaixa { get; set; }
 
     public bool? Pago { get; set; }

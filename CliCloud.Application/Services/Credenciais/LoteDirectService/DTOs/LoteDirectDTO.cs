@@ -53,5 +53,7 @@ namespace CliCloud.Application.Services.Credenciais.LoteDirectService.DTOs
         public decimal? ValorConsulta { get; set; }
         public decimal? TaxaConsulta { get; set; }
         public bool ProcedimentosEfetuados { get; set; }
+        public List<LoteDirectLinhaDTO> Linhas { get; set; } = [];
+        public List<LoteDirectLinhaDTO> Linhas789 { get; set; } = [];
     }
 }

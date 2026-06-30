@@ -40,7 +40,8 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
         // get full List
         public async Task<Response<IEnumerable<DocumentoDTO>>> GetDocumentoAsync(string keyword = "")
         {
-            DocumentoSearchList specification = new(keyword, GetCurrentClinicaId());
+            Guid? clinicaId = await ResolveClinicaIdAsync();
+            DocumentoSearchList specification = new(keyword, clinicaId);
             IEnumerable<DocumentoDTO> list = await _repository.GetListAsync<Documento, DocumentoDTO, Guid>(specification);
             return ResponseFactory.Success<IEnumerable<DocumentoDTO>>(list);
         }
@@ -48,7 +49,8 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
         // get lightweight list 
         public async Task<Response<IEnumerable<DocumentoLightDTO>>> GetDocumentoLightAsync(string keyword = "")
         {
-            DocumentoSearchList specification = new(keyword, GetCurrentClinicaId());
+            Guid? clinicaId = await ResolveClinicaIdAsync();
+            DocumentoSearchList specification = new(keyword, clinicaId);
             IEnumerable<DocumentoLightDTO> list = await _repository.GetListAsync<Documento, DocumentoLightDTO, Guid>(specification);
             return ResponseFactory.Success<IEnumerable<DocumentoLightDTO>>(list);
         }
@@ -56,13 +58,17 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
         // get Tanstack Table paginated list
         public async Task<PaginatedResponse<DocumentoTableDTO>> GetDocumentoPaginatedAsync(DocumentoTableFilter filter)
         {
+            Guid? clinicaId = await ResolveClinicaIdAsync();
+            if (!clinicaId.HasValue)
+                return new PaginatedResponse<DocumentoTableDTO>([], 0, filter.PageNumber, filter.PageSize);
+
             if (filter.Filters != null && filter.Filters.Count > 0)
             {
                 filter.PageNumber = 1;
             }
 
             string dynamicOrder = filter.Sorting != null ? GSHelpers.GenerateOrderByString(filter) : "";
-            DocumentoSearchTable specification = new(filter.Filters ?? [], GetCurrentClinicaId(), dynamicOrder);
+            DocumentoSearchTable specification = new(filter.Filters ?? [], clinicaId, dynamicOrder);
             PaginatedResponse<DocumentoTableDTO> pagedResponse = await _repository.GetPaginatedResultsAsync<Documento, DocumentoTableDTO, Guid>(filter.PageNumber, filter.PageSize, specification);
             return pagedResponse;
         }
@@ -72,11 +78,15 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
         {
             try
             {
+                Guid? clinicaId = await ResolveClinicaIdAsync();
+                if (!clinicaId.HasValue)
+                    return ResponseFactory.Fail<IEnumerable<DocumentoTableDTO>>("Clínica atual inválida");
+
                 filter ??= new DocumentoAllFilter();
 
                 string dynamicOrder = filter.GetOrderByString();
                 List<TableFilter> tableFilters = filter.Filters ?? new List<TableFilter>();
-                DocumentoSearchTable specification = new(tableFilters, GetCurrentClinicaId(), dynamicOrder);
+                DocumentoSearchTable specification = new(tableFilters, clinicaId, dynamicOrder);
                 IEnumerable<DocumentoTableDTO> list = await _repository.GetListAsync<Documento, DocumentoTableDTO, Guid>(specification);
                 return ResponseFactory.Success<IEnumerable<DocumentoTableDTO>>(list);
             }
@@ -91,7 +101,9 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
         {
             try
             {
-                if (!TryGetClinicaId(out Guid clinicaId, out Response<DocumentoDTO>? clinicaError))
+                (bool okClinica, Guid clinicaId, Response<DocumentoDTO>? clinicaError) =
+                    await TryResolveClinicaAsync<DocumentoDTO>();
+                if (!okClinica)
                     return clinicaError!;
 
                 Documento? documento = (
@@ -114,7 +126,9 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
         {
             try
             {
-                if (!TryGetClinicaId(out Guid clinicaId, out Response<DocumentoDTO>? clinicaError))
+                (bool okClinica, Guid clinicaId, Response<DocumentoDTO>? clinicaError) =
+                    await TryResolveClinicaAsync<DocumentoDTO>();
+                if (!okClinica)
                     return clinicaError!;
 
                 DocumentoMatchTipoNumero specification = new(tipoDocumentoId, numeroDocumento, clinicaId);
@@ -137,7 +151,9 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
         // create new Documento
         public async Task<Response<Guid>> CreateDocumentoAsync(CreateDocumentoRequest request)
         {
-            if (!TryGetClinicaId(out Guid clinicaId, out Response<Guid>? clinicaError))
+            (bool okClinica, Guid clinicaId, Response<Guid>? clinicaError) =
+                await TryResolveClinicaAsync<Guid>();
+            if (!okClinica)
                 return clinicaError!;
 
             // Verificar unicidade do número de documento por tipo
@@ -191,7 +207,9 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
         // update Documento
         public async Task<Response<Guid>> UpdateDocumentoAsync(UpdateDocumentoRequest request, Guid id)
         {
-            if (!TryGetClinicaId(out Guid clinicaId, out Response<Guid>? clinicaError))
+            (bool okClinica, Guid clinicaId, Response<Guid>? clinicaError) =
+                await TryResolveClinicaAsync<Guid>();
+            if (!okClinica)
                 return clinicaError!;
 
             Documento? DocumentoInDb = (
@@ -272,7 +290,9 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
         {
             try
             {
-                if (!TryGetClinicaId(out Guid clinicaId, out Response<Guid>? clinicaError))
+                (bool okClinica, Guid clinicaId, Response<Guid>? clinicaError) =
+                    await TryResolveClinicaAsync<Guid>();
+                if (!okClinica)
                     return clinicaError!;
 
                 bool exists = await _repository.ExistsAsync<Documento, Guid>(new DocumentoByIdClinicaSpec(id, clinicaId));
@@ -298,7 +318,9 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
         {
           try
           {
-            if (!TryGetClinicaId(out Guid clinicaId, out Response<IEnumerable<Guid>>? clinicaError))
+            (bool okClinica, Guid clinicaId, Response<IEnumerable<Guid>>? clinicaError) =
+                await TryResolveClinicaAsync<IEnumerable<Guid>>();
+            if (!okClinica)
                 return clinicaError!;
 
             List<Guid> idsList = ids.ToList();
@@ -360,7 +382,9 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
         {
             try
             {
-                if (!TryGetClinicaId(out Guid clinicaId, out Response<DocumentoPrintDTO>? clinicaError))
+                (bool okClinica, Guid clinicaId, Response<DocumentoPrintDTO>? clinicaError) =
+                    await TryResolveClinicaAsync<DocumentoPrintDTO>();
+                if (!okClinica)
                     return clinicaError!;
 
                 Documento? documento = (
@@ -394,7 +418,9 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
         {
             try
             {
-                if (!TryGetClinicaId(out Guid clinicaId, out Response<DocumentoPrintDTO>? clinicaError))
+                (bool okClinica, Guid clinicaId, Response<DocumentoPrintDTO>? clinicaError) =
+                    await TryResolveClinicaAsync<DocumentoPrintDTO>();
+                if (!okClinica)
                     return clinicaError!;
 
                 Documento? documento = (
@@ -441,7 +467,9 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
         {
             try
             {
-                if (!TryGetClinicaId(out Guid clinicaId, out Response<bool>? clinicaError))
+                (bool okClinica, Guid clinicaId, Response<bool>? clinicaError) =
+                    await TryResolveClinicaAsync<bool>();
+                if (!okClinica)
                     return clinicaError!;
 
                 Documento? documento = (
@@ -486,7 +514,9 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
         {
             try
             {
-                if (!TryGetClinicaId(out Guid clinicaId, out Response<DocumentoDetalhesAdmissoesDTO>? clinicaError))
+                (bool okClinica, Guid clinicaId, Response<DocumentoDetalhesAdmissoesDTO>? clinicaError) =
+                    await TryResolveClinicaAsync<DocumentoDetalhesAdmissoesDTO>();
+                if (!okClinica)
                     return clinicaError!;
 
                 Documento? documento = (
@@ -552,7 +582,9 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
         {
             try
             {
-                if (!TryGetClinicaId(out Guid clinicaId, out Response<DocumentoLiquidacaoContextoDTO>? clinicaError))
+                (bool okClinica, Guid clinicaId, Response<DocumentoLiquidacaoContextoDTO>? clinicaError) =
+                    await TryResolveClinicaAsync<DocumentoLiquidacaoContextoDTO>();
+                if (!okClinica)
                     return clinicaError!;
 
                 Documento? documento = (
@@ -594,7 +626,9 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
         {
             try
             {
-                if (!TryGetClinicaId(out Guid clinicaId, out Response<Guid>? clinicaError))
+                (bool okClinica, Guid clinicaId, Response<Guid>? clinicaError) =
+                    await TryResolveClinicaAsync<Guid>();
+                if (!okClinica)
                     return clinicaError!;
 
                 Documento? documento = (
@@ -691,6 +725,11 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
                 Recibo createdRecibo = await _repository.CreateAsync<Recibo, Guid>(recibo);
                 documento.Liquidado = true;
                 _ = await _repository.UpdateAsync<Documento, Guid>(documento);
+                
+                await DocumentoLiquidacaoClinicaSyncHelper.SincronizarAposLiquidacaoAsync(
+                    _repository,
+                    documento.Id,
+                    clinicaId);
                 _ = await _repository.SaveChangesAsync();
 
                 return ResponseFactory.Success(createdRecibo.Id);
@@ -707,7 +746,9 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
         {
             try
             {
-                if (!TryGetClinicaId(out Guid clinicaId, out Response<Guid>? clinicaError))
+                (bool okClinica, Guid clinicaId, Response<Guid>? clinicaError) =
+                    await TryResolveClinicaAsync<Guid>();
+                if (!okClinica)
                     return clinicaError!;
 
                 Documento? documento = (
@@ -783,9 +824,20 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
             }
         }
 
-        private Guid? GetCurrentClinicaId()
+        private async Task<Guid?> ResolveClinicaIdAsync()
         {
-            return Guid.TryParse(_currentClinicaService.ClinicaId, out Guid clinicaId) ? clinicaId : null;
+            await _currentClinicaService.SetClinicaAsync();
+            if (Guid.TryParse(_currentClinicaService.ClinicaId, out Guid clinicaId) && clinicaId != Guid.Empty)
+                return clinicaId;
+            return null;
+        }
+
+        private async Task<(bool Ok, Guid ClinicaId, Response<T>? Error)> TryResolveClinicaAsync<T>()
+        {
+            Guid? current = await ResolveClinicaIdAsync();
+            if (!current.HasValue)
+                return (false, Guid.Empty, ResponseFactory.Fail<T>("Clínica atual inválida"));
+            return (true, current.Value, null);
         }
 
         private static string ResolvePrintTemplate(Documento documento)
@@ -825,21 +877,6 @@ namespace CliCloud.Application.Services.Documentos.DocumentoService
             _ = sb.AppendLine("Cumprimentos.");
 
             return sb.ToString();
-        }
-
-        private bool TryGetClinicaId<T>(out Guid clinicaId, out Response<T>? error)
-        {
-            clinicaId = Guid.Empty;
-            error = null;
-            Guid? current = GetCurrentClinicaId();
-            if (!current.HasValue || current.Value == Guid.Empty)
-            {
-                error = ResponseFactory.Fail<T>("Clínica atual inválida");
-                return false;
-            }
-
-            clinicaId = current.Value;
-            return true;
         }
     }
 }

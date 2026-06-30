@@ -43,8 +43,23 @@ namespace CliCloud.WebApi.Controllers.Credenciais
             => Ok(await _service.CorrigirLotesAsync(request));
 
         [Authorize(Roles = "client")]
+        [HttpPost("corrigir-lotes/validar")]
+        public async Task<IActionResult> ValidarCorrigirLotes([FromBody] CorrigirLotesRequest request)
+            => Ok(await _service.ValidarCorrigirLotesAsync(request));
+
+        [Authorize(Roles = "client")]
+        [HttpPost("agregados/paginated")]
+        public async Task<IActionResult> GetAgregadosPaginated([FromBody] LoteDirectAgregadoTableFilter filter)
+            => Ok(await _service.GetAgregadosPaginatedAsync(filter));
+
+        [Authorize(Roles = "client")]
         [HttpGet("tipos-lote/light")]
         public async Task<IActionResult> GetTiposLoteLight()
             => Ok(await _service.GetTiposLoteLightAsync());
+
+        [Authorize(Roles = "client")]
+        [HttpPost("passar-para-historico")]
+        public async Task<IActionResult> PassarParaHistorico([FromBody] PassarParaHistoricoRequest request)
+            => Ok(await _service.PassarParaHistoricoAsync(request));
     }
 }

@@ -2069,6 +2069,7 @@ namespace CliCloud.Infrastructure.Mapper
       _ = CreateMap<CliCloud.Application.Services.Consultas.AdmissaoAdministrativoService.DTOs.UpdateAdmissaoRequest, Admissao>()
         .ForMember(d => d.Id, o => o.Ignore())
         .ForMember(d => d.Consulta, o => o.Ignore())
+        .ForMember(d => d.Servicos, o => o.Ignore())
         .ForMember(d => d.Pago, o => o.Ignore())
         .ForMember(d => d.Faturado, o => o.Ignore());
 
@@ -2604,6 +2605,16 @@ namespace CliCloud.Infrastructure.Mapper
         .ForMember(d => d.TipoServicoRegisto, o => o.Ignore())
         .ForMember(d => d.ServicoConsultaRegisto, o => o.Ignore());
 
+      // Linhas / Linhas789 (leitura no GetById)
+      _ = CreateMap<LoteDirectLinha, CliCloud.Application.Services.Credenciais.LoteDirectService.DTOs.LoteDirectLinhaDTO>()
+        .ForMember(
+            d => d.ServicoDesignacao,
+            o => o.MapFrom(s => s.Servico != null ? s.Servico.Designacao : null));
+      _ = CreateMap<LoteDirectLinha789, CliCloud.Application.Services.Credenciais.LoteDirectService.DTOs.LoteDirectLinhaDTO>()
+        .ForMember(
+            d => d.ServicoDesignacao,
+            o => o.MapFrom(s => s.Servico != null ? s.Servico.Designacao : null));
+
       _ = CreateMap<CliCloud.Application.Services.Credenciais.LoteDirectService.DTOs.UpdateLoteDirectRequest, LoteDirect>()
         .ForMember(d => d.Linhas, o => o.Ignore())
         .ForMember(d => d.Linhas789, o => o.Ignore())
@@ -2615,6 +2626,17 @@ namespace CliCloud.Infrastructure.Mapper
         
       _ = CreateMap<TipoLote, CliCloud.Application.Services.Credenciais.LoteDirectService.DTOs.TipoLoteLightDTO>()
         .ForMember(d => d.Codigo, o => o.MapFrom(s => s.Id));
+
+      _ = CreateMap<LoteDirectAgregado, CliCloud.Application.Services.Credenciais.LoteDirectService.DTOs.LoteDirectAgregadoTableDTO>()
+        .ForMember(d => d.OrganismoSigla, o => o.Ignore())
+        .ForMember(d => d.TipoLoteDesignacao, o => o.Ignore());
+
+      _ = CreateMap<LoteDirectAgregado, CliCloud.Application.Services.Faturacao.CredenciaisSnsService.DTOs.CredenciaisSnsLoteTableDTO>()
+        .ForMember(d => d.MesNome, o => o.Ignore())
+        .ForMember(d => d.OrganismoSigla, o => o.Ignore())
+        .ForMember(d => d.OrganismoNome, o => o.Ignore())
+        .ForMember(d => d.TipoLoteDesignacao, o => o.Ignore())
+        .ForMember(d => d.TipoServicoDesignacao, o => o.Ignore());
 
       _ = CreateMap<Admissao, CliCloud.Application.Services.Consultas.OrdemEntradaAdministrativoService.DTOs.OrdemEntradaTableDTO>()
         .ForMember(d => d.UtenteNumero, o => o.MapFrom(s => s.Utente != null ? s.Utente.NumeroUtente : null))

@@ -10,6 +10,9 @@ public sealed class AdmissaoByIdWithServicosSpec : Specification<Admissao>
     _ = Query
       .Where(x => x.Id == id && x.DeletedOn == null)
       .Include(x => x.Utente)
+        .ThenInclude(u => u!.Rua)
+      .Include(x => x.Utente)
+        .ThenInclude(u => u!.CodigoPostal)
       .Include(x => x.Medico)
       .Include(x => x.DoencaPrincipal)
       .Include(x => x.DoencaSecundaria)

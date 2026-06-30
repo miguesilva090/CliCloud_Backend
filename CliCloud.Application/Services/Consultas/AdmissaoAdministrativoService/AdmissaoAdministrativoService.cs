@@ -173,7 +173,7 @@ public class AdmissaoAdministrativoService(
     entity.Pago = pago;
     entity.Faturado = faturado;
     entity.Obs = obs;
-    NormalizeServicos(entity);
+    await ReplaceServicosAdmissaoAsync(entity, request.Servicos ?? []);
     await AdmissaoHoraCalculoHelper.AplicarHoraFimAsync(entity, _repository);
     DisponibilidadeMedicoResult disponibilidade = await DisponibilidadeMedicoHelper.ValidarAsync(
       _repository,
@@ -532,6 +532,36 @@ public class AdmissaoAdministrativoService(
 
       linha++;
     }
+  }
+
+  private async Task ReplaceServicosAdmissaoAsync(
+    Admissao entity,
+    IReadOnlyList<AdmissaoServicoDTO> linhas
+  )
+  {
+    List<AdmissaoServico> existentes = (
+      await _repository.GetListAsync<AdmissaoServico, Guid>(
+        new AdmissaoServicosPorAdmissaoIdSpec(entity.Id)
+      )
+    ).ToList();
+
+    foreach (AdmissaoServico s in existentes)
+    {
+      await _repository.RemoveAsync<AdmissaoServico, Guid>(s);
+    }
+
+    entity.Servicos.Clear();
+    foreach (AdmissaoServicoDTO dto in linhas)
+    {
+      AdmissaoServico servico = _mapper.Map<AdmissaoServico>(dto);
+      servico.Id = servico.Id == Guid.Empty ? Guid.NewGuid() : servico.Id;
+      servico.AdmissaoId = entity.Id;
+      servico.Admissao = entity;
+      entity.Servicos.Add(servico);
+      _ = await _repository.CreateAsync<AdmissaoServico, Guid>(servico);
+    }
+
+    NormalizeServicos(entity);
   }
 
   private async Task HydrateUtenteNumerosAsync(IReadOnlyCollection<AdmissaoTableDTO> rows)
