@@ -175,6 +175,9 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
 
     // DbSets - Faturacao
     public DbSet<ZonaComercial> ZonasComerciais { get; set; }
+    public DbSet<WebserviceAdse> WebservicesAdse { get; set; }
+    public DbSet<AdsePreFatura> AdsePreFaturas { get; set; }
+    public DbSet<AdseCoPagamento> AdseCoPagamentos { get; set; }
 
     // DbSets - Pagamentos
     public DbSet<CondicaoPagamento> CondicoesPagamento { get; set; }
@@ -556,6 +559,9 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
 
       // Faturacao configurations
       _ = modelBuilder.ApplyConfiguration(new ZonaComercialConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new WebserviceAdseConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new AdsePreFaturaConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new AdseCoPagamentoConfiguration());
 
       // Pagamentos configurations
       _ = modelBuilder.ApplyConfiguration(new CondicaoPagamentoConfiguration());
@@ -801,6 +807,7 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
       _ = modelBuilder.ApplyConfiguration(new ListaEsperaConsultaConfiguration());
       _ = modelBuilder.ApplyConfiguration(new PedidoConsultaConfiguration());
       _ = modelBuilder.ApplyConfiguration(new PedidoConsultaUtenteConfiguration());
+
 
       // Odontologia - chaves alternativas e FKs por código
       modelBuilder.Entity<EstadosDentarios>(b =>

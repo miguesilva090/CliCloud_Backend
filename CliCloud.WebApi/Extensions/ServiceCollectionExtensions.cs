@@ -37,6 +37,7 @@ using CliCloud.Application.Services.Core.TeleconsultaService;
 using CliCloud.Application.Services.Utentes.UtenteRnuService;
 using CliCloud.Application.Services.Credenciais.LoteDirectService;
 using CliCloud.Application.Services.Faturacao.CredenciaisSnsService;
+using CliCloud.Application.Services.Faturacao.AdseComunicacaoService;
 using CliCloud.Application.Services.Consultas.FechoDiarioAdministrativoService;
 using CliCloud.Infrastructure.Persistence.Consultas;
 using CliCloud.Infrastructure.Persistence.Credenciais;
@@ -160,6 +161,9 @@ namespace CliCloud.WebApi.Extensions
       _ = services.AddTransient<ILoteDirectPassarHistoricoExecutor, LoteDirectPassarHistoricoExecutor>();
       _ = services.AddTransient<ICredenciaisSnsLegadoLookup, CredenciaisSnsLegadoLookup>();
       _ = services.AddTransient<ICredenciaisSnsAgregadoDeleteExecutor, CredenciaisSnsAgregadoDeleteExecutor>();
+      _ = services.AddTransient<IAdseComunicacaoListReader, AdseComunicacaoListReader>();
+      _ = services.AddTransient<IAdsePdfStorage, AdsePdfFileStorage>();
+      _ = services.AddTransient<IAdseSoapClient, AdseSoapClientStub>();
       _ = services.AddScoped<IRequisicaoEspFechoUpdater, RequisicaoEspFechoUpdater>();
       _ = services.AddScoped<IUtilizadorDisplayNameResolver, UtilizadorDisplayNameResolver>();
 
