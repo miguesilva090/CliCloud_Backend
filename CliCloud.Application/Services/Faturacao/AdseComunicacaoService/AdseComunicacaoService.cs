@@ -5,6 +5,7 @@ using CliCloud.Application.Services.Faturacao.AdseComunicacaoService.Filters;
 using CliCloud.Application.Services.Faturacao.AdseComunicacaoService.Specifications;
 using CliCloud.Application.Services.Faturacao.WebserviceAdseService.Specifications;
 using CliCloud.Domain.Entities.Faturacao;
+using Microsoft.EntityFrameworkCore;
 
 namespace CliCloud.Application.Services.Faturacao.AdseComunicacaoService;
 
@@ -105,6 +106,83 @@ public sealed class AdseComunicacaoService(
         return ResponseFactory.Success(true);
     }
 
+    public async Task<Response<AdsePreFaturaDTO>> ConsultarPreFaturaAsync(Guid id, CancellationToken ct = default)
+    {
+        Guid? clinicaId = await ObterClinicaIdAsync().ConfigureAwait(false);
+        if (clinicaId is null)
+            return ResponseFactory.Fail<AdsePreFaturaDTO>("Clínica atual inválida.");
+
+        AdsePreFatura? entity = await ObterPreFaturaAsync(clinicaId.Value, id).ConfigureAwait(false);
+        if (entity is null)
+            return ResponseFactory.Fail<AdsePreFaturaDTO>("Pré-fatura não encontrada.");
+
+        await RecalcularResumoPreFaturaAsync(clinicaId.Value, entity).ConfigureAwait(false);
+        _ = await repository.SaveChangesAsync().ConfigureAwait(false);
+        return ResponseFactory.Success(MapPreFaturas([entity]).First());
+    }
+
+    public async Task<Response<AdsePreFaturaDTO>> ConferirPreFaturaAsync(Guid id, CancellationToken ct = default)
+    {
+        Guid? clinicaId = await ObterClinicaIdAsync().ConfigureAwait(false);
+        if (clinicaId is null)
+            return ResponseFactory.Fail<AdsePreFaturaDTO>("Clínica atual inválida.");
+
+        AdsePreFatura? entity = await ObterPreFaturaAsync(clinicaId.Value, id).ConfigureAwait(false);
+        if (entity is null)
+            return ResponseFactory.Fail<AdsePreFaturaDTO>("Pré-fatura não encontrada.");
+        if (entity.Estado >= AdseEstados.PreFaturaFechada)
+            return ResponseFactory.Fail<AdsePreFaturaDTO>("Pré-fatura já fechada.");
+
+        entity.Estado = AdseEstados.PreFaturaAberta;
+        await RecalcularResumoPreFaturaAsync(clinicaId.Value, entity).ConfigureAwait(false);
+        _ = await repository.UpdateAsync<AdsePreFatura, Guid>(entity).ConfigureAwait(false);
+        _ = await repository.SaveChangesAsync().ConfigureAwait(false);
+        return ResponseFactory.Success(MapPreFaturas([entity]).First());
+    }
+
+    public async Task<Response<AdsePreFaturaDTO>> FecharPreFaturaAsync(
+        Guid id, AdseFecharPreFaturaRequest request, CancellationToken ct = default)
+    {
+        Guid? clinicaId = await ObterClinicaIdAsync().ConfigureAwait(false);
+        if (clinicaId is null)
+            return ResponseFactory.Fail<AdsePreFaturaDTO>("Clínica atual inválida.");
+
+        AdsePreFatura? entity = await ObterPreFaturaAsync(clinicaId.Value, id).ConfigureAwait(false);
+        if (entity is null)
+            return ResponseFactory.Fail<AdsePreFaturaDTO>("Pré-fatura não encontrada.");
+        if (entity.Estado >= AdseEstados.PreFaturaFechada)
+            return ResponseFactory.Fail<AdsePreFaturaDTO>("Pré-fatura já fechada.");
+
+        if (request.ReferenciaNumeroDocumento <= 0 || request.ReferenciaData == default)
+            return ResponseFactory.Fail<AdsePreFaturaDTO>("Dados de fatura ADSE inválidos.");
+
+        await RecalcularResumoPreFaturaAsync(clinicaId.Value, entity).ConfigureAwait(false);
+        if (entity.NumDocumentos <= 0)
+            return ResponseFactory.Fail<AdsePreFaturaDTO>("Não existem documentos na pré-fatura.");
+
+        entity.Estado = AdseEstados.PreFaturaFechada;
+        entity.DataFecho = DateTime.UtcNow;
+        entity.ReferenciaSerie = string.IsNullOrWhiteSpace(request.ReferenciaSerie) ? null : request.ReferenciaSerie.Trim();
+        entity.ReferenciaNumeroDocumento = request.ReferenciaNumeroDocumento;
+        entity.ReferenciaData = request.ReferenciaData;
+        entity.ReferenciaValor = request.ReferenciaValor;
+        entity.PdfFicheiro = string.IsNullOrWhiteSpace(request.PdfFicheiro) ? entity.PdfFicheiro : request.PdfFicheiro.Trim();
+
+        IEnumerable<AdseCoPagamento> cops = await repository
+            .GetListAsync<AdseCoPagamento, Guid>(new AdsePreFaturaCoPagamentosSpec(clinicaId.Value, entity.TipoPreFatura, entity.NumOrdem))
+            .ConfigureAwait(false);
+
+        foreach (AdseCoPagamento cop in cops)
+        {
+            cop.Estado = AdseEstados.CoPagamentoFechado;
+            _ = await repository.UpdateAsync<AdseCoPagamento, Guid>(cop).ConfigureAwait(false);
+        }
+
+        _ = await repository.UpdateAsync<AdsePreFatura, Guid>(entity).ConfigureAwait(false);
+        _ = await repository.SaveChangesAsync().ConfigureAwait(false);
+        return ResponseFactory.Success(MapPreFaturas([entity]).First());
+    }
+
     public async Task<Response<Guid>> RegistarPdfAsync(
         AdseUploadPdfRequest request, string tipoPreFatura, CancellationToken ct = default)
     {
@@ -166,16 +244,31 @@ public sealed class AdseComunicacaoService(
         WebserviceAdse? config = await ObterConfigAsync(clinicaId.Value).ConfigureAwait(false);
         if (config is null) return ResponseFactory.Fail<string>("Configure o organismo ADSE.");
 
+        AdsePreFatura? preFatura = (await repository
+            .GetListAsync<AdsePreFatura, Guid>(new AdsePreFaturasPorClinicaTipoSpec(clinicaId.Value, request.TipoPreFatura))
+            .ConfigureAwait(false))
+            .FirstOrDefault(x => x.NumOrdem == request.NumOrdemPreFatura);
+        if (preFatura is null)
+            return ResponseFactory.Fail<string>("Pré-fatura não encontrada.");
+        if (request.Operacao is AdseEstados.OperacaoValidar or AdseEstados.OperacaoComunicar
+            && preFatura.Estado >= AdseEstados.PreFaturaFechada)
+            return ResponseFactory.Fail<string>("Pré-fatura fechada não permite validar/comunicar.");
+
         string codigoPf = AdseEstados.CodigoPreFatura(request.TipoPreFatura, request.NumOrdemPreFatura);
         List<string> erros = [];
 
+        Dictionary<Guid, AdseCoPagamento> copsByDocumento = (await repository
+            .GetListAsync<AdseCoPagamento, Guid>(
+                new AdseCoPagamentosPorDocumentosSpec(clinicaId.Value, request.Linhas.Select(x => x.DocumentoId)))
+            .ConfigureAwait(false))
+            .GroupBy(x => x.DocumentoId)
+            .ToDictionary(g => g.Key, g => g.First());
+
         foreach (AdseComunicarLinhaRequest linha in request.Linhas)
         {
-            AdseCoPagamento? cop = (await repository
-                .GetListAsync<AdseCoPagamento, Guid>(new AdseCoPagamentoPorDocumentoSpec(linha.DocumentoId))
-                .ConfigureAwait(false)).FirstOrDefault();
+            _ = copsByDocumento.TryGetValue(linha.DocumentoId, out AdseCoPagamento? cop);
 
-            string? validacao = ValidarOperacao(request.Operacao, cop);
+            string? validacao = ValidarOperacao(request.Operacao, cop, request.Devolucoes);
             if (validacao is not null) { erros.Add(validacao); continue; }
 
             AdseComunicacaoLinhaDTO dto = new()
@@ -209,10 +302,55 @@ public sealed class AdseComunicacaoService(
             }
         }
 
+        await RecalcularResumoPreFaturaAsync(clinicaId.Value, preFatura).ConfigureAwait(false);
+        _ = await repository.UpdateAsync<AdsePreFatura, Guid>(preFatura).ConfigureAwait(false);
+
         _ = await repository.SaveChangesAsync().ConfigureAwait(false);
         return erros.Count == 0
             ? ResponseFactory.Success("Comunicação concluída.")
             : ResponseFactory.Fail<string>(string.Join(Environment.NewLine, erros));
+    }
+
+    public async Task<Response<string>> LibertarDocumentosAsync(AdseLibertarDocumentosRequest request, CancellationToken ct = default)
+    {
+        if (request.DocumentoIds.Count == 0)
+            return ResponseFactory.Fail<string>("Selecione pelo menos um documento.");
+
+        Guid? clinicaId = await ObterClinicaIdAsync().ConfigureAwait(false);
+        if (clinicaId is null)
+            return ResponseFactory.Fail<string>("Clínica atual inválida.");
+
+        Dictionary<Guid, AdseCoPagamento> copsByDocumento = (await repository
+            .GetListAsync<AdseCoPagamento, Guid>(
+                new AdseCoPagamentosPorDocumentosSpec(clinicaId.Value, request.DocumentoIds))
+            .ConfigureAwait(false))
+            .GroupBy(x => x.DocumentoId)
+            .ToDictionary(g => g.Key, g => g.First());
+
+        int libertados = 0;
+        foreach (Guid documentoId in request.DocumentoIds)
+        {
+            if (!copsByDocumento.TryGetValue(documentoId, out AdseCoPagamento? cop))
+                continue;
+
+            if (cop.Estado != AdseEstados.CoPagamentoFechado)
+                continue;
+
+            cop.Estado = string.IsNullOrWhiteSpace(cop.PdfFicheiro)
+                ? AdseEstados.CoPagamentoPorComunicarSemPdf
+                : AdseEstados.CoPagamentoPorComunicarComPdf;
+            cop.NumeroDevolucao = null;
+            cop.NumDevolucoes = 0;
+            cop.DataDevolucao = null;
+            cop.NumOrdemPreFatura = null;
+            cop.TipoPreFatura = null;
+            cop.DataComunicacao = null;
+            _ = await repository.UpdateAsync<AdseCoPagamento, Guid>(cop).ConfigureAwait(false);
+            libertados++;
+        }
+
+        _ = await repository.SaveChangesAsync().ConfigureAwait(false);
+        return ResponseFactory.Success($"Linhas libertadas: {libertados}.");
     }
 
     private static void AplicarSucesso(AdseCoPagamento cop, int operacao, string tipo, int numOrdem)
@@ -229,10 +367,15 @@ public sealed class AdseComunicacaoService(
             cop.Estado = AdseEstados.CoPagamentoPorComunicarComPdf;
             cop.DataComunicacao = null;
             cop.NumOrdemPreFatura = null;
+            cop.TipoPreFatura = null;
+        }
+        else if (operacao is AdseEstados.OperacaoSubstituirPdf or AdseEstados.OperacaoSubstituirRelatorio)
+        {
+            cop.DataComunicacao = DateTime.UtcNow;
         }
     }
 
-    private static string? ValidarOperacao(int operacao, AdseCoPagamento? cop)
+    private static string? ValidarOperacao(int operacao, AdseCoPagamento? cop, bool devolucoes)
     {
         if (operacao is AdseEstados.OperacaoValidar or AdseEstados.OperacaoComunicar)
         {
@@ -242,6 +385,22 @@ public sealed class AdseComunicacaoService(
         }
         if (operacao == AdseEstados.OperacaoEliminar && cop?.Estado != AdseEstados.CoPagamentoComunicado)
             return "Só é possível eliminar documentos comunicados.";
+        if (operacao == AdseEstados.OperacaoSubstituirPdf)
+        {
+            if (cop?.Estado != AdseEstados.CoPagamentoComunicado)
+                return "Substituição de PDF só é permitida em documentos comunicados.";
+            if (string.IsNullOrWhiteSpace(cop.PdfFicheiro))
+                return "PDF obrigatório para substituir.";
+        }
+        if (operacao == AdseEstados.OperacaoSubstituirRelatorio)
+        {
+            if (cop?.Estado != AdseEstados.CoPagamentoComunicado)
+                return "Substituição de relatório só é permitida em documentos comunicados.";
+            if (string.IsNullOrWhiteSpace(cop.PdfRelatorioFicheiro))
+                return "Relatório médico obrigatório para substituir.";
+        }
+        if (devolucoes && string.IsNullOrWhiteSpace(cop?.NumeroDevolucao))
+            return "Documento sem devolução.";
         return null;
     }
 
@@ -257,6 +416,24 @@ public sealed class AdseComunicacaoService(
             .GetListAsync<WebserviceAdse, Guid>(new WebserviceAdsePorClinicaSpec(clinicaId))
             .ConfigureAwait(false);
         return rows.FirstOrDefault();
+    }
+
+    private async Task<AdsePreFatura?> ObterPreFaturaAsync(Guid clinicaId, Guid preFaturaId)
+    {
+        return (await repository
+            .GetListAsync<AdsePreFatura, Guid>(new AdsePreFaturaPorIdClinicaSpec(clinicaId, preFaturaId))
+            .ConfigureAwait(false))
+            .FirstOrDefault();
+    }
+
+    private async Task RecalcularResumoPreFaturaAsync(Guid clinicaId, AdsePreFatura preFatura)
+    {
+        IEnumerable<AdseCoPagamento> cops = await repository
+            .GetListAsync<AdseCoPagamento, Guid>(new AdsePreFaturaCoPagamentosSpec(clinicaId, preFatura.TipoPreFatura, preFatura.NumOrdem))
+            .ConfigureAwait(false);
+
+        preFatura.NumDocumentos = cops.Count(x => x.DeletedOn == null);
+        preFatura.ValorTotal = cops.Where(x => x.DeletedOn == null).Sum(x => x.ValorTotalAdse > 0 ? x.ValorTotalAdse : x.ValorTotal);
     }
 
     private static IReadOnlyList<AdsePreFaturaDTO> MapPreFaturas(IEnumerable<AdsePreFatura> rows) =>

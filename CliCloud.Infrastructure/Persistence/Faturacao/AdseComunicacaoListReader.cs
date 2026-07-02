@@ -1,6 +1,7 @@
 using CliCloud.Application.Services.Faturacao.AdseComunicacaoService;
 using CliCloud.Application.Services.Faturacao.AdseComunicacaoService.DTOs;
 using CliCloud.Application.Services.Faturacao.AdseComunicacaoService.Filters;
+using CliCloud.Domain.Enums;
 using CliCloud.Domain.Entities.Faturacao;
 using CliCloud.Infrastructure.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
@@ -16,11 +17,11 @@ public sealed class AdseComunicacaoListReader(ApplicationDbContext db) : IAdseCo
         {
             AdseEstados.TipoTratamentos => await TratamentosAsync(clinicaId, organismoAdseId, filter, ct),
             AdseEstados.TipoConsultas => await ConsultasAsync(clinicaId, organismoAdseId, filter, ct),
-            AdseEstados.TipoExames => [],
+            AdseEstados.TipoExames => await ExamesAsync(clinicaId, organismoAdseId, filter, ct),
             _ => [],
         };
 
-        AplicarFiltrosPosQuery(linhas, filter);
+        AplicarFiltrosPosQuery(linhas, filter, tipo);
 
         int total = linhas.Count;
         int skip = (filter.PageNumber - 1) * filter.PageSize;
@@ -100,6 +101,42 @@ public sealed class AdseComunicacaoListReader(ApplicationDbContext db) : IAdseCo
                 a.Id, doc.Id, c.Data, c.Data, 1,
                 ut.Id, ut.Nome ?? "", doc.NumeroExibicao ?? "", doc.Data,
                 doc.TotalLiquido ?? 0m, null, string.Empty))
+            .ToListAsync(ct);
+
+        if (filter.UtenteId.HasValue)
+            rows = rows.Where(x => x.UtenteId == filter.UtenteId.Value).ToList();
+
+        return await MapearComCopagamentosAsync(clinicaId, organismoId, rows, ct);
+    }
+
+    private async Task<List<AdseComunicacaoLinhaDTO>> ExamesAsync(
+        Guid clinicaId, Guid organismoId, AdseComunicacaoTableFilter filter, CancellationToken ct)
+    {
+        (DateTime ini, DateTime fim) = IntervaloFatura(filter);
+
+        var rows = await (
+            from doc in db.Documentos.AsNoTracking()
+            join ut in db.Utentes.AsNoTracking() on doc.UtenteId equals ut.Id into utJ
+            from ut in utJ.DefaultIfEmpty()
+            where doc.DeletedOn == null
+                  && doc.ClinicaId == clinicaId
+                  && doc.OrganismoId == organismoId
+                  && doc.Data >= ini
+                  && doc.Data <= fim
+                  && (doc.ModuloOrigem == ModuloOrigemDocumento.Exames || doc.Origem == (int)ModuloOrigemDocumento.Exames)
+            select new RowBase(
+                doc.Id,
+                doc.Id,
+                doc.Data,
+                doc.Data,
+                1,
+                doc.UtenteId ?? Guid.Empty,
+                ut != null ? (ut.Nome ?? "") : string.Empty,
+                doc.NumeroExibicao ?? "",
+                doc.Data,
+                doc.TotalLiquido ?? 0m,
+                null,
+                doc.Beneficiario ?? ""))
             .ToListAsync(ct);
 
         if (filter.UtenteId.HasValue)
@@ -192,14 +229,25 @@ public sealed class AdseComunicacaoListReader(ApplicationDbContext db) : IAdseCo
     }
 
     private static void AplicarFiltrosPosQuery(
-        List<AdseComunicacaoLinhaDTO> linhas, AdseComunicacaoTableFilter filter)
+        List<AdseComunicacaoLinhaDTO> linhas, 
+        AdseComunicacaoTableFilter filter,
+        string tipo
+    )
     {
-        if (filter.EstadoComunicacao is > 0)
-            linhas.RemoveAll(x => x.Estado != filter.EstadoComunicacao);
-        if (filter.Devolucoes)
-            linhas.RemoveAll(x => string.IsNullOrWhiteSpace(x.NumeroDevolucao));
-        else
-            linhas.RemoveAll(x => !string.IsNullOrWhiteSpace(x.NumeroDevolucao));
+    if (filter.EstadoComunicacao is > 0)
+        linhas.RemoveAll(x => x.Estado != filter.EstadoComunicacao);
+    if (filter.Devolucoes)
+        linhas.RemoveAll(x => string.IsNullOrWhiteSpace(x.NumeroDevolucao));
+    else
+        linhas.RemoveAll(x => !string.IsNullOrWhiteSpace(x.NumeroDevolucao));
+
+    if (filter.NumOrdemPreFatura is int numOrdem and > 0)
+    {
+        string codigo = AdseEstados.CodigoPreFatura(tipo, numOrdem);
+        linhas.RemoveAll(x =>
+            !string.IsNullOrWhiteSpace(x.PreFatura) &&
+            !string.Equals(x.PreFatura, codigo, StringComparison.OrdinalIgnoreCase));
+        }
     }
 
     private static (DateTime ini, DateTime fim) IntervaloFatura(AdseComunicacaoTableFilter filter)

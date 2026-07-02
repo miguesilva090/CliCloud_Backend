@@ -12,6 +12,10 @@ public interface IAdseComunicacaoService : ITransientService
     Task<Response<IReadOnlyList<AdsePreFaturaDTO>>> ListarPreFaturasPorEstadoAsync(string tipoPreFatura, int estado, CancellationToken ct = default);
     Task<Response<Guid>> CriarPreFaturaAsync(CriarAdsePreFaturaRequest request, CancellationToken ct = default);
     Task<Response<bool>> ApagarPreFaturaAsync(Guid id, CancellationToken ct = default);
+    Task<Response<AdsePreFaturaDTO>> ConferirPreFaturaAsync(Guid id, CancellationToken ct = default);
+    Task<Response<AdsePreFaturaDTO>> ConsultarPreFaturaAsync(Guid id, CancellationToken ct = default);
+    Task<Response<AdsePreFaturaDTO>> FecharPreFaturaAsync(Guid id, AdseFecharPreFaturaRequest request, CancellationToken ct = default);
     Task<Response<Guid>> RegistarPdfAsync(AdseUploadPdfRequest request, string tipoPreFatura, CancellationToken ct = default);
     Task<Response<string>> ComunicarDocumentosAsync(AdseComunicarDocumentosRequest request, CancellationToken ct = default);
+    Task<Response<string>> LibertarDocumentosAsync(AdseLibertarDocumentosRequest request, CancellationToken ct = default);
 }

@@ -163,7 +163,8 @@ namespace CliCloud.WebApi.Extensions
       _ = services.AddTransient<ICredenciaisSnsAgregadoDeleteExecutor, CredenciaisSnsAgregadoDeleteExecutor>();
       _ = services.AddTransient<IAdseComunicacaoListReader, AdseComunicacaoListReader>();
       _ = services.AddTransient<IAdsePdfStorage, AdsePdfFileStorage>();
-      _ = services.AddTransient<IAdseSoapClient, AdseSoapClientStub>();
+      _ = services.AddHttpClient(nameof(AdseSoapClient));
+      _ = services.AddTransient<IAdseSoapClient, AdseSoapClient>();
       _ = services.AddScoped<IRequisicaoEspFechoUpdater, RequisicaoEspFechoUpdater>();
       _ = services.AddScoped<IUtilizadorDisplayNameResolver, UtilizadorDisplayNameResolver>();
 
