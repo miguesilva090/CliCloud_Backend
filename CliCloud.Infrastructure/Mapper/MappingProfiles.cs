@@ -22,6 +22,7 @@ using CliCloud.Domain.Entities.Utility;
 using CliCloud.Domain.Entities.TipoEntidadeFinanceira;
 using CliCloud.Domain.Entities.EntidadesFinanceiras;
 using CliCloud.Domain.Entities.Doencas;
+using CliCloud.Domain.Entities.ConfiguracaoADSE;
 using CliCloud.Domain.Entities.Empresas;
 using CliCloud.Domain.Enums;
 using CliCloud.Domain.Entities.RegioesCorpo;
@@ -33,6 +34,7 @@ using CliCloud.Domain.Entities.ProcessoClinico.RelatorioExames;
 using CliCloud.Application.Common;
 using System.Globalization;
 using DoencaDtos = CliCloud.Application.Services.Doencas.DoencaService.DTOs;
+using ConfiguracaoADSEDtos = CliCloud.Application.Services.Faturacao.ConfiguracaoADSEService.DTOs;
 using TipoConsultaDtos = CliCloud.Application.Services.TiposConsulta.TipoConsultaService.DTOs;
 using CliCloud.Domain.Entities.ProcessoClinico.Estomatologia;
 using CliCloud.Domain.Entities.ProcessoClinico.Odontologia;
@@ -1995,6 +1997,35 @@ namespace CliCloud.Infrastructure.Mapper
         .ForMember(d => d.Pais, o => o.Ignore())
         .ForMember(d => d.Banco, o => o.Ignore())
         .ForMember(d => d.EntidadeContactos, o => o.Ignore());
+
+      // ---- ConfiguracaoADSE ----
+      _ = CreateMap<ConfiguracaoADSE, ConfiguracaoADSEDtos.ConfiguracaoADSEDTO>();
+      _ = CreateMap<ConfiguracaoADSEDtos.GuardarConfiguracaoADSERequest, ConfiguracaoADSE>()
+        .ForMember(d => d.Id, o => o.Ignore())
+        .ForMember(d => d.EmpresaId, o => o.Ignore())
+        .ForMember(d => d.CreatedBy, o => o.Ignore())
+        .ForMember(d => d.CreatedOn, o => o.Ignore())
+        .ForMember(d => d.LastModifiedBy, o => o.Ignore())
+        .ForMember(d => d.LastModifiedOn, o => o.Ignore())
+        .ForMember(d => d.DeletedOn, o => o.Ignore())
+        .ForMember(d => d.DeletedBy, o => o.Ignore());
+      _ = CreateMap<ConfiguracaoADSEDtos.CreateConfiguracaoADSERequest, ConfiguracaoADSE>()
+        .ForMember(d => d.Id, o => o.Ignore())
+        .ForMember(d => d.CreatedBy, o => o.Ignore())
+        .ForMember(d => d.CreatedOn, o => o.Ignore())
+        .ForMember(d => d.LastModifiedBy, o => o.Ignore())
+        .ForMember(d => d.LastModifiedOn, o => o.Ignore())
+        .ForMember(d => d.DeletedOn, o => o.Ignore())
+        .ForMember(d => d.DeletedBy, o => o.Ignore());
+      _ = CreateMap<ConfiguracaoADSEDtos.UpdateConfiguracaoADSERequest, ConfiguracaoADSE>()
+        .ForMember(d => d.Id, o => o.Ignore())
+        .ForMember(d => d.EmpresaId, o => o.Ignore())
+        .ForMember(d => d.CreatedBy, o => o.Ignore())
+        .ForMember(d => d.CreatedOn, o => o.Ignore())
+        .ForMember(d => d.LastModifiedBy, o => o.Ignore())
+        .ForMember(d => d.LastModifiedOn, o => o.Ignore())
+        .ForMember(d => d.DeletedOn, o => o.Ignore())
+        .ForMember(d => d.DeletedBy, o => o.Ignore());
 
       // ---- Doenca (ICD-11: ver/editar/eliminar, sem criar) ----
       _ = CreateMap<Doenca, DoencaDtos.DoencaDTO>();

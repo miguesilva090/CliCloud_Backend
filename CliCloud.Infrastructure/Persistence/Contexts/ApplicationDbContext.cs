@@ -55,6 +55,7 @@ using CliCloud.Domain.Entities.Common.Configurations;
 using CliCloud.Domain.Entities.Core.ConfigReferenciaMB;
 using CliCloud.Domain.Entities.Core.Email;
 using CliCloud.Domain.Entities.Faturacao;
+using CliCloud.Domain.Entities.ConfiguracaoADSE;
 using CliCloud.Domain.Entities.Notificacoes;
 using CliCloud.Domain.Entities.Sinistros;
 using CliCloud.Domain.Entities.Credenciais;
@@ -178,6 +179,7 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     public DbSet<WebserviceAdse> WebservicesAdse { get; set; }
     public DbSet<AdsePreFatura> AdsePreFaturas { get; set; }
     public DbSet<AdseCoPagamento> AdseCoPagamentos { get; set; }
+    public DbSet<ConfiguracaoADSE> ConfiguracoesADSE { get; set; }
 
     // DbSets - Pagamentos
     public DbSet<CondicaoPagamento> CondicoesPagamento { get; set; }
@@ -562,6 +564,7 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
       _ = modelBuilder.ApplyConfiguration(new WebserviceAdseConfiguration());
       _ = modelBuilder.ApplyConfiguration(new AdsePreFaturaConfiguration());
       _ = modelBuilder.ApplyConfiguration(new AdseCoPagamentoConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new ConfiguracaoADSEConfiguration());
 
       // Pagamentos configurations
       _ = modelBuilder.ApplyConfiguration(new CondicaoPagamentoConfiguration());
