@@ -10,7 +10,7 @@ namespace CliCloud.Application.Services.TaxasIva.TaxaIvaService.Specifications
             if (!string.IsNullOrWhiteSpace(keyword))
                 _ = Query.Where(x => x.Descricao.Contains(keyword));
 
-            _ = Query.OrderBy(x => x.Descricao);
+            _ = Query.OrderBy(x => x.Taxa).ThenBy( x => x.Descricao);
         }
     }
 }

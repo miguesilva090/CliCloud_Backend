@@ -274,4 +274,3 @@ namespace CliCloud.Application.Services.ProcessoClinico.HistoriaClinicaService
         }
     }
 }
-

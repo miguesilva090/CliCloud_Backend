@@ -89,19 +89,62 @@ public sealed class AdseComunicacaoListReader(ApplicationDbContext db) : IAdseCo
     {
         (DateTime ini, DateTime fim) = IntervaloFatura(filter);
 
-        var rows = await (
-            from c in db.Consultas.AsNoTracking()
-            join a in db.Admissoes.AsNoTracking() on c.AdmissaoId equals a.Id
-            join doc in db.Documentos.AsNoTracking() on c.DocumentoId equals doc.Id
+        // Legado: HIST_AD.CodigoFatura + codinst — documento ligado à admissão, não Consulta.DocumentoId.
+        var rowsAdmissao = await (
+            from origem in db.DocumentosOrigemClinica.AsNoTracking()
+            join a in db.Admissoes.AsNoTracking() on origem.AdmissaoId equals a.Id
+            join doc in db.Documentos.AsNoTracking() on origem.DocumentoId equals doc.Id
             join ut in db.Utentes.AsNoTracking() on a.UtenteId equals ut.Id
-            where c.DeletedOn == null && a.DeletedOn == null && doc.DeletedOn == null
+            where origem.DeletedOn == null && a.DeletedOn == null && doc.DeletedOn == null
+                  && origem.AdmissaoId != null
+                  && origem.ModuloOrigem == ModuloOrigemDocumento.Consultas
                   && doc.ClinicaId == clinicaId && doc.OrganismoId == organismoId
-                  && doc.Data >= ini && doc.Data <= fim && c.DocumentoId != null
+                  && doc.Data >= ini && doc.Data <= fim
             select new RowBase(
-                a.Id, doc.Id, c.Data, c.Data, 1,
+                a.Id, doc.Id, a.Data, a.Data, 1,
                 ut.Id, ut.Nome ?? "", doc.NumeroExibicao ?? "", doc.Data,
                 doc.TotalLiquido ?? 0m, null, string.Empty))
             .ToListAsync(ct);
+
+        // Admissão promovida (removida): documento em ConsultaFaturacao.
+        var rowsConsultaFaturacao = await (
+            from cf in db.ConsultasFaturacao.AsNoTracking()
+            join c in db.Consultas.AsNoTracking() on cf.ConsultaId equals c.Id
+            join doc in db.Documentos.AsNoTracking() on cf.DocumentoId equals doc.Id
+            join ut in db.Utentes.AsNoTracking() on c.UtenteId equals ut.Id
+            where cf.DeletedOn == null && c.DeletedOn == null && doc.DeletedOn == null
+                  && cf.DocumentoId != null
+                  && doc.ClinicaId == clinicaId && doc.OrganismoId == organismoId
+                  && doc.Data >= ini && doc.Data <= fim
+            select new RowBase(
+                c.AdmissaoId ?? c.Id, doc.Id, c.Data, c.Data, 1,
+                ut.Id, ut.Nome ?? "", doc.NumeroExibicao ?? "", doc.Data,
+                doc.TotalLiquido ?? 0m, null, string.Empty))
+            .ToListAsync(ct);
+
+        // Origem clínica por consulta (admissão já não existe na tabela).
+        var rowsConsultaOrigem = await (
+            from origem in db.DocumentosOrigemClinica.AsNoTracking()
+            join c in db.Consultas.AsNoTracking() on origem.ConsultaId equals c.Id
+            join doc in db.Documentos.AsNoTracking() on origem.DocumentoId equals doc.Id
+            join ut in db.Utentes.AsNoTracking() on c.UtenteId equals ut.Id
+            where origem.DeletedOn == null && c.DeletedOn == null && doc.DeletedOn == null
+                  && origem.ConsultaId != null
+                  && origem.ModuloOrigem == ModuloOrigemDocumento.Consultas
+                  && doc.ClinicaId == clinicaId && doc.OrganismoId == organismoId
+                  && doc.Data >= ini && doc.Data <= fim
+            select new RowBase(
+                c.AdmissaoId ?? c.Id, doc.Id, c.Data, c.Data, 1,
+                ut.Id, ut.Nome ?? "", doc.NumeroExibicao ?? "", doc.Data,
+                doc.TotalLiquido ?? 0m, null, string.Empty))
+            .ToListAsync(ct);
+
+        List<RowBase> rows = rowsAdmissao
+            .Concat(rowsConsultaFaturacao)
+            .Concat(rowsConsultaOrigem)
+            .GroupBy(x => x.DocumentoId)
+            .Select(g => g.First())
+            .ToList();
 
         if (filter.UtenteId.HasValue)
             rows = rows.Where(x => x.UtenteId == filter.UtenteId.Value).ToList();
