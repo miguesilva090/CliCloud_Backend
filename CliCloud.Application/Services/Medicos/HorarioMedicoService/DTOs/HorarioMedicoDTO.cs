@@ -1,5 +1,6 @@
 using CliCloud.Application.Common.Marker;
 using CliCloud.Application.Services.Medicos.MedicoService.DTOs;
+using CliCloud.Application.Services.Medicos.HorarioMedicoDiaService.DTOs;
 
 namespace CliCloud.Application.Services.Medicos.HorarioMedicoService.DTOs
 {
@@ -15,7 +16,7 @@ namespace CliCloud.Application.Services.Medicos.HorarioMedicoService.DTOs
         public bool HorarioFlexivel { get; set; }
         public DateTime CreatedOn { get; set; }
         public DateTime? LastModifiedOn { get; set; }
-        // TODO: Adicionar Horarios quando HorarioMedicoDiaService for criado
-        // public IEnumerable<HorarioMedicoDiaLightDTO>? Horarios { get; set; }
+        
+        public IEnumerable<HorarioMedicoDiaDTO>? Horarios {get; set;}
     }
 }

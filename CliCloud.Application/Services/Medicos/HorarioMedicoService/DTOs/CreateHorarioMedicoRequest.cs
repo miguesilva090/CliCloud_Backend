@@ -1,6 +1,7 @@
 using FluentValidation;
 using CliCloud.Application.Common.Marker;
 using CliCloud.Application.Utility;
+using CliCloud.Application.Services.Medicos.HorarioMedicoDiaService.DTOs;
 
 namespace CliCloud.Application.Services.Medicos.HorarioMedicoService.DTOs
 {
@@ -12,8 +13,9 @@ namespace CliCloud.Application.Services.Medicos.HorarioMedicoService.DTOs
         public bool HoraComp { get; set; }
         public string? PrimeiraConsulta { get; set; } // TimeSpan como string "HH:mm:ss"
         public bool HorarioFlexivel { get; set; }
-        // TODO: Adicionar Horarios quando HorarioMedicoDiaService for criado
-        // public IEnumerable<CreateHorarioMedicoDiaRequest>? Horarios { get; set; }
+
+        public IEnumerable<CreateHorarioMedicoDiaRequest>? Horarios { get; set; }
+        
     }
 
     public class CreateHorarioMedicoValidator : AbstractValidator<CreateHorarioMedicoRequest>

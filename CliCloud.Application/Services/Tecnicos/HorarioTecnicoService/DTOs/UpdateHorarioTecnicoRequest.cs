@@ -1,6 +1,7 @@
 using FluentValidation;
 using CliCloud.Application.Common.Marker;
 using CliCloud.Application.Utility;
+using CliCloud.Application.Services.Tecnicos.HorarioTecnicoDiaService.DTOs;
 
 namespace CliCloud.Application.Services.Tecnicos.HorarioTecnicoService.DTOs
 {
@@ -10,8 +11,7 @@ namespace CliCloud.Application.Services.Tecnicos.HorarioTecnicoService.DTOs
         public int? TipoHorario { get; set; }
         public string? MinMarcacao { get; set; }
         public int? HoraComp { get; set; }
-        // TODO: Adicionar Horarios quando HorarioTecnicoDiaService for criado
-        // public IEnumerable<UpsertHorarioTecnicoDiaRequest>? Horarios { get; set; }
+        public IEnumerable<UpdateHorarioTecnicoDiaRequest>? Horarios { get; set; }
     }
 
     public class UpdateHorarioTecnicoValidator : AbstractValidator<UpdateHorarioTecnicoRequest>

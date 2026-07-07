@@ -8,6 +8,8 @@ using HorarioMedicoEntity = CliCloud.Domain.Entities.Medicos.HorarioMedico;
 using CliCloud.Application.Services.Medicos.HorarioMedicoService.DTOs;
 using CliCloud.Application.Services.Medicos.HorarioMedicoService.Filters;
 using CliCloud.Application.Services.Medicos.HorarioMedicoService.Specifications;
+using CliCloud.Application.Services.Medicos.HorarioMedicoDiaService;
+using CliCloud.Application.Services.Medicos.HorarioMedicoDiaService.DTOs;
 
 // After creating this service:
 // -- 1. Create a HorarioMedico domain entity in CliCloud.Domain/Entities/Medicos
@@ -20,11 +22,13 @@ namespace CliCloud.Application.Services.Medicos.HorarioMedicoService
     {
         private readonly IRepositoryAsync _repository;
         private readonly IMapper _mapper;
+        private readonly IHorarioMedicoDiaService _horarioMedicoDiaService;
 
-        public HorarioMedicoService(IRepositoryAsync repository, IMapper mapper)
+        public HorarioMedicoService(IRepositoryAsync repository, IMapper mapper, IHorarioMedicoDiaService horarioMedicoDiaService)
         {
             _repository = repository;
             _mapper = mapper;
+            _horarioMedicoDiaService = horarioMedicoDiaService;
         }
 
         // get full List
@@ -32,6 +36,12 @@ namespace CliCloud.Application.Services.Medicos.HorarioMedicoService
         {
             HorarioMedicoSearchList specification = new(keyword);
             IEnumerable<HorarioMedicoDTO> list = await _repository.GetListAsync<HorarioMedicoEntity, HorarioMedicoDTO, Guid>(specification);
+            
+            foreach(HorarioMedicoDTO item in list)
+            {
+              await PopulateHorariosAsync(item);
+            }
+
             return ResponseFactory.Success<IEnumerable<HorarioMedicoDTO>>(list);
         }
 
@@ -82,6 +92,7 @@ namespace CliCloud.Application.Services.Medicos.HorarioMedicoService
             try
             {
                 HorarioMedicoDTO dto = await _repository.GetByIdAsync<HorarioMedicoEntity, HorarioMedicoDTO, Guid>(id);
+                await PopulateHorariosAsync(dto);
                 return ResponseFactory.Success<HorarioMedicoDTO>(dto);
             }
             catch (Exception ex)
@@ -97,6 +108,11 @@ namespace CliCloud.Application.Services.Medicos.HorarioMedicoService
           {
             HorarioMedicoSearchByMedicoId specification = new(medicoId);
             IEnumerable<HorarioMedicoDTO> results = await _repository.GetListAsync<HorarioMedicoEntity, HorarioMedicoDTO, Guid>(specification);
+
+            foreach(HorarioMedicoDTO item in results)
+            {
+              await PopulateHorariosAsync(item);
+            }
 
             return ResponseFactory.Success<IEnumerable<HorarioMedicoDTO>>(results);
           }
@@ -147,6 +163,17 @@ namespace CliCloud.Application.Services.Medicos.HorarioMedicoService
 
                     HorarioMedicoEntity updated = await _repository.UpdateAsync<HorarioMedicoEntity, Guid>(existente);
                     _ = await _repository.SaveChangesAsync();
+
+                    Response<bool> syncResult = await ReplaceHorariosAsync(updated.Id, request.Horarios);
+                    if (syncResult.Status == ResponseStatus.Failure)
+                    {
+                      string msg = syncResult.Messages.TryGetValue("$", out List<string>? messages)
+                        ? string.Join("; ", messages)
+                        : "Falha ao sincronizar horários por dia.";
+
+                      return ResponseFactory.Fail<Guid>(msg);
+                    }
+
                     return ResponseFactory.Success<Guid>(updated.Id);
                 }
 
@@ -157,6 +184,16 @@ namespace CliCloud.Application.Services.Medicos.HorarioMedicoService
 
                 HorarioMedicoEntity response = await _repository.CreateAsync<HorarioMedicoEntity, Guid>(newHorarioMedico);
                 _ = await _repository.SaveChangesAsync();
+
+                Response<bool> createSyncResult = await ReplaceHorariosAsync(response.Id, request.Horarios);
+                if (createSyncResult.Status == ResponseStatus.Failure)
+                {
+                  string msg = createSyncResult.Messages.TryGetValue("$", out List<string>? messages)
+                    ? string.Join("; ", messages)
+                    : "Falha ao sincronizar horários por dia.";
+
+                  return ResponseFactory.Fail<Guid>(msg);
+                }
 
                 return ResponseFactory.Success<Guid>(response.Id);
             }
@@ -190,11 +227,29 @@ namespace CliCloud.Application.Services.Medicos.HorarioMedicoService
                 HorarioMedicoEntity response = await _repository.UpdateAsync<HorarioMedicoEntity, Guid>(updatedHorarioMedico);
                 _ = await _repository.SaveChangesAsync();
 
-                // TODO: Se HorarioMedicoDiaService existir, atualizar os horários aqui
-                // if(request.Horarios != null)
-                // {
-                //   var horariosResult = await _horarioMedicoDiaService.UpsertHorarioMedicoDiaBulkAsync(...);
-                // }
+                if (request.Horarios != null)
+                {
+                  IEnumerable<CreateHorarioMedicoDiaRequest> toCreate = request.Horarios.Select(h => new CreateHorarioMedicoDiaRequest
+                  {
+                    HorarioMedicoId = id.ToString(),
+                    DiaSemana = h.DiaSemana,
+                    Periodo = h.Periodo,
+                    Inicio = h.Inicio,
+                    Fim = h.Fim,
+                    Sala = h.Sala,
+                    Vagas = h.Vagas
+
+                  });
+
+                  Response<bool> syncResult = await ReplaceHorariosAsync(id, toCreate);
+                  if (syncResult.Status == ResponseStatus.Failure)
+                  {
+                    string msg = syncResult.Messages.TryGetValue("$", out List<string>? messages)
+                      ? string.Join("; ", messages)
+                      : "Falha ao sincronizar horários por dia.";
+                    return ResponseFactory.Fail<Guid>(msg);
+                  }
+                }
 
                 return ResponseFactory.Success<Guid>(response.Id);
             }
@@ -209,9 +264,14 @@ namespace CliCloud.Application.Services.Medicos.HorarioMedicoService
         {
             try
             {
-                // TODO: Se HorarioMedicoDiaService existir, deletar os horários primeiro
-                // var horarios = await _repository.GetListAsync<HorarioMedicoDia, Guid>(...);
-                // foreach(var horario in horarios) { await _horarioMedicoDiaService.DeleteHorarioMedicoDiaAsync(...); }
+                Response<bool> deleteChildrenResult = await DeleteAllHorariosByHorarioIdAsync(id);
+                if (deleteChildrenResult.Status == ResponseStatus.Failure)
+                {
+                  string msg = deleteChildrenResult.Messages.TryGetValue("$", out List<string>? messages)
+                    ? string.Join("; ", messages)
+                    : "Falha ao eliminar horários por dia.";
+                  return ResponseFactory.Fail<Guid>(msg);
+                }
 
                 HorarioMedicoEntity? HorarioMedico = await _repository.RemoveByIdAsync<HorarioMedicoEntity, Guid>(id);
                 if (HorarioMedico == null)
@@ -247,7 +307,12 @@ namespace CliCloud.Application.Services.Medicos.HorarioMedicoService
                   continue;
                 }
 
-                // TODO: Se HorarioMedicoDiaService existir, deletar os horários primeiro
+                Response<bool> deleteChildrenResult = await DeleteAllHorariosByHorarioIdAsync(id);
+                if (deleteChildrenResult.Status == ResponseStatus.Failure)
+                {
+                  failedDeletions.Add($"Falha ao eliminar horários por dia do HorarioMedico {id}.");
+                  continue;
+                }
 
                 HorarioMedicoEntity? deletedEntity = await _repository.RemoveByIdAsync<HorarioMedicoEntity, Guid>(id);
                 if(deletedEntity != null)
@@ -285,6 +350,77 @@ namespace CliCloud.Application.Services.Medicos.HorarioMedicoService
           {
             return ResponseFactory.Fail<IEnumerable<Guid>>(ex.Message);
           }
+        }
+
+        private async Task PopulateHorariosAsync(HorarioMedicoDTO dto)
+        {
+          Response<IEnumerable<HorarioMedicoDiaDTO>> horariosResult =
+              await _horarioMedicoDiaService.GetHorarioMedicoDiaByHorarioMedicoIdAsync(dto.Id);
+
+          dto.Horarios = horariosResult.Status == ResponseStatus.Success
+              ? horariosResult.Data
+              : [];
+        }
+
+        private async Task<Response<bool>> ReplaceHorariosAsync(
+            Guid horarioMedicoId,
+            IEnumerable<CreateHorarioMedicoDiaRequest>? horarios)
+        {
+          if (horarios == null)
+          {
+            return ResponseFactory.Success(true);
+          }
+
+          Response<bool> deleteResult = await DeleteAllHorariosByHorarioIdAsync(horarioMedicoId);
+          if (deleteResult.Status == ResponseStatus.Failure)
+          {
+            return deleteResult;
+          }
+
+          foreach (CreateHorarioMedicoDiaRequest horario in horarios)
+          {
+            CreateHorarioMedicoDiaRequest createReq = new()
+            {
+              HorarioMedicoId = horarioMedicoId.ToString(),
+              DiaSemana = horario.DiaSemana,
+              Periodo = horario.Periodo,
+              Inicio = horario.Inicio,
+              Fim = horario.Fim,
+              Sala = horario.Sala,
+              Vagas = horario.Vagas
+            };
+
+            Response<Guid> createResult = await _horarioMedicoDiaService.CreateHorarioMedicoDiaAsync(createReq);
+            if (createResult.Status == ResponseStatus.Failure)
+            {
+              return ResponseFactory.Fail<bool>("Falha ao criar horário por dia.");
+            }
+          }
+
+          return ResponseFactory.Success(true);
+        }
+
+        private async Task<Response<bool>> DeleteAllHorariosByHorarioIdAsync(Guid horarioMedicoId)
+        {
+          Response<IEnumerable<HorarioMedicoDiaDTO>> existingResult =
+              await _horarioMedicoDiaService.GetHorarioMedicoDiaByHorarioMedicoIdAsync(horarioMedicoId);
+
+          if (existingResult.Status == ResponseStatus.Failure)
+          {
+            return ResponseFactory.Fail<bool>("Falha ao obter horários por dia para eliminação.");
+          }
+
+          IEnumerable<HorarioMedicoDiaDTO> existentes = existingResult.Data ?? [];
+          foreach (HorarioMedicoDiaDTO item in existentes)
+          {
+            Response<Guid> deleteResult = await _horarioMedicoDiaService.DeleteHorarioMedicoDiaAsync(item.Id);
+            if (deleteResult.Status == ResponseStatus.Failure)
+            {
+              return ResponseFactory.Fail<bool>($"Falha ao eliminar horário por dia {item.Id}.");
+            }
+          }
+
+          return ResponseFactory.Success(true);
         }
     }
 }

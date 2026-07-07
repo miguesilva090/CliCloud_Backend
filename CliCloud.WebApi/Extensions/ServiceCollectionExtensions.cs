@@ -42,6 +42,8 @@ using CliCloud.Application.Services.Consultas.FechoDiarioAdministrativoService;
 using CliCloud.Infrastructure.Persistence.Consultas;
 using CliCloud.Infrastructure.Persistence.Credenciais;
 using CliCloud.Infrastructure.Persistence.Faturacao;
+using CliCloud.Application.Services.Utility.FundirUtentesService;
+using CliCloud.Infrastructure.Persistence.Utility;
 
 namespace CliCloud.WebApi.Extensions
 {
@@ -166,6 +168,7 @@ namespace CliCloud.WebApi.Extensions
       _ = services.AddHttpClient(nameof(AdseSoapClient));
       _ = services.AddTransient<IAdseSoapClient, AdseSoapClient>();
       _ = services.AddScoped<IRequisicaoEspFechoUpdater, RequisicaoEspFechoUpdater>();
+      _ = services.AddScoped<IFundirUtentesFusaoRunner, FundirUtentesFusaoRunner>();
       _ = services.AddScoped<IUtilizadorDisplayNameResolver, UtilizadorDisplayNameResolver>();
 
       #endregion

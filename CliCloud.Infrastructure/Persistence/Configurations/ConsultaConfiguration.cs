@@ -1,6 +1,7 @@
 using CliCloud.Domain.Entities.Consultas;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System.Globalization;
 
 namespace CliCloud.Infrastructure.Persistence.Configurations
 {
@@ -111,6 +112,12 @@ namespace CliCloud.Infrastructure.Persistence.Configurations
 
       // BD legada (testeApp): Sinistrado é bit; CredencialExterna e Justificacao são int
       builder.Property(c => c.Sinistrado).HasConversion(LegacyValueConverters.NullableIntFromBool);
+
+      builder.Property(c => c.HoraChegada)
+        .HasColumnType("nvarchar(max)")
+        .HasConversion(
+          v => v.HasValue ? v.Value.ToString(@"hh\:mm", CultureInfo.InvariantCulture) : null,
+          v => string.IsNullOrWhiteSpace(v) ? null : TimeSpan.Parse(v.Trim(), CultureInfo.InvariantCulture));
     }
   }
 }

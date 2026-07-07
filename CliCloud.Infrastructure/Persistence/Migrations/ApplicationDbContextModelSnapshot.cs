@@ -1128,6 +1128,71 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.ToTable("TiposCarta", "Comum");
                 });
 
+            modelBuilder.Entity("CliCloud.Domain.Entities.ConfiguracaoADSE.ConfiguracaoADSE", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Dominio")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<Guid>("EmpresaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("NumeroLocal")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("OrganismoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Password")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("PasswordLocal")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("UrlADSE")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("UrlPasta")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Utilizador")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmpresaId")
+                        .IsUnique();
+
+                    b.ToTable("ConfiguracaoADSE", "Faturacao");
+                });
+
             modelBuilder.Entity("CliCloud.Domain.Entities.Consultas.Admissao", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1474,8 +1539,8 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("FuncionarioId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<TimeSpan?>("HoraChegada")
-                        .HasColumnType("time");
+                    b.Property<string>("HoraChegada")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<TimeSpan?>("HoraFim")
                         .HasColumnType("time");
@@ -6278,71 +6343,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("FicheiroEletronicoRegisto", "Faturacao");
-                });
-
-            modelBuilder.Entity("CliCloud.Domain.Entities.ConfiguracaoADSE.ConfiguracaoADSE", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("DeletedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("DeletedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Dominio")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<Guid>("EmpresaId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("LastModifiedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("LastModifiedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("NumeroLocal")
-                        .HasColumnType("int");
-
-                    b.Property<Guid?>("OrganismoId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Password")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("PasswordLocal")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("UrlADSE")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("UrlPasta")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("Utilizador")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EmpresaId")
-                        .IsUnique();
-
-                    b.ToTable("ConfiguracaoADSE", "Faturacao");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.Faturacao.ReferenciaMB", b =>

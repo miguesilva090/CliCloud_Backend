@@ -6,7 +6,7 @@ using CliCloud.Application.Services.Utility.FreguesiaService.DTOs;
 using CliCloud.Application.Services.Utility.ConcelhoService.DTOs;
 using CliCloud.Application.Services.Utility.DistritoService.DTOs;
 using CliCloud.Application.Services.Utility.PaisService.DTOs;
-// using CliCloud.Application.Services.Especialidades.EspecialidadeService.DTOs; // TODO: Descomentar quando EspecialidadeService for criado
+using CliCloud.Application.Services.Especialidades.EspecialidadeService.DTOs;
 using CliCloud.Application.Services.EstadosCivis.EstadoCivilService.DTOs;
 using CliCloud.Application.Services.Sexos.SexoService.DTOs;
 
@@ -58,7 +58,7 @@ namespace CliCloud.Application.Services.Tecnicos.TecnicoService.DTOs
 
         // Campos específicos de Tecnico
         public Guid? EspecialidadeId { get; set; }
-        // public EspecialidadeDTO? Especialidade { get; set; } // TODO: Descomentar quando EspecialidadeService for criado
+        public EspecialidadeDTO? Especialidade { get; set; }
         public string? EspecialidadeNome { get; set; }
         public double? Margem { get; set; }
         public Guid? IdUtilizador { get; set; }
