@@ -11,10 +11,8 @@ namespace CliCloud.Domain.Entities.Credenciais
     {
         public Guid LoteDirectId { get; set; }
         public LoteDirect LoteDirect { get; set; } = null!;
-
         public Guid ServicoId { get; set; }
         public Servico Servico { get; set; } = null!;
-
         public int Quantidade { get; set; }
         public decimal ValorUnitario { get; set; }
         public decimal ValorUtenteOriginal { get; set; }

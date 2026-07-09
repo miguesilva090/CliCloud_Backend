@@ -10,10 +10,8 @@ namespace CliCloud.Domain.Entities.Credenciais
     {
         public Guid LoteDirectAgregadoId { get; set; }
         public LoteDirectAgregado LoteDirectAgregado { get; set; } = null!;
-
         public Guid LoteDirectId { get; set; }
         public LoteDirect LoteDirect { get; set; } = null!;
-
         public int Indice { get; set; }
         public int NumeroLote { get; set; }
         public int Ano { get; set; }
@@ -21,7 +19,6 @@ namespace CliCloud.Domain.Entities.Credenciais
         public int CodigoOrganismo { get; set; }
         public int TipoServico { get; set; }
         public int TipoLote { get; set; }
-
         public string? Credencial { get; set; }
         public int Quantidade { get; set; }
         public decimal Valor { get; set; }

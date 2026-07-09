@@ -61,5 +61,15 @@ namespace CliCloud.WebApi.Controllers.Credenciais
         [HttpPost("passar-para-historico")]
         public async Task<IActionResult> PassarParaHistorico([FromBody] PassarParaHistoricoRequest request)
             => Ok(await _service.PassarParaHistoricoAsync(request));
+
+        [Authorize(Roles = "client")]
+        [HttpPost("passar-para-ativo")]
+        public async Task<IActionResult> PassarParaAtivo([FromBody] PassarParaAtivoRequest request)
+            => Ok(await _service.PassarParaAtivoAsync(request));
+
+        [Authorize(Roles = "client")]
+        [HttpPost("obter-novo-lote")]
+        public async Task<IActionResult> ObterNovoLote([FromBody] ObterNovoLoteRequest request)
+            => Ok(await _service.ObterNovoLoteAsync(request));
     }
 }

@@ -161,6 +161,7 @@ namespace CliCloud.WebApi.Extensions
       _ = services.AddTransient<ILoteDirectCorrecaoLotesExecutor, LoteDirectCorrecaoLotesExecutor>();
       _ = services.AddTransient<ILoteDirectCorrecaoLotesValidator, LoteDirectCorrecaoLotesValidator>();
       _ = services.AddTransient<ILoteDirectPassarHistoricoExecutor, LoteDirectPassarHistoricoExecutor>();
+      _ = services.AddTransient<ILoteDirectPassarAtivoExecutor, LoteDirectPassarAtivoExecutor>();
       _ = services.AddTransient<ICredenciaisSnsLegadoLookup, CredenciaisSnsLegadoLookup>();
       _ = services.AddTransient<ICredenciaisSnsAgregadoDeleteExecutor, CredenciaisSnsAgregadoDeleteExecutor>();
       _ = services.AddTransient<IAdseComunicacaoListReader, AdseComunicacaoListReader>();

@@ -43,6 +43,35 @@ namespace CliCloud.Application.Services.Credenciais.LoteDirectService.Specificat
                         if(int.TryParse(filter.Value, out var indiceLote))
                             Query.Where(x => x.IndiceLote == indiceLote);
                         break;
+                    case "utentenumero_de":
+                    case "c_utente_de":
+                        if (int.TryParse(filter.Value, out var utenteNumeroDe))
+                            Query.Where(x =>
+                                x.Utente != null
+                                && x.Utente.NumeroUtente != null
+                                && Convert.ToInt32(x.Utente.NumeroUtente) >= utenteNumeroDe);
+                        break;
+                    case "utentenumero_ate":
+                    case "c_utente_ate":
+                        if (int.TryParse(filter.Value, out var utenteNumeroAte))
+                            Query.Where(x =>
+                                x.Utente != null
+                                && x.Utente.NumeroUtente != null
+                                && Convert.ToInt32(x.Utente.NumeroUtente) <= utenteNumeroAte);
+                        break;
+                    case "utentenome":
+                    case "nome":
+                        if (!string.IsNullOrWhiteSpace(filter.Value))
+                            Query.Where(x => x.Utente != null && x.Utente.Nome.Contains(filter.Value));
+                        break;
+                    case "datafim_de":
+                        if (DateTime.TryParse(filter.Value, out var dataFimDe))
+                            Query.Where(x => x.DataFim.HasValue && x.DataFim.Value.Date >= dataFimDe.Date);
+                        break;
+                    case "datafim_ate":
+                        if (DateTime.TryParse(filter.Value, out var dataFimAte))
+                            Query.Where(x => x.DataFim.HasValue && x.DataFim.Value.Date <= dataFimAte.Date);
+                        break;
                 }
             }
 

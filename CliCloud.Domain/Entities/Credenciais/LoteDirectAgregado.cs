@@ -15,7 +15,6 @@ namespace CliCloud.Domain.Entities.Credenciais
         public int CodigoOrganismo { get; set; }
         public int TipoLote { get; set; }
         public int TipoServico { get; set; }
-
         public DateTime DataLote { get; set; }
         public int Quantidade { get; set; }
         public decimal Valor { get; set; }
