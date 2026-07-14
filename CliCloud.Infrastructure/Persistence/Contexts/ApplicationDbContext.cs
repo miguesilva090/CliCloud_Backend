@@ -266,6 +266,8 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     public DbSet<LocalTratamento> LocaisTratamento { get; set; }
     public DbSet<EstadoListaEspera> EstadosListaEspera { get; set; }
     public DbSet<Prioridade> Prioridades { get; set; }
+    public DbSet<ListaEsperaTratamento> ListaEsperaTratamentos { get; set; }
+    public DbSet<ListaEsperaTratamentoServico> ListaEsperaTratamentoServicos { get; set; }
     
     // DbSets - Patologias
     public DbSet<Patologia> Patologias { get; set; }
@@ -648,6 +650,8 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
       _ = modelBuilder.ApplyConfiguration(new LocalTratamentoConfiguration());
       _ = modelBuilder.ApplyConfiguration(new EstadoListaEsperaConfiguration());
       _ = modelBuilder.ApplyConfiguration(new PrioridadeConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new ListaEsperaTratamentoConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new ListaEsperaTratamentoServicoConfiguration());
 
       // Exames
       _ = modelBuilder.ApplyConfiguration(new CategoriaProcedimentoConfiguration());

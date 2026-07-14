@@ -40,8 +40,14 @@ namespace CliCloud.Application.Services.Credenciais.LoteDirectService.Specificat
                             Query.Where(x => x.Historico == historico);
                         break;
                     case "indicelote":
-                        if(int.TryParse(filter.Value, out var indiceLote))
-                            Query.Where(x => x.IndiceLote == indiceLote);
+                        if (int.TryParse(filter.Value, out var indiceLote))
+                        {
+                            // Paridade legado: ?indice= do SNS filtra pelo índice do agregado (LOTESP),
+                            // não só pelo IndiceLote do cabeçalho (pode estar null antes de corrigir lotes).
+                            Query.Where(x =>
+                                x.IndiceLote == indiceLote
+                                || x.Detalhes.Any(d => d.Indice == indiceLote));
+                        }
                         break;
                     case "utentenumero_de":
                     case "c_utente_de":

@@ -18,7 +18,8 @@ namespace CliCloud.Application.Services.Credenciais.LoteDirectService
         ILoteDirectLinhasSyncRepository loteDirectLinhasSyncRepository,
         ILoteDirectSaveValidator saveValidator,
         ILoteDirectPassarHistoricoExecutor passarHistoricoExecutor,
-        ILoteDirectPassarAtivoExecutor passarAtivoExecutor
+        ILoteDirectPassarAtivoExecutor passarAtivoExecutor,
+        ILoteDirectNovoLoteResolver novoLoteResolver
         ) : ILoteDirectService
     {
         private readonly IRepositoryAsync _repository = repository;
@@ -29,6 +30,7 @@ namespace CliCloud.Application.Services.Credenciais.LoteDirectService
         private readonly ILoteDirectSaveValidator _saveValidator = saveValidator;
         private readonly ILoteDirectPassarHistoricoExecutor _passarHistoricoExecutor = passarHistoricoExecutor;
         private readonly ILoteDirectPassarAtivoExecutor _passarAtivoExecutor = passarAtivoExecutor;
+        private readonly ILoteDirectNovoLoteResolver _novoLoteResolver = novoLoteResolver;
 
         public async Task<PaginatedResponse<LoteDirectTableDTO>> GetPaginatedAsync(LoteDirectTableFilter filter)
         {
@@ -197,18 +199,26 @@ namespace CliCloud.Application.Services.Credenciais.LoteDirectService
                 if (!origem.Historico)
                     return ResponseFactory.Fail<PassarParaAtivoResultDTO>("O registo já está ativo.");
 
-                if (origem is not { CodigoOrganismo: int org, Mes: int mes, Ano: int ano })
-                    return ResponseFactory.Fail<PassarParaAtivoResultDTO>("Organismo, mês ou ano em falta.");
+                if (origem.CodigoOrganismo is not int org)
+                    return ResponseFactory.Fail<PassarParaAtivoResultDTO>("Organismo em falta.");
+
+                bool destinoEmHistorico = await _repository
+                    .ExistsAsync<LoteDirect, Guid>(
+                        new LoteDirectOrganismoMesAnoHistoricoSpec(org, request.NovoMes, request.NovoAno))
+                    .ConfigureAwait(false);
+
+                if (destinoEmHistorico)
+                    return ResponseFactory.Fail<PassarParaAtivoResultDTO>("O mês/ano destino deste organismo já está em histórico.");
 
                 PassarParaAtivoResultDTO result = await _passarAtivoExecutor
-                    .ExecutarAsync(org, mes, ano, request.NovoMes, request.NovoAno)
+                    .ExecutarAsync(request.LoteDirectId, request.NovoMes, request.NovoAno)
                     .ConfigureAwait(false);
 
                 return ResponseFactory.Success(result);
             }
-            catch (InvalidOperationException)
+            catch (InvalidOperationException ex)
             {
-                return ResponseFactory.Fail<PassarParaAtivoResultDTO>("Registo não encontrado.");
+                return ResponseFactory.Fail<PassarParaAtivoResultDTO>(ex.Message);
             }
         }
 
@@ -220,10 +230,6 @@ namespace CliCloud.Application.Services.Credenciais.LoteDirectService
             await _loteDirectLinhasSyncRepository.SincronizarAsync(loteDirectId, linhas, linhas789);
         }
 
-        /// <summary>
-        /// Reduz a dessincronia entre lançamento e agregados (LOTESP/LOTES no legado).
-        /// Falhas nesta auto-correção não devem bloquear o save principal.
-        /// </summary>
         private async Task TentarAutoCorrigirAgregadosAsync(int? ano, int? mes)
         {
             if (!ano.HasValue || !mes.HasValue)
@@ -346,75 +352,20 @@ namespace CliCloud.Application.Services.Credenciais.LoteDirectService
             if (request.TipoServico <= 0)
                 return ResponseFactory.Fail<ObterNovoLoteResultDTO>("Tipo de serviço inválido");
 
-            List<LoteDirectAgregado> agregados = (await _repository
-                .GetListAsync<LoteDirectAgregado, Guid>(
-                    new LoteDirectAgregadoPorChaveSpec(
-                        request.CodigoOrganismo,
-                        request.TipoLote,
-                        request.TipoServico,
-                        request.Mes,
-                        request.Ano))
-                .ConfigureAwait(false))
-                .ToList();
-
-            int novoIndice;
-            int novoLote;
-
-            if (agregados.Count == 0)
-            {
-                novoIndice = await ObterProximoIndiceAgregadoAsync().ConfigureAwait(false);
-                novoLote = 1;
-            }
-            else
-            {
-                bool isTipo97 = false;
-                try
-                {
-                    TipoLote tipoLote = await _repository.GetByIdAsync<TipoLote, int>(request.TipoLote);
-                    isTipo97 = tipoLote.Valor == 97;
-                }
-                catch (InvalidOperationException)
-                {
-                    // Tipo de lote inexistente — seguir regra normal (não é 97).
-                }
-
-                if (isTipo97)
-                {
-                    novoIndice = agregados[0].Indice;
-                    novoLote = agregados[0].NumeroLote;
-                }
-                else
-                {
-                    LoteDirectAgregado? comEspaco = agregados.FirstOrDefault(x => x.NumeroRequisicoes < 30);
-                    if (comEspaco is not null)
-                    {
-                        novoIndice = comEspaco.Indice;
-                        novoLote = comEspaco.NumeroLote;
-                    }
-                    else
-                    {
-                        novoIndice = await ObterProximoIndiceAgregadoAsync().ConfigureAwait(false);
-                        novoLote = agregados.Count + 1;
-                    }
-                }
-            }
+            (int novoIndice, int novoLote) = await _novoLoteResolver
+                .ResolverAsync(
+                    request.CodigoOrganismo,
+                    request.TipoLote,
+                    request.TipoServico,
+                    request.Mes,
+                    request.Ano)
+                .ConfigureAwait(false);
 
             return ResponseFactory.Success(new ObterNovoLoteResultDTO
             {
                 NovoIndice = novoIndice,
                 NovoLote = novoLote,
             });
-        }
-
-        /// <summary>Paridade com LOTESP.obterProximoIndice() no legado.</summary>
-        private async Task<int> ObterProximoIndiceAgregadoAsync()
-        {
-            IEnumerable<int> indices = await _repository
-                .GetListAsync<LoteDirectAgregado, int, Guid>(new LoteDirectAgregadoMaxIndiceSpec())
-                .ConfigureAwait(false);
-
-            int maxIndice = indices.FirstOrDefault();
-            return maxIndice + 1;
         }
     }
 }

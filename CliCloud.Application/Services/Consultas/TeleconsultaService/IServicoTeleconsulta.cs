@@ -1,9 +1,10 @@
+using CliCloud.Application.Common.Marker;
 using CliCloud.Application.Common.Wrapper;
 using CliCloud.Application.Services.Consultas.TeleconsultaService.DTOs;
 
 namespace CliCloud.Application.Services.Consultas.TeleconsultaService
 {
-  public interface IServicoTeleconsulta
+  public interface IServicoTeleconsulta : ITransientService
   {
     Task<Response<TeleconsultaSessaoDTO>> CriarOuObterSessaoAsync(Guid clinicaId, CriarTeleconsultaRequest request);
     Task<Response<TeleconsultaSessaoDTO>> ObterPorMarcacaoAsync(Guid clinicaId, Guid consultaMarcacaoId);

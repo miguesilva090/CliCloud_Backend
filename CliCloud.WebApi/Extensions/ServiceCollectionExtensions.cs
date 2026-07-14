@@ -2,21 +2,17 @@ using System.Text;
 using System.Text.Json.Serialization;
 using FluentValidation;
 using FluentValidation.AspNetCore;
-using CliCloud.Application.Common;
 using CliCloud.Application.Common.Logging;
 using CliCloud.Application.Common.Wrapper;
-using CliCloud.Application.Services.Core.VozService;
-using CliCloud.Application.Services.Core.ChamadaUtentesService;
-using CliCloud.Application.Services.Core.SmsService;
 using CliCloud.Application.Utility;
 using CliCloud.Infrastructure.Auth.JWT;
 using CliCloud.Infrastructure.Encryption;
 using CliCloud.Infrastructure.Images;
 using CliCloud.Infrastructure.Mailer;
 using CliCloud.Infrastructure.Mapper;
-using CliCloud.Infrastructure.Persistence;
 using CliCloud.Infrastructure.Persistence.Contexts;
 using CliCloud.Infrastructure.Persistence.Extensions;
+using CliCloud.Infrastructure.Persistence.Faturacao;
 using CliCloud.WebApi.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -25,25 +21,6 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using CliCloud.WebApi.HostedServices;
-using CliCloud.Application.Services.Core.ConfigCartaConducaoService;
-using CliCloud.Application.Services.Core.ConfigExamesSemPapelService;
-using CliCloud.Application.Services.Core.ConfigWebServiceService;
-using CliCloud.Application.Services.Atestados.SpmsCartaConducaoService;
-using CliCloud.Application.Services.Core.EmailService;
-using CliCloud.Application.Services.Prescricao.SpmsPrescricaoSoapService;
-using CliCloud.Application.Services.ProcessoClinico.SeparadorVinculoService;
-using CliCloud.Application.Services.Consultas.TeleconsultaService;
-using CliCloud.Application.Services.Core.TeleconsultaService;
-using CliCloud.Application.Services.Utentes.UtenteRnuService;
-using CliCloud.Application.Services.Credenciais.LoteDirectService;
-using CliCloud.Application.Services.Faturacao.CredenciaisSnsService;
-using CliCloud.Application.Services.Faturacao.AdseComunicacaoService;
-using CliCloud.Application.Services.Consultas.FechoDiarioAdministrativoService;
-using CliCloud.Infrastructure.Persistence.Consultas;
-using CliCloud.Infrastructure.Persistence.Credenciais;
-using CliCloud.Infrastructure.Persistence.Faturacao;
-using CliCloud.Application.Services.Utility.FundirUtentesService;
-using CliCloud.Infrastructure.Persistence.Utility;
 
 namespace CliCloud.WebApi.Extensions
 {
@@ -119,58 +96,15 @@ namespace CliCloud.WebApi.Extensions
       _ = services.Configure<CloudinarySettings>(configuration.GetSection("Cloudinary"));
 
       _ = services.Configure<SmsAutomaticoOptions>(configuration.GetSection("SmsAutomatico"));
-      _ = services.AddTransient<IServicoSmsAutomaticoDados, ServicoSmsAutomaticoDados>();
-      _ = services.AddTransient<IServicoSmsAutomatico, ServicoSmsAutomatico>();
       _ = services.AddHostedService<SmsAutomaticoHostedService>();
       _ = services.Configure<CliCloud.WebApi.HostedServices.EmailAutomaticoOptions>(configuration.GetSection("EmailAutomatico"));
-      _ = services.AddTransient<IServicoEmailAutomaticoDados, ServicoEmailAutomaticoDados>();
-      _ = services.AddTransient<IConfiguracaoEmailAutomaticoService, ConfiguracaoEmailAutomaticoService>();
       _ = services.AddHostedService<CliCloud.WebApi.HostedServices.EmailAutomaticoHostedService>();
-
-      _ = services.AddTransient<IConfigCartaConducaoService, ConfigCartaConducaoService>();
-      _ = services.AddTransient<IConfigExamesSemPapelService, ConfigExamesSemPapelService>();
-      _ = services.AddTransient<IConfigWebServiceService, ConfigWebServiceService>();
-      _ = services.AddTransient<ISpmsPrescricaoSoapService, SpmsPrescricaoSoapService>();
-      _ = services.AddTransient<ISeparadorVinculoService, SeparadorVinculoService>();
-
-      _ = services.AddTransient<IConfiguracaoEmailService, ConfiguracaoEmailService>();
 
       _ = services.AddServices(); // dynamic services registration
 
       //----------- Add Services (Dependency Injection) -------------------------------------------
       _ = services.AddSingleton<AppLogger>();
-
-      // From DynamicServiceRegistrationExtensions
-      // Auto registers scoped/transient marked services
-
-      // ICurrentTenantUserService -- registered as Scoped (resolve the tenant/user from token/header)
-      // IIdentityService, ITokenService, IRepositoryAsync, ITenantManagementService -- registered as Transient
-
-      // Any additional app services should be registered as Transient
-
-      //---------------------------------------------------------------------------
-      _ = services.AddTransient<IServicoSms, ServicoSms>();
-      _ = services.AddTransient<IServicoWebhookSms, ServicoWebhookSms>();
-      _ = services.AddTransient<IServicoVoz, ServicoVoz>();
-      _ = services.AddTransient<ITokenService, TokenService>();
-      _ = services.AddTransient<IConfiguracaoTeleconsultaService, ConfiguracaoTeleconsultaService>();
-      _ = services.AddTransient<IServicoTeleconsulta, ServicoTeleconsulta>();
-      _ = services.AddTransient<IChamadaUtentesService, ChamadaUtentesService>();
-      _ = services.AddTransient<ISpmsCartaConducaoService, SpmsCartaConducaoService>();
-      _ = services.AddTransient<IUtenteRnuService, UtenteRnuService>();
-      _ = services.AddTransient<ILoteDirectCorrecaoLotesExecutor, LoteDirectCorrecaoLotesExecutor>();
-      _ = services.AddTransient<ILoteDirectCorrecaoLotesValidator, LoteDirectCorrecaoLotesValidator>();
-      _ = services.AddTransient<ILoteDirectPassarHistoricoExecutor, LoteDirectPassarHistoricoExecutor>();
-      _ = services.AddTransient<ILoteDirectPassarAtivoExecutor, LoteDirectPassarAtivoExecutor>();
-      _ = services.AddTransient<ICredenciaisSnsLegadoLookup, CredenciaisSnsLegadoLookup>();
-      _ = services.AddTransient<ICredenciaisSnsAgregadoDeleteExecutor, CredenciaisSnsAgregadoDeleteExecutor>();
-      _ = services.AddTransient<IAdseComunicacaoListReader, AdseComunicacaoListReader>();
-      _ = services.AddTransient<IAdsePdfStorage, AdsePdfFileStorage>();
       _ = services.AddHttpClient(nameof(AdseSoapClient));
-      _ = services.AddTransient<IAdseSoapClient, AdseSoapClient>();
-      _ = services.AddScoped<IRequisicaoEspFechoUpdater, RequisicaoEspFechoUpdater>();
-      _ = services.AddScoped<IFundirUtentesFusaoRunner, FundirUtentesFusaoRunner>();
-      _ = services.AddScoped<IUtilizadorDisplayNameResolver, UtilizadorDisplayNameResolver>();
 
       #endregion
 
@@ -198,8 +132,6 @@ namespace CliCloud.WebApi.Extensions
         })
         .AddJwtBearer(o =>
         {
-          // Preserva nomes das claims tal como no JWT (aspnet_user_id, clinica_id, uid, roles, …).
-          // Com o default true, o JwtSecurityTokenHandler pode mapear tipos e a leitura por FindFirstValue("aspnet_user_id") falha.
           o.MapInboundClaims = false;
           o.RequireHttpsMetadata = false;
           o.SaveToken = false;

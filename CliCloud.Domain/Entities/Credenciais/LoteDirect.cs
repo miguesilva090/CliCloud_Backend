@@ -66,5 +66,6 @@ namespace CliCloud.Domain.Entities.Credenciais
         public Servico? ServicoConsultaRegisto { get; set; }
         public ICollection<LoteDirectLinha> Linhas { get; set; } = new List<LoteDirectLinha>();
         public ICollection<LoteDirectLinha789> Linhas789 { get; set; } = new List<LoteDirectLinha789>();
+        public ICollection<LoteDirectDetalhe> Detalhes { get; set; } = new List<LoteDirectDetalhe>();
     }
 }

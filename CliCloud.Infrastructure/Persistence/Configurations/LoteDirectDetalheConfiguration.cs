@@ -19,7 +19,7 @@ public class LoteDirectDetalheConfiguration : IEntityTypeConfiguration<LoteDirec
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(x => x.LoteDirect)
-            .WithMany()
+            .WithMany(x => x.Detalhes)
             .HasForeignKey(x => x.LoteDirectId)
             .OnDelete(DeleteBehavior.Restrict);
     }

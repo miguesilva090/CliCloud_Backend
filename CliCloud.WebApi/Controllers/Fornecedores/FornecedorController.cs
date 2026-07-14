@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using CliCloud.Application.Services.FornecedoresService.FornecedorService;
-using CliCloud.Application.Services.FornecedoresService.FornecedorService.DTOs;
-using CliCloud.Application.Services.FornecedoresService.FornecedorService.Filters;
+using CliCloud.Application.Services.Fornecedores.FornecedorService;
+using CliCloud.Application.Services.Fornecedores.FornecedorService.DTOs;
+using CliCloud.Application.Services.Fornecedores.FornecedorService.Filters;
 using CliCloud.Application.Common.Wrapper;
 
 namespace CliCloud.WebApi.Controllers.Fornecedores

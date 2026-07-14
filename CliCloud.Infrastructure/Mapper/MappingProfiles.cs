@@ -49,6 +49,8 @@ using ModeloAparelhoDtos = CliCloud.Application.Services.Tratamentos.ModeloApare
 using LocalTratamentoDtos = CliCloud.Application.Services.Tratamentos.LocalTratamentoService.DTOs;
 using EstadoListaEsperaDtos = CliCloud.Application.Services.Tratamentos.EstadoListaEsperaService.DTOs;
 using PrioridadeDtos = CliCloud.Application.Services.Tratamentos.PrioridadeService.DTOs;
+using ListaEsperaTratamentoAdministrativoDtos =
+  CliCloud.Application.Services.Tratamentos.ListaEsperaTratamentoAdministrativoService.DTOs;
 using PatologiaDtos = CliCloud.Application.Services.Tratamentos.PatologiaService.DTOs;
 using ExameDtos = CliCloud.Application.Services.Exames.ExameService.DTOs;
 using TipoExameDtos = CliCloud.Application.Services.Exames.TipoExameService.DTOs;
@@ -141,7 +143,7 @@ using MoedaDtos = CliCloud.Application.Services.Moedas.MoedaService.DTOs;
 using OrganismoDtos = CliCloud.Application.Services.Organismos.OrganismoService.DTOs;
 using CentroSaudeDtos = CliCloud.Application.Services.CentroSaude.CentroSaudeService.DTOs;
 using UnidadesLocaisSaudeDtos = CliCloud.Application.Services.UnidadesLocaisSaude.UnidadesLocaisSaudeService.DTOs;
-using FornecedorDtos = CliCloud.Application.Services.FornecedoresService.FornecedorService.DTOs;
+using FornecedorDtos = CliCloud.Application.Services.Fornecedores.FornecedorService.DTOs;
 using EmpresaDtos = CliCloud.Application.Services.Empresas.EmpresaService.DTOs;
 using RegiaoCorpoDtos = CliCloud.Application.Services.RegioesCorpo.RegiaoCorpoService.DTOs;
 using GoniometriasDtos = CliCloud.Application.Services.Tratamentos.GoniometriasService.DTOs;
@@ -353,6 +355,52 @@ namespace CliCloud.Infrastructure.Mapper
         .ForMember(d => d.Id, o => o.Ignore());
       _ = CreateMap<PrioridadeDtos.UpdatePrioridadeRequest, Prioridade>()
         .ForMember(d => d.Id, o => o.Ignore());
+
+      // ---- ListaEsperaTratamento (administrativo) ----
+      _ = CreateMap<ListaEsperaTratamento, ListaEsperaTratamentoAdministrativoDtos.ListaEsperaTratamentoDTO>()
+        .ForMember(d => d.CodigoLegado, o => o.MapFrom(s => s.CodigoLegado ?? 0))
+        .ForMember(d => d.UtenteNome, o => o.MapFrom(s => s.Utente != null ? s.Utente.Nome : null))
+        .ForMember(d => d.MedicoNome, o => o.MapFrom(s => s.Medico != null ? s.Medico.Nome : null))
+        .ForMember(d => d.OrganismoNome, o => o.MapFrom(s => s.Organismo != null ? s.Organismo.Nome : null))
+        .ForMember(d => d.PrioridadeDesignacao, o => o.MapFrom(s => s.Prioridade != null ? s.Prioridade.Descricao : null))
+        .ForMember(d => d.EstadoDesignacao, o => o.MapFrom(s => s.EstadoListaEspera != null ? s.EstadoListaEspera.Descricao : null))
+        .ForMember(d => d.LocalTratamentoDesignacao, o => o.MapFrom(s => s.LocalTratamento != null ? s.LocalTratamento.Designacao : null))
+        .ForMember(d => d.PatologiaDesignacao, o => o.MapFrom(s => s.Patologia != null ? s.Patologia.Designacao : null))
+        .ForMember(d => d.Servicos, o => o.Ignore());
+
+      _ = CreateMap<ListaEsperaTratamento, ListaEsperaTratamentoAdministrativoDtos.ListaEsperaTratamentoTableDTO>()
+        .ForMember(d => d.UtenteNome, o => o.MapFrom(s => s.Utente != null ? s.Utente.Nome : null))
+        .ForMember(d => d.OrganismoNome, o => o.MapFrom(s => s.Organismo != null ? s.Organismo.Nome : null))
+        .ForMember(d => d.PrioridadeDesignacao, o => o.MapFrom(s => s.Prioridade != null ? s.Prioridade.Descricao : null))
+        .ForMember(d => d.EstadoDesignacao, o => o.MapFrom(s => s.EstadoListaEspera != null ? s.EstadoListaEspera.Descricao : null))
+        .ForMember(d => d.LocalTratamentoDesignacao, o => o.MapFrom(s => s.LocalTratamento != null ? s.LocalTratamento.Designacao : null));
+
+      _ = CreateMap<ListaEsperaTratamentoAdministrativoDtos.CreateListaEsperaTratamentoRequest, ListaEsperaTratamento>()
+        .ForMember(d => d.Id, o => o.Ignore())
+        .ForMember(d => d.Ordem, o => o.Ignore())
+        .ForMember(d => d.OrdemOrigem, o => o.Ignore())
+        .ForMember(d => d.DataEntrada, o => o.Ignore())
+        .ForMember(d => d.Historico, o => o.Ignore())
+        .ForMember(d => d.Obs, o => o.Ignore())
+        .ForMember(d => d.CodigoLegado, o => o.Ignore())
+        .ForMember(d => d.Servicos, o => o.Ignore());
+
+      _ = CreateMap<ListaEsperaTratamentoServico, ListaEsperaTratamentoAdministrativoDtos.ListaEsperaTratamentoServicoDTO>()
+        .ForMember(
+          d => d.Designacao,
+          o => o.MapFrom(s => s.Designacao ?? (s.Servico != null ? s.Servico.Designacao : null))
+        );
+
+      _ = CreateMap<ListaEsperaTratamentoAdministrativoDtos.UpdateListaEsperaTratamentoRequest, ListaEsperaTratamento>()
+        .ForMember(d => d.Id, o => o.Ignore())
+        .ForMember(d => d.UtenteId, o => o.Ignore())
+        .ForMember(d => d.Ordem, o => o.Ignore())
+        .ForMember(d => d.OrdemOrigem, o => o.Ignore())
+        .ForMember(d => d.DataEntrada, o => o.Ignore())
+        .ForMember(d => d.Historico, o => o.Ignore())
+        .ForMember(d => d.Obs, o => o.Ignore())
+        .ForMember(d => d.CodigoLegado, o => o.Ignore())
+        .ForMember(d => d.Servicos, o => o.Ignore());
 
       // ---- HistoriaClinica ----
       _ = CreateMap<HistoriaClinica, HistoriaClinicaDtos.HistoriaClinicaDTO>();
@@ -2713,15 +2761,12 @@ namespace CliCloud.Infrastructure.Mapper
         .ForMember(d => d.Convertido, o => o.MapFrom(s => s.ConsultaMarcacaoId != null));
 
       _ = CreateMap<CliCloud.Application.Services.Consultas.ListaEsperaAdministrativoService.DTOs.CreateListaEsperaRequest, ListaEsperaConsulta>()
-        .ForMember(d => d.Id, o => o.Ignore())
-        .ForMember(d => d.ConsultaMarcacaoId, o => o.Ignore())
-        .ForMember(d => d.ConvertidoEm, o => o.Ignore());
+        .ForMember(d => d.Id, o => o.Ignore());
 
       _ = CreateMap<CliCloud.Application.Services.Consultas.ListaEsperaAdministrativoService.DTOs.UpdateListaEsperaRequest, ListaEsperaConsulta>()
         .ForMember(d => d.Id, o => o.Ignore())
         .ForMember(d => d.ConsultaMarcacaoId, o => o.Ignore())
-        .ForMember(d => d.ConvertidoEm, o => o.Ignore())
-        .ForMember(d => d.Obs, o => o.Ignore());
+        .ForMember(d => d.ConvertidoEm, o => o.Ignore());
 
     }
 
