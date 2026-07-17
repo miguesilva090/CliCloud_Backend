@@ -21,6 +21,8 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using CliCloud.WebApi.HostedServices;
+using CliCloud.Application.Services.Prescricao.InfarmedApiClient;
+using Microsoft.Extensions.Options;
 
 namespace CliCloud.WebApi.Extensions
 {
@@ -94,6 +96,30 @@ namespace CliCloud.WebApi.Extensions
         });
       _ = services.Configure<MailSettings>(configuration.GetSection("MailSettings"));
       _ = services.Configure<CloudinarySettings>(configuration.GetSection("Cloudinary"));
+
+      _ = services.Configure<InfarmedApiOptions>(
+          configuration.GetSection(InfarmedApiOptions.SectionName)
+        );
+        
+      _ = services.AddHttpClient(
+          InfarmedApiOptions.HttpClientName,
+          (sp, client) =>
+          {
+            var options = sp.GetRequiredService<IOptions<InfarmedApiOptions>>().Value;
+            if (!string.IsNullOrWhiteSpace(options.BaseUrl))
+            {
+              var baseUrl = options.BaseUrl.TrimEnd('/') + "/";
+              client.BaseAddress = new Uri(baseUrl);
+            }
+            client.Timeout = TimeSpan.FromSeconds(
+              options.TimeoutSeconds > 0 ? options.TimeoutSeconds : 30
+            );
+            if (!string.IsNullOrWhiteSpace(options.ApiKey))
+            {
+              client.DefaultRequestHeaders.TryAddWithoutValidation("X-Api-Key", options.ApiKey);
+            }
+          }
+        );  
 
       _ = services.Configure<SmsAutomaticoOptions>(configuration.GetSection("SmsAutomatico"));
       _ = services.AddHostedService<SmsAutomaticoHostedService>();

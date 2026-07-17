@@ -20,25 +20,18 @@ namespace CliCloud.Domain.Entities.Utentes
     public string? NumeroSegurancaSocial {get;set;}
     public Guid? GrupoSanguineoId { get; set; }
     public Entities.GruposSanguineos.GrupoSanguineo? GrupoSanguineo { get; set; }
-    /// <summary>Proveniência do utente (ex.: encaminhamento, origem). Relação igual ao projeto legado (codProvenienciaUtente).</summary>
     public Guid? ProvenienciaUtenteId { get; set; }
     public ProvenienciaUtente? ProvenienciaUtente { get; set; }
-    /// <summary>Subsistema de saúde: organismo (pagador) associado ao utente.</summary>
     public Guid? OrganismoId { get; set; }
     public Organismo? Organismo { get; set; }
-    /// <summary>Subsistema de saúde: seguradora associada ao utente (mesma lista que Organismo, como no legado).</summary>
     public Guid? SeguradoraId { get; set; }
     public Organismo? SeguradoraOrganismo { get; set; }
-    /// <summary>Empresa associada ao utente (valor "em cima", independente das linhas do subsistema).</summary>
     public Guid? EmpresaId { get; set; }
     public Empresa? Empresa { get; set; }
-    /// <summary>Centro de Saúde do utente (informação SNS).</summary>
     public Guid? CentroSaudeId { get; set; }
     public CentroSaudeEntity? CentroSaude { get; set; }
-    /// <summary>Médico externo (informação SNS).</summary>
     public Guid? MedicoExternoId { get; set; }
     public MedicoExterno? MedicoExterno { get; set; }
-    /// <summary>Médico (interno da clínica) associado ao utente.</summary>
     public Guid? MedicoId { get; set; }
     public Medico? Medico { get; set; }
     public string? NumeroUtente {get;set;}
@@ -66,10 +59,7 @@ namespace CliCloud.Domain.Entities.Utentes
     public DateTime? DataRegisto {get;set;}
     public TipoTaxaModeradora? TipoTaxaModeradora {get;set;}
 
-    /// <summary>Conta de utilizador na plataforma (portal do utente, notificações pessoais, etc.).</summary>
     public Guid? IdUtilizador { get; set; }
-
-    /// <summary>Linhas do subsistema de saúde (organismo, beneficiário, apólice, etc.).</summary>
     public ICollection<UtenteSubsistemaLinha> SubsistemaLinhas { get; set; } = [];
   }
 }

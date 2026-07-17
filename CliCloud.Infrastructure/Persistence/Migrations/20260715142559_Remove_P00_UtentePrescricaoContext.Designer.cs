@@ -4,6 +4,7 @@ using CliCloud.Infrastructure.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CliCloud.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260715142559_Remove_P00_UtentePrescricaoContext")]
+    partial class Remove_P00_UtentePrescricaoContext
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -12798,49 +12801,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.ToTable("UnidadesLocaisSaude", "UnidadesLocaisSaude");
                 });
 
-            modelBuilder.Entity("CliCloud.Domain.Entities.Utentes.UtentePatologiaComparticipacao", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("CodigoComparticipacao")
-                        .HasColumnType("int");
-
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("DeletedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("DeletedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Designacao")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<Guid?>("LastModifiedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("LastModifiedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid>("UtenteId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UtenteId", "CodigoComparticipacao")
-                        .IsUnique()
-                        .HasDatabaseName("IX_UtentePatologiaComparticipacao_UtenteId_CodigoComparticipacao");
-
-                    b.ToTable("UtentePatologiaComparticipacao", "Utentes");
-                });
-
             modelBuilder.Entity("CliCloud.Domain.Entities.Utentes.UtenteSubsistemaLinha", b =>
                 {
                     b.Property<Guid>("Id")
@@ -16836,17 +16796,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Navigation("Seguradora");
 
                     b.Navigation("TratamentoPred");
-
-                    b.Navigation("Utente");
-                });
-
-            modelBuilder.Entity("CliCloud.Domain.Entities.Utentes.UtentePatologiaComparticipacao", b =>
-                {
-                    b.HasOne("CliCloud.Domain.Entities.Utentes.Utente", "Utente")
-                        .WithMany()
-                        .HasForeignKey("UtenteId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.Navigation("Utente");
                 });

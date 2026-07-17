@@ -289,6 +289,7 @@ namespace CliCloud.Application.Services.Utentes.UtenteService
                   _ = await _repository.CreateRangeAsync<UtenteSubsistemaLinha, Guid>(linhas);
                   _ = await _repository.SaveChangesAsync();
                 }
+
                 return ResponseFactory.Success<Guid>(response.Id); // return id
             }
             catch (Exception ex)

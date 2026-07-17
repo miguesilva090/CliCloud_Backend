@@ -102,6 +102,7 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     // DbSets - Utentes
     public DbSet<Utente> Utentes { get; set; }
     public DbSet<UtenteSubsistemaLinha> UtenteSubsistemaLinhas { get; set; }
+    public DbSet<UtentePatologiaComparticipacao> UtentePatologiasComparticipacao { get; set; }
 
     // DbSets - Alergias
     public DbSet<Alergia> Alergias { get; set; }
@@ -504,6 +505,8 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
       _ = modelBuilder.ApplyConfiguration(new TipoCartaConfiguration());
       _ = modelBuilder.ApplyConfiguration(new UtenteConfiguration());
       _ = modelBuilder.ApplyConfiguration(new FuncionarioConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new UtentePatologiaComparticipacaoConfiguration());
+
       
       // Medicos configurations
       _ = modelBuilder.ApplyConfiguration(new MedicoConfiguration());
