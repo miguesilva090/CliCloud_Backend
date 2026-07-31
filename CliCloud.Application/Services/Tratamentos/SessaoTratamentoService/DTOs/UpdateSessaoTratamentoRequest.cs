@@ -57,6 +57,7 @@ namespace CliCloud.Application.Services.Tratamentos.SessaoTratamentoService.DTOs
     public UpdateSessaoTratamentoValidator()
     {
       _ = RuleFor(x => x.TratamentoId).NotEmpty().Must(GSHelpers.BeValidGuid).WithMessage("TratamentoId inválido.");
+      _ = RuleFor(x => x.Data).NotNull().WithMessage("A data da sessão é obrigatória.");
       _ = RuleFor(x => x.FisioterapeutaId).Must(id => string.IsNullOrEmpty(id) || GSHelpers.BeValidGuid(id)).WithMessage("FisioterapeutaId inválido.");
       _ = RuleFor(x => x.AuxiliarId).Must(id => string.IsNullOrEmpty(id) || GSHelpers.BeValidGuid(id)).WithMessage("AuxiliarId inválido.");
       _ = RuleFor(x => x.OutroTecnicoId).Must(id => string.IsNullOrEmpty(id) || GSHelpers.BeValidGuid(id)).WithMessage("OutroTecnicoId inválido.");

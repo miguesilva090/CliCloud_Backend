@@ -85,6 +85,14 @@ namespace CliCloud.Application.Services.Tratamentos.SessaoTratamentoService
 
     public async Task<Response<Guid>> CreateSessaoTratamentoAsync(CreateSessaoTratamentoRequest request)
     {
+      if (!request.Data.HasValue)
+        return ResponseFactory.Fail<Guid>("A data da sessão é obrigatória.");
+
+      var tratamentoId = Guid.Parse(request.TratamentoId);
+      var dup = await ExisteSessaoNaDataAsync(tratamentoId, request.Data.Value.Date, excludeId: null);
+      if (dup)
+        return ResponseFactory.Fail<Guid>("Já existe sessão nesta data.");
+
       var entity = _mapper.Map<SessaoTratamento>(request);
       try
       {
@@ -104,7 +112,15 @@ namespace CliCloud.Application.Services.Tratamentos.SessaoTratamentoService
     public async Task<Response<Guid>> UpdateSessaoTratamentoAsync(UpdateSessaoTratamentoRequest request, Guid id)
     {
       var existing = await _repository.GetByIdAsync<SessaoTratamento, Guid>(id);
-      if (existing == null) return ResponseFactory.Fail<Guid>("SessaoTratamento não encontrada.");
+      if (existing == null) return ResponseFactory.Fail<Guid>("Sessão de tratamento não encontrada.");
+
+      if (!request.Data.HasValue)
+        return ResponseFactory.Fail<Guid>("A data da sessão é obrigatória.");
+
+      var tratamentoId = Guid.Parse(request.TratamentoId);
+      var dup = await ExisteSessaoNaDataAsync(tratamentoId, request.Data.Value.Date, excludeId: id);
+      if (dup)
+        return ResponseFactory.Fail<Guid>("Já existe sessão nesta data.");
 
       var tratamentoAnteriorId = existing.TratamentoId;
       _ = _mapper.Map(request, existing);
@@ -131,6 +147,13 @@ namespace CliCloud.Application.Services.Tratamentos.SessaoTratamentoService
     {
       try
       {
+        var existing = await _repository.GetByIdAsync<SessaoTratamento, Guid>(id);
+        if (existing == null)
+          return ResponseFactory.Fail<Guid>("Sessão de tratamento não encontrada.");
+
+        if (existing.ReciboId.HasValue || existing.DocumentoId.HasValue)
+          return ResponseFactory.Fail<Guid>("Sessão já tem recibo associado");
+
         var entity = await _repository.RemoveByIdAsync<SessaoTratamento, Guid>(id);
         await TratamentoIntegridadeHelper.RecalcularFaltasAsync(entity.TratamentoId, _repository);
         await _repository.SaveChangesAsync();
@@ -140,6 +163,25 @@ namespace CliCloud.Application.Services.Tratamentos.SessaoTratamentoService
       {
         return ResponseFactory.Fail<Guid>(ex.Message);
       }
+    }
+
+    private async Task<bool> ExisteSessaoNaDataAsync(
+      Guid tratamentoId,
+      DateTime data,
+      Guid? excludeId
+    )
+    {
+      var list = (
+        await _repository.GetListAsync<SessaoTratamento, Guid>(
+          new SessoesTratamentoByTratamentoIdSpec(tratamentoId)
+        )
+      ).ToList();
+
+      return list.Any(s =>
+        s.Data.HasValue
+        && s.Data.Value.Date == data.Date
+        && (!excludeId.HasValue || s.Id != excludeId.Value)
+      );
     }
 
     public async Task<Response<IEnumerable<Guid>>> DeleteMultipleSessaoTratamentoAsync(IEnumerable<Guid> ids)
