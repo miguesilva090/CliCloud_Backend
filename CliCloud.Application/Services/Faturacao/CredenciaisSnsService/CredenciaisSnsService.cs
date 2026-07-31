@@ -14,6 +14,8 @@ namespace CliCloud.Application.Services.Faturacao.CredenciaisSnsService;
 public sealed class CredenciaisSnsService(
     IRepositoryAsync repository,
     ICredenciaisSnsAgregadoDeleteExecutor deleteExecutor,
+    ICredenciaisSnsFisioterapiaGateway fisioterapiaGateway,
+    ICredenciaisSnsFisioterapiaDeleteExecutor fisioterapiaDeleteExecutor,
     ICredenciaisSnsLegadoLookup legadoLookup,
     ICurrentClinicaService currentClinicaService
 ) : ICredenciaisSnsService
@@ -26,6 +28,8 @@ public sealed class CredenciaisSnsService(
 
     private readonly IRepositoryAsync _repository = repository;
     private readonly ICredenciaisSnsAgregadoDeleteExecutor _deleteExecutor = deleteExecutor;
+    private readonly ICredenciaisSnsFisioterapiaGateway _fisioterapiaGateway = fisioterapiaGateway;
+    private readonly ICredenciaisSnsFisioterapiaDeleteExecutor _fisioterapiaDeleteExecutor = fisioterapiaDeleteExecutor;
     private readonly ICredenciaisSnsLegadoLookup _legadoLookup = legadoLookup;
     private readonly ICurrentClinicaService _currentClinicaService = currentClinicaService;
 
@@ -38,6 +42,26 @@ public sealed class CredenciaisSnsService(
                 0,
                 filter.PageNumber,
                 filter.PageSize);
+        }
+
+        if (modulo == CredenciaisSnsModulo.Fisioterapia)
+        {
+            if (filter.Filters?.Count > 0)
+                filter.PageNumber = 1;
+
+            string orderFisio = filter.Sorting != null ? GSHelpers.GenerateOrderByString(filter) : "";
+            int? filtroLegado = await ResolverFiltroLegadoAsync().ConfigureAwait(false);
+            PaginatedResponse<CredenciaisSnsLoteTableDTO> pageFisio = await _fisioterapiaGateway
+                .GetPaginatedAsync(
+                    filter.Filters ?? [],
+                    filter.PageNumber,
+                    filter.PageSize,
+                    orderFisio,
+                    filtroLegado)
+                .ConfigureAwait(false);
+
+            await PreencherEnriquecimentosAsync(pageFisio.Data).ConfigureAwait(false);
+            return pageFisio;
         }
 
         if (modulo != CredenciaisSnsModulo.Especialidades)
@@ -72,6 +96,21 @@ public sealed class CredenciaisSnsService(
     {
         if (!CredenciaisSnsModulo.TryParse(modulo, out string moduloNormalizado))
             return ResponseFactory.Fail<bool>("Módulo inválido.");
+
+        if (moduloNormalizado == CredenciaisSnsModulo.Fisioterapia)
+        {
+            try
+            {
+                await _fisioterapiaDeleteExecutor
+                    .ExecutarAsync(request.Indices, cancellationToken)
+                    .ConfigureAwait(false);
+                return ResponseFactory.Success(true);
+            }
+            catch (Exception ex)
+            {
+                return ResponseFactory.Fail<bool>($"Não foi possível eliminar o(s) lote(s): {ex.Message}");
+            }
+        }
 
         if (moduloNormalizado != CredenciaisSnsModulo.Especialidades)
             return ResponseFactory.Fail<bool>("Módulo ainda não disponível.");

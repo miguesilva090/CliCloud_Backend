@@ -12299,6 +12299,9 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Property<int?>("ConfFact")
                         .HasColumnType("int");
 
+                    b.Property<int?>("Confirmado")
+                        .HasColumnType("int");
+
                     b.Property<Guid>("CreatedBy")
                         .HasColumnType("uniqueidentifier");
 
@@ -12340,6 +12343,9 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("DuracaoOutro")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Efetuado")
+                        .HasColumnType("int");
 
                     b.Property<int?>("EstadoI")
                         .HasColumnType("int");
@@ -14269,7 +14275,14 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Property<double?>("Margem")
                         .HasColumnType("float");
 
+                    b.Property<int>("TipoTecnico")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
                     b.HasIndex("EspecialidadeId");
+
+                    b.HasIndex("TipoTecnico");
 
                     b.ToTable("Tecnico", "Tecnicos");
                 });
@@ -14309,6 +14322,9 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("DataRevogacaoRgpd")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DataTratamentoDados")
                         .HasColumnType("datetime2");
 
                     b.Property<DateOnly?>("DataValidadeCU")

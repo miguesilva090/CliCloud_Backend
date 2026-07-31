@@ -23,6 +23,14 @@ namespace CliCloud.Application.Services.Credenciais.LoteDirectService.Specificat
                         if(int.TryParse(filter.Value, out var numeroLote))
                             Query.Where(x => x.NumeroLote == numeroLote);
                         break;
+                    case "numerolote_de":
+                        if (int.TryParse(filter.Value, out var numeroLoteDe))
+                            Query.Where(x => x.NumeroLote.HasValue && x.NumeroLote.Value >= numeroLoteDe);
+                        break;
+                    case "numerolote_ate":
+                        if (int.TryParse(filter.Value, out var numeroLoteAte))
+                            Query.Where(x => x.NumeroLote.HasValue && x.NumeroLote.Value <= numeroLoteAte);
+                        break;
                     case "codigoorganismo":
                         if(int.TryParse(filter.Value, out var codigoOrganismo))
                             Query.Where(x => x.CodigoOrganismo == codigoOrganismo);
@@ -31,9 +39,25 @@ namespace CliCloud.Application.Services.Credenciais.LoteDirectService.Specificat
                         if(int.TryParse(filter.Value, out var ano))
                             Query.Where(x => x.Ano == ano);
                         break;
+                    case "ano_de":
+                        if (int.TryParse(filter.Value, out var anoDe))
+                            Query.Where(x => x.Ano.HasValue && x.Ano.Value >= anoDe);
+                        break;
+                    case "ano_ate":
+                        if (int.TryParse(filter.Value, out var anoAte))
+                            Query.Where(x => x.Ano.HasValue && x.Ano.Value <= anoAte);
+                        break;
                     case "mes":
                         if(int.TryParse(filter.Value, out var mes))
                             Query.Where(x => x.Mes == mes);
+                        break;
+                    case "mes_de":
+                        if (int.TryParse(filter.Value, out var mesDe))
+                            Query.Where(x => x.Mes.HasValue && x.Mes.Value >= mesDe);
+                        break;
+                    case "mes_ate":
+                        if (int.TryParse(filter.Value, out var mesAte))
+                            Query.Where(x => x.Mes.HasValue && x.Mes.Value <= mesAte);
                         break;
                     case "historico":
                         if(bool.TryParse(filter.Value, out var historico))

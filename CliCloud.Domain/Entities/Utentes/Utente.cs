@@ -47,6 +47,7 @@ namespace CliCloud.Domain.Entities.Utentes
     public DateTime? DataConsentimentoMark {get;set;}
     public DateTime? DataRevogacaoMark {get;set;}
     public bool MarkTratamentoDados {get;set;}
+    public DateTime? DataTratamentoDados { get; set; }
     public StatusValidacao? CCValidado {get;set;}
     public DateTime? CCDataValidacao {get;set;}
     public DateOnly? DataValidadeCU {get;set;}

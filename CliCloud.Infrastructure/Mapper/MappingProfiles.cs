@@ -67,6 +67,8 @@ using ServicoDtos = CliCloud.Application.Services.Servicos.ServicoService.DTOs;
 using SubsistemaServicoDtos = CliCloud.Application.Services.Servicos.SubsistemaServicoService.DTOs;
 using TratamentoDtos = CliCloud.Application.Services.Tratamentos.TratamentoService.DTOs;
 using SessaoTratamentoDtos = CliCloud.Application.Services.Tratamentos.SessaoTratamentoService.DTOs;
+using AdmissaoTratamentoAdministrativoDtos = CliCloud.Application.Services.Tratamentos.AdmissaoTratamentoAdministrativoService.DTOs;
+using TratamentoMarcadosAdministrativoDtos = CliCloud.Application.Services.Tratamentos.TratamentoMarcadosAdministrativoService.DTOs;
 using ServicoTratamentoDtos = CliCloud.Application.Services.Tratamentos.ServicoTratamentoService.DTOs;
 using ServicoSessaoDtos = CliCloud.Application.Services.Tratamentos.ServicoSessaoService.DTOs;
 using AparelhoDtos = CliCloud.Application.Services.Tratamentos.AparelhoService.DTOs;
@@ -1044,6 +1046,71 @@ namespace CliCloud.Infrastructure.Mapper
       _ = CreateMap<SessaoTratamento, SessaoTratamentoDtos.SessaoTratamentoLightDTO>();
       _ = CreateMap<SessaoTratamento, SessaoTratamentoDtos.SessaoTratamentoTableDTO>()
         .ForMember(d => d.ServicosCount, o => o.MapFrom(s => s.Servicos.Count));
+      _ = CreateMap<SessaoTratamento, AdmissaoTratamentoAdministrativoDtos.AdmissaoTratamentoTableDTO>()
+        .ForMember(d => d.UtenteId, o => o.MapFrom(s => s.Tratamento != null ? s.Tratamento.UtenteId : null))
+        .ForMember(d => d.UtenteNome, o => o.MapFrom(s => s.Tratamento != null && s.Tratamento.Utente != null ? s.Tratamento.Utente.Nome : null))
+        .ForMember(d => d.NumeroUtente, o => o.MapFrom(s => s.Tratamento != null && s.Tratamento.Utente != null ? s.Tratamento.Utente.NumeroUtente : null))
+        .ForMember(d => d.FisioterapeutaNome, o => o.MapFrom(s => s.Fisioterapeuta != null ? s.Fisioterapeuta.Nome : null))
+        .ForMember(d => d.AuxiliarNome, o => o.MapFrom(s => s.Auxiliar != null ? s.Auxiliar.Nome : null))
+        .ForMember(d => d.OutroTecnicoNome, o => o.MapFrom(s => s.OutroTecnico != null ? s.OutroTecnico.Nome : null))
+        .ForMember(d => d.LocalTratamentoId, o => o.MapFrom(s => s.Tratamento != null ? s.Tratamento.LocalTratamentoId : null))
+        .ForMember(d => d.LocalTratamentoNome, o => o.MapFrom(s => s.Tratamento != null && s.Tratamento.LocalTratamento != null ? s.Tratamento.LocalTratamento.Designacao : null))
+        .ForMember(d => d.NumSessaoTratamento, o => o.MapFrom(s => s.Tratamento != null ? s.Tratamento.NumSessao : null))
+        .ForMember(d => d.NFalta, o => o.MapFrom(s => s.Tratamento != null ? s.Tratamento.NFalta : null))
+        .ForMember(d => d.Designacao, o => o.MapFrom(s => s.Tratamento != null ? s.Tratamento.Designacao : null));
+      _ = CreateMap<Tratamento, TratamentoMarcadosAdministrativoDtos.TratamentoMarcadosTableDTO>()
+        .ForMember(
+          d => d.UtenteNome,
+          o => o.MapFrom(s => s.Utente != null ? s.Utente.Nome : null)
+        )
+        .ForMember(
+          d => d.NumeroUtente,
+          o => o.MapFrom(s => s.Utente != null ? s.Utente.NumeroUtente : null)
+        )
+        .ForMember(
+          d => d.OrganismoNome,
+          o =>
+            o.MapFrom(s =>
+              s.Organismo != null
+                ? (s.Organismo.Nome
+                  ?? s.Organismo.NomeComercial
+                  ?? s.Organismo.Abreviatura)
+                : null
+            )
+        )
+        .ForMember(
+          d => d.LocalTratamentoNome,
+          o =>
+            o.MapFrom(s =>
+              s.LocalTratamento != null ? s.LocalTratamento.Designacao : null
+            )
+        )
+        .ForMember(d => d.Suspenso, o => o.MapFrom(s => s.Suspenso ?? 0))
+        .ForMember(d => d.Provisorio, o => o.MapFrom(s => s.Provisorio ?? 0))
+        .ForMember(
+          d => d.Iniciado,
+          o =>
+            o.MapFrom(s =>
+              s.DataInic.HasValue
+              && s.DataFim.HasValue
+              && s.DataInic.Value.Date < DateTime.Today
+              && s.DataFim.Value.Date >= DateTime.Today
+                ? 1
+                : 0
+            )
+        )
+        .ForMember(
+          d => d.Terminado,
+          o =>
+            o.MapFrom(s =>
+              s.DataFim.HasValue
+              && s.DataFim.Value.Date < DateTime.Today
+              && (s.Suspenso ?? 0) != 1
+                ? 1
+                : 0
+            )
+        )
+        .ForMember(d => d.Debito, o => o.Ignore());
       _ = CreateMap<SessaoTratamentoDtos.CreateSessaoTratamentoRequest, SessaoTratamento>()
         .ForMember(d => d.TratamentoId, o => o.MapFrom(s => ToGuid(s.TratamentoId)))
         .ForMember(d => d.FisioterapeutaId, o => o.MapFrom(s => ToNullableGuid(s.FisioterapeutaId)))
@@ -1479,6 +1546,7 @@ namespace CliCloud.Infrastructure.Mapper
       // ---- Tecnico ----
       _ = CreateMap<CliCloud.Domain.Entities.Tecnicos.Tecnico, TecnicoDtos.TecnicoDTO>()
         .ForMember(d => d.Status, o => o.MapFrom(s => s.Status.HasValue ? (int?)s.Status.Value : null))
+        .ForMember(d => d.TipoTecnico, o => o.MapFrom(s => (int)s.TipoTecnico))
         .ForMember(d => d.Rua, o => o.MapFrom(s => s.Rua))
         .ForMember(d => d.CodigoPostal, o => o.MapFrom(s => s.CodigoPostal))
         .ForMember(d => d.Freguesia, o => o.MapFrom(s => s.Freguesia))
@@ -1491,6 +1559,7 @@ namespace CliCloud.Infrastructure.Mapper
 
       _ = CreateMap<CliCloud.Domain.Entities.Tecnicos.Tecnico, TecnicoDtos.TecnicoLightDTO>()
         .ForMember(d => d.Status, o => o.MapFrom(s => s.Status.HasValue ? (int?)s.Status.Value : null))
+        .ForMember(d => d.TipoTecnico, o => o.MapFrom(s => (int)s.TipoTecnico))
         .ForMember(d => d.RuaNome, o => o.MapFrom(s => s.Rua != null ? s.Rua.Nome : null))
         .ForMember(d => d.CodigoPostalCodigo, o => o.MapFrom(s => s.CodigoPostal != null ? s.CodigoPostal.Codigo : null))
         .ForMember(d => d.CodigoPostalLocalidade, o => o.MapFrom(s => s.CodigoPostal != null ? s.CodigoPostal.Localidade : null))
@@ -1503,6 +1572,7 @@ namespace CliCloud.Infrastructure.Mapper
 
       _ = CreateMap<CliCloud.Domain.Entities.Tecnicos.Tecnico, TecnicoDtos.TecnicoTableDTO>()
         .ForMember(d => d.Status, o => o.MapFrom(s => s.Status.HasValue ? (int?)s.Status.Value : null))
+        .ForMember(d => d.TipoTecnico, o => o.MapFrom(s => (int)s.TipoTecnico))
         .ForMember(d => d.Rua, o => o.MapFrom(s => s.Rua))
         .ForMember(d => d.CodigoPostal, o => o.MapFrom(s => s.CodigoPostal))
         .ForMember(d => d.Freguesia, o => o.MapFrom(s => s.Freguesia))
@@ -1513,6 +1583,7 @@ namespace CliCloud.Infrastructure.Mapper
         .ForMember(d => d.Contacto, o => o.MapFrom(s => s.EntidadeContactos != null ? s.EntidadeContactos.Where(c => c.EntidadeContactoTipoId == 1).Select(c => c.Valor).FirstOrDefault() ?? s.EntidadeContactos.Where(c => c.EntidadeContactoTipoId == 2).Select(c => c.Valor).FirstOrDefault() : null));
 
       _ = CreateMap<TecnicoDtos.CreateTecnicoRequest, CliCloud.Domain.Entities.Tecnicos.Tecnico>()
+        .ForMember(d => d.TipoTecnico, o => o.MapFrom(s => (TipoTecnico)s.TipoTecnico))
         .ForMember(d => d.SexoId, o => o.MapFrom(s => ToNullableGuid(s.SexoId)))
         .ForMember(d => d.RuaId, o => o.MapFrom(s => ToNullableGuid(s.RuaId)))
         .ForMember(d => d.CodigoPostalId, o => o.MapFrom(s => ToNullableGuid(s.CodigoPostalId)))
@@ -1530,6 +1601,7 @@ namespace CliCloud.Infrastructure.Mapper
         .ForMember(d => d.EntidadeContactos, o => o.Ignore());
 
       _ = CreateMap<TecnicoDtos.UpdateTecnicoRequest, CliCloud.Domain.Entities.Tecnicos.Tecnico>()
+        .ForMember(d => d.TipoTecnico, o => o.MapFrom(s => (TipoTecnico)s.TipoTecnico))
         .ForMember(d => d.SexoId, o => o.MapFrom(s => ToNullableGuid(s.SexoId)))
         .ForMember(d => d.RuaId, o => o.MapFrom(s => ToNullableGuid(s.RuaId)))
         .ForMember(d => d.CodigoPostalId, o => o.MapFrom(s => ToNullableGuid(s.CodigoPostalId)))

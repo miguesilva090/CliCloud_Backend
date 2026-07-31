@@ -6,7 +6,10 @@ using CliCloud.Application.Services.Credenciais.LoteDirectService.Filters;
 using CliCloud.Application.Services.Credenciais.LoteDirectService.Specifications;
 using CliCloud.Application.Utility;
 using CliCloud.Domain.Entities.Credenciais;
+using CliCloud.Application.Services.Faturacao.CredenciaisSnsService;
+using CliCloud.Domain.Entities.Core;
 using CliCloud.Domain.Entities.Organismos;
+using Microsoft.Extensions.Logging;
 
 namespace CliCloud.Application.Services.Credenciais.LoteDirectService
 {
@@ -19,9 +22,15 @@ namespace CliCloud.Application.Services.Credenciais.LoteDirectService
         ILoteDirectSaveValidator saveValidator,
         ILoteDirectPassarHistoricoExecutor passarHistoricoExecutor,
         ILoteDirectPassarAtivoExecutor passarAtivoExecutor,
-        ILoteDirectNovoLoteResolver novoLoteResolver
+        ILoteDirectNovoLoteResolver novoLoteResolver,
+        ILoteDirectEspHistoricoGateway espHistoricoGateway,
+        ICredenciaisSnsLegadoLookup legadoLookup,
+        ICurrentClinicaService currentClinicaService,
+        ILogger<LoteDirectService> logger
         ) : ILoteDirectService
     {
+        private const int TipoLoteValorExamesSemPapel = 97;
+
         private readonly IRepositoryAsync _repository = repository;
         private readonly IMapper _mapper = mapper;
         private readonly ILoteDirectCorrecaoLotesExecutor _correcaoLotesExecutor = correcaoLotesExecutor;
@@ -31,6 +40,10 @@ namespace CliCloud.Application.Services.Credenciais.LoteDirectService
         private readonly ILoteDirectPassarHistoricoExecutor _passarHistoricoExecutor = passarHistoricoExecutor;
         private readonly ILoteDirectPassarAtivoExecutor _passarAtivoExecutor = passarAtivoExecutor;
         private readonly ILoteDirectNovoLoteResolver _novoLoteResolver = novoLoteResolver;
+        private readonly ILoteDirectEspHistoricoGateway _espHistoricoGateway = espHistoricoGateway;
+        private readonly ICredenciaisSnsLegadoLookup _legadoLookup = legadoLookup;
+        private readonly ICurrentClinicaService _currentClinicaService = currentClinicaService;
+        private readonly ILogger<LoteDirectService> _logger = logger;
 
         public async Task<PaginatedResponse<LoteDirectTableDTO>> GetPaginatedAsync(LoteDirectTableFilter filter)
         {
@@ -41,7 +54,7 @@ namespace CliCloud.Application.Services.Credenciais.LoteDirectService
                 filter.PageNumber,
                 filter.PageSize,
                 spec);
-            await PreencherSiglasOrganismoAsync(page.Data).ConfigureAwait(false);
+            await PreencherEnriquecimentosListagemAsync(page.Data).ConfigureAwait(false);
             return page;
         }
 
@@ -81,6 +94,7 @@ namespace CliCloud.Application.Services.Credenciais.LoteDirectService
             await _repository.CreateAsync<LoteDirect, Guid>(entity);
             await SincronizarLinhasAsync(entity.Id, request.Linhas, request.Linhas789);
             await _repository.SaveChangesAsync();
+            await SincronizarEspMedicoSeNecessarioAsync(request).ConfigureAwait(false);
             await TentarAutoCorrigirAgregadosAsync(entity.Ano, entity.Mes).ConfigureAwait(false);
             return ResponseFactory.Success(entity.Id);
         }
@@ -96,6 +110,7 @@ namespace CliCloud.Application.Services.Credenciais.LoteDirectService
             await _repository.UpdateAsync<LoteDirect, Guid>(entity);
             await SincronizarLinhasAsync(entity.Id, request.Linhas, request.Linhas789);
             await _repository.SaveChangesAsync();
+            await SincronizarEspMedicoSeNecessarioAsync(request).ConfigureAwait(false);
             await TentarAutoCorrigirAgregadosAsync(entity.Ano, entity.Mes).ConfigureAwait(false);
             return ResponseFactory.Success(entity.Id);
         }
@@ -241,14 +256,54 @@ namespace CliCloud.Application.Services.Credenciais.LoteDirectService
             {
                 await _correcaoLotesExecutor.ExecutarAsync(ano.Value, mes.Value).ConfigureAwait(false);
             }
-            catch
+            catch (Exception ex)
             {
-                // No-op intencional: manter gravação do lançamento robusta.
+                _logger.LogWarning(
+                    ex,
+                    "Falha ao auto-corrigir agregados de lotes para {Ano}/{Mes}.",
+                    ano.Value,
+                    mes.Value);
             }
         }
 
-        /// <summary>Código no lote = <see cref="Organismo.CodigoULSNova"/>; exibir abreviatura na listagem.</summary>
-        private async Task PreencherSiglasOrganismoAsync(List<LoteDirectTableDTO> linhas)
+        private async Task SincronizarEspMedicoSeNecessarioAsync(CreateLoteDirectRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Credencial) || string.IsNullOrWhiteSpace(request.CodigoMedico))
+                return;
+
+            if (!await IsTipoExamesSemPapelAsync(request.TipoLote).ConfigureAwait(false))
+                return;
+
+            LoteDirectEspRequisicaoData? esp = await _espHistoricoGateway
+                .ObterPorCredencialAsync(request.Credencial.Trim())
+                .ConfigureAwait(false);
+
+            if (esp is null
+                || string.Equals(esp.CodigoMedico, request.CodigoMedico.Trim(), StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            await _espHistoricoGateway
+                .UpdateMedicoAsync(request.Credencial.Trim(), request.CodigoMedico.Trim())
+                .ConfigureAwait(false);
+        }
+
+        private async Task<bool> IsTipoExamesSemPapelAsync(int? tipoLoteId)
+        {
+            if (tipoLoteId is null or <= 0)
+                return false;
+
+            List<TipoLote> tipos = (await _repository
+                .GetListAsync<TipoLote, int>(new TipoLoteByIdsSpec([tipoLoteId.Value]))
+                .ConfigureAwait(false))
+                .ToList();
+
+            return tipos.FirstOrDefault()?.Valor == TipoLoteValorExamesSemPapel;
+        }
+
+        /// <summary>Código no lote = <see cref="Organismo.CodigoULSNova"/>; exibir abreviatura e nome na listagem.</summary>
+        private async Task PreencherEnriquecimentosListagemAsync(List<LoteDirectTableDTO> linhas)
         {
             if (linhas is not { Count: > 0 })
                 return;
@@ -259,39 +314,116 @@ namespace CliCloud.Application.Services.Credenciais.LoteDirectService
                 .Select(c => c!.Value)
                 .Distinct()
                 .ToArray();
-            if (codigos.Length == 0)
-                return;
 
-            Dictionary<int, string?> porCodigoUls = await ObterSiglasOrganismoPorCodigoUlsAsync(codigos).ConfigureAwait(false);
+            Dictionary<int, OrganismoListagemEnriquecimento> porCodigoUls =
+                await ObterOrganismoEnriquecimentosPorCodigoUlsAsync(codigos).ConfigureAwait(false);
+
+            int[] tipoLoteIds = linhas
+                .Where(x => x.TipoLote.HasValue)
+                .Select(x => x.TipoLote!.Value)
+                .Distinct()
+                .ToArray();
+
+            Dictionary<int, string?> tipoLoteDesignacoes = [];
+            HashSet<int> tipoLoteIdSet = tipoLoteIds.ToHashSet();
+            if (tipoLoteIdSet.Count > 0)
+            {
+                List<TipoLote> tipos = (await _repository
+                    .GetListAsync<TipoLote, int>(new TipoLoteSearchList())
+                    .ConfigureAwait(false))
+                    .Where(x => tipoLoteIdSet.Contains(x.Id))
+                    .ToList();
+                foreach (TipoLote tipo in tipos)
+                    tipoLoteDesignacoes[tipo.Id] = tipo.Designa;
+            }
+
+            int[] tipoServicoCodigos = linhas
+                .Where(x => x.TipoServico.HasValue)
+                .Select(x => x.TipoServico!.Value)
+                .Distinct()
+                .ToArray();
+
+            int? filtroLegado = await ResolverFiltroLegadoAsync().ConfigureAwait(false);
+            IReadOnlyDictionary<int, string> nomesTipoServicoLegado = await _legadoLookup
+                .ObterNomesTipoServicoAsync(tipoServicoCodigos, filtroLegado)
+                .ConfigureAwait(false);
 
             foreach (LoteDirectTableDTO row in linhas)
             {
                 if (row.CodigoOrganismo is null)
                     continue;
-                if (porCodigoUls.TryGetValue(row.CodigoOrganismo.Value, out string? s) && !string.IsNullOrWhiteSpace(s))
-                    row.OrganismoSigla = s;
+
+                if (porCodigoUls.TryGetValue(row.CodigoOrganismo.Value, out OrganismoListagemEnriquecimento? org))
+                {
+                    if (!string.IsNullOrWhiteSpace(org.Sigla))
+                        row.OrganismoSigla = org.Sigla;
+                    if (!string.IsNullOrWhiteSpace(org.Nome))
+                        row.OrganismoNome = org.Nome;
+                }
+
+                if (row.TipoLote is int tipoLoteId
+                    && tipoLoteDesignacoes.TryGetValue(tipoLoteId, out string? designaLote)
+                    && !string.IsNullOrWhiteSpace(designaLote))
+                    row.TipoLoteDesignacao = designaLote;
+
+                if (row.TipoServico is int tipoServico
+                    && nomesTipoServicoLegado.TryGetValue(tipoServico, out string? nomeTipoServico)
+                    && !string.IsNullOrWhiteSpace(nomeTipoServico))
+                    row.TipoServicoDesignacao = nomeTipoServico;
             }
         }
 
-        private async Task<Dictionary<int, string?>> ObterSiglasOrganismoPorCodigoUlsAsync(IReadOnlyCollection<int> codigosUls)
+        private async Task<int?> ResolverFiltroLegadoAsync()
+        {
+            if (!Guid.TryParse(_currentClinicaService.ClinicaId, out Guid clinicaId) || clinicaId == Guid.Empty)
+                return null;
+
+            Clinica? clinica = await _repository
+                .GetByIdAsync<Clinica, Guid>(clinicaId)
+                .ConfigureAwait(false);
+
+            return clinica?.Cid;
+        }
+
+        private async Task<Dictionary<int, OrganismoListagemEnriquecimento>> ObterOrganismoEnriquecimentosPorCodigoUlsAsync(
+            IReadOnlyCollection<int> codigosUls)
         {
             if (codigosUls is not { Count: > 0 })
                 return [];
 
             var orgSpec = new OrganismosByCodigoULSNovaSpec(codigosUls);
             List<Organismo> organismos = (await _repository.GetListAsync<Organismo, Guid>(orgSpec).ConfigureAwait(false)).ToList();
-            Dictionary<int, string?> porCodigoUls = [];
+            Dictionary<int, OrganismoListagemEnriquecimento> porCodigoUls = [];
             foreach (Organismo o in organismos.Where(x => x.CodigoULSNova.HasValue))
             {
                 int c = o.CodigoULSNova!.Value;
-                if (!porCodigoUls.TryGetValue(c, out string? sigla) || string.IsNullOrWhiteSpace(sigla))
+                if (porCodigoUls.ContainsKey(c))
+                    continue;
+
+                string? abv = string.IsNullOrWhiteSpace(o.Abreviatura) ? null : o.Abreviatura.Trim();
+                string? nome = string.IsNullOrWhiteSpace(o.Nome) ? null : o.Nome.Trim();
+                porCodigoUls[c] = new OrganismoListagemEnriquecimento
                 {
-                    string? abv = string.IsNullOrWhiteSpace(o.Abreviatura) ? null : o.Abreviatura.Trim();
-                    porCodigoUls[c] = abv;
-                }
+                    Sigla = abv,
+                    Nome = nome,
+                };
             }
 
             return porCodigoUls;
+        }
+
+        private sealed class OrganismoListagemEnriquecimento
+        {
+            public string? Sigla { get; init; }
+            public string? Nome { get; init; }
+        }
+
+        private async Task<Dictionary<int, string?>> ObterSiglasOrganismoPorCodigoUlsAsync(IReadOnlyCollection<int> codigosUls)
+        {
+            Dictionary<int, OrganismoListagemEnriquecimento> enriquecimentos =
+                await ObterOrganismoEnriquecimentosPorCodigoUlsAsync(codigosUls).ConfigureAwait(false);
+
+            return enriquecimentos.ToDictionary(x => x.Key, x => x.Value.Sigla);
         }
 
         private async Task PreencherAgregadosEnriquecimentosAsync(List<LoteDirectAgregadoTableDTO> linhas)

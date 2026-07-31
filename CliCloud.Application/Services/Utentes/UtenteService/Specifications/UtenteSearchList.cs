@@ -1,5 +1,6 @@
 using Ardalis.Specification;
 using CliCloud.Domain.Entities.Utentes;
+using CliCloud.Domain.Enums;
 
 namespace CliCloud.Application.Services.Utentes.UtenteService.Specifications
 {
@@ -7,13 +8,14 @@ namespace CliCloud.Application.Services.Utentes.UtenteService.Specifications
     {
         public UtenteSearchList(string? keyword = "")
         {
-            // filters
+            _ = Query.Where(x => x.TipoEntidade == EntidadeTipo.Utente);
+
             if (!string.IsNullOrWhiteSpace(keyword))
             {
                 _ = Query.Where(x => x.Nome.Contains(keyword));
             }
 
-            _ = Query.OrderByDescending(x => x.CreatedOn); // default sort order
+            _ = Query.OrderByDescending(x => x.CreatedOn);
         }
     }
 }

@@ -22,7 +22,7 @@ namespace CliCloud.Application.Services.Utentes.UtenteService.DTOs
         public required string PaisId { get; set; }
         public required string NumeroPorta { get; set; }
         public required string AndarRua { get; set; }
-        public required string Observacoes { get; set; }
+        public string? Observacoes { get; set; }
         public required int Status { get; set; }
         public string? UrlFoto { get; set; }
         public IEnumerable<CreateEntidadeContactoItemRequest>? EntidadeContactos { get; set; }
@@ -77,6 +77,7 @@ namespace CliCloud.Application.Services.Utentes.UtenteService.DTOs
         public DateTime? DataConsentimentoMark { get; set; }
         public DateTime? DataRevogacaoMark { get; set; }
         public bool MarkTratamentoDados { get; set; }
+        public DateTime? DataTratamentoDados { get; set; }
         public StatusValidacao? CCValidado { get; set; }
         public DateTime? CCDataValidacao { get; set; }
         public DateOnly? DataValidadeCU { get; set; }
@@ -110,14 +111,13 @@ namespace CliCloud.Application.Services.Utentes.UtenteService.DTOs
             _ = RuleFor(x => x.PaisId).NotEmpty().Must(GSHelpers.BeValidGuid).WithMessage("PaisId deve ser um GUID válido e não estar vazio.");
             _ = RuleFor(x => x.NumeroPorta).NotEmpty();
             _ = RuleFor(x => x.AndarRua).NotEmpty();
-            _ = RuleFor(x => x.Observacoes).NotEmpty();
-            // Status é um enum no domínio (0..3). Não usar NotEmpty (0 é válido).
             _ = RuleFor(x => x.Status)
               .InclusiveBetween(0, 3)
               .WithMessage("Status deve ser um valor válido (0 a 3).");
             _ = RuleFor(x => x.UrlFoto).Must(url => string.IsNullOrEmpty(url) || Uri.TryCreate(url, UriKind.Absolute, out _)).WithMessage("UrlFoto deve ser uma URL válida.");
-            _ = RuleFor(x => x.EntidadeContactos).NotEmpty().WithMessage("EntidadeContactos deve ser um array não vazio.");
-            _ = RuleForEach(x => x.EntidadeContactos).SetValidator(new CreateEntidadeContactoItemValidator()).When(x => x.EntidadeContactos != null);
+            _ = RuleForEach(x => x.EntidadeContactos)
+                .SetValidator(new CreateEntidadeContactoItemValidator())
+                .When(x => x.EntidadeContactos != null && x.EntidadeContactos.Any());
             _ = RuleFor(x => x.IdUtilizador).Must(id => string.IsNullOrWhiteSpace(id) || GSHelpers.BeValidGuid(id)).WithMessage("IdUtilizador deve ser um GUID válido.");
         }
     }

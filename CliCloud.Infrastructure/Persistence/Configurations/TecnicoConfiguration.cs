@@ -11,6 +11,13 @@ namespace CliCloud.Infrastructure.Persistence.Configurations
       // Configure TPT (Table Per Type) inheritance
       builder.ToTable("Tecnico", "Tecnicos");
 
+      builder.Property(t => t.TipoTecnico)
+        .HasConversion<int>()
+        .HasDefaultValue(CliCloud.Domain.Enums.TipoTecnico.Fisioterapeuta)
+        .IsRequired();
+
+      builder.HasIndex(t => t.TipoTecnico);
+
       // Relacionamento N:1 com Especialidade
       builder.HasOne(t => t.Especialidade)
         .WithMany()

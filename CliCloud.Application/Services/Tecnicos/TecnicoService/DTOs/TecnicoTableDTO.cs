@@ -53,5 +53,6 @@ namespace CliCloud.Application.Services.Tecnicos.TecnicoService.DTOs
         public Guid? EspecialidadeId { get; set; }
         public string? EspecialidadeNome { get; set; }
         public double? Margem { get; set; }
+        public int TipoTecnico { get; set; }
     }
 }

@@ -186,6 +186,9 @@ namespace CliCloud.Application.Services.Tecnicos.TecnicoService
 
             Tecnico newTecnico = _mapper.Map(request, new Tecnico());
             newTecnico.TipoEntidade = EntidadeTipo.Tecnico;
+            newTecnico.TipoTecnico = Enum.IsDefined(typeof(TipoTecnico), request.TipoTecnico)
+              ? (TipoTecnico)request.TipoTecnico
+              : TipoTecnico.Fisioterapeuta;
 
             // Converter EspecialidadeId de string para Guid
             if (!string.IsNullOrWhiteSpace(request.EspecialidadeId) && Guid.TryParse(request.EspecialidadeId, out Guid especialidadeId))
@@ -251,6 +254,9 @@ namespace CliCloud.Application.Services.Tecnicos.TecnicoService
 
             Tecnico updatedTecnico = _mapper.Map(request, TecnicoInDb);
             updatedTecnico.TipoEntidade = EntidadeTipo.Tecnico;
+            updatedTecnico.TipoTecnico = Enum.IsDefined(typeof(TipoTecnico), request.TipoTecnico)
+              ? (TipoTecnico)request.TipoTecnico
+              : TipoTecnico.Fisioterapeuta;
 
             // Converter EspecialidadeId de string para Guid
             if (!string.IsNullOrWhiteSpace(request.EspecialidadeId) && Guid.TryParse(request.EspecialidadeId, out Guid especialidadeId))

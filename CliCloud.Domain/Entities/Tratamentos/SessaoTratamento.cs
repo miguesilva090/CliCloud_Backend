@@ -53,6 +53,10 @@ namespace CliCloud.Domain.Entities.Tratamentos
     // Status
     public int? EstadoU { get; set; }
     public int? EstadoI { get; set; }
+    /// <summary>Presente (legado SESSTRAT.confirmado).</summary>
+    public int? Confirmado { get; set; }
+    /// <summary>Sessão efectuada (legado SESSTRAT.efetuado).</summary>
+    public int? Efetuado { get; set; }
     public int? Faltou { get; set; }
     public int? CompensaFalta { get; set; }
     public string? ObsFalta { get; set; }

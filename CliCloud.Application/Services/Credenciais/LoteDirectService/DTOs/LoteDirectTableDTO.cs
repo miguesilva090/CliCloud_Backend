@@ -15,10 +15,14 @@ namespace CliCloud.Application.Services.Credenciais.LoteDirectService.DTOs
 
         /// <summary>Abreviatura / sigla do organismo (via <c>CodigoULSNova</c> = código no lote).</summary>
         public string? OrganismoSigla { get; set; }
+        public string? OrganismoNome { get; set; }
         public decimal? ValorTaxas { get; set; }
         public decimal? ValorTotal { get; set; }
         public int? TipoServico { get; set; }
+        public string? TipoServicoDesignacao { get; set; }
         public int? TipoLote { get; set; }
+        public string? TipoLoteDesignacao { get; set; }
+        public int? Isencao { get; set; }
         public bool Historico { get; set; }
         public DateTime CreatedOn { get; set; }
         

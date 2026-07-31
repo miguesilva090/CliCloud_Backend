@@ -1,5 +1,6 @@
 using Ardalis.Specification;
 using CliCloud.Domain.Entities.Utentes;
+using CliCloud.Domain.Enums;
 
 namespace CliCloud.Application.Services.Utentes.UtenteService.Specifications
 {
@@ -7,6 +8,8 @@ namespace CliCloud.Application.Services.Utentes.UtenteService.Specifications
   {
     public UtenteSearchByName(string? name)
     {
+      _ = Query.Where(x => x.TipoEntidade == EntidadeTipo.Utente);
+
       _ = Query.Include(x => x.Rua)
         .ThenInclude(x => x.Freguesia)
         .ThenInclude(x => x.Concelho)

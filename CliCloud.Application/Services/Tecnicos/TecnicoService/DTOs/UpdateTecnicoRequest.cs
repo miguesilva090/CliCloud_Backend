@@ -45,6 +45,8 @@ namespace CliCloud.Application.Services.Tecnicos.TecnicoService.DTOs
         public string? EspecialidadeId { get; set; }
         public double? Margem { get; set; }
         public string? IdUtilizador { get; set; }
+        /// <summary>1=Fisioterapeuta, 2=Auxiliar, 3=Outro.</summary>
+        public int TipoTecnico { get; set; } = (int)CliCloud.Domain.Enums.TipoTecnico.Fisioterapeuta;
     }
 
     public class UpdateTecnicoValidator : AbstractValidator<UpdateTecnicoRequest>
@@ -67,6 +69,9 @@ namespace CliCloud.Application.Services.Tecnicos.TecnicoService.DTOs
             _ = RuleFor(x => x.UrlFoto).Must(url => string.IsNullOrEmpty(url) || Uri.TryCreate(url, UriKind.Absolute, out _)).WithMessage("UrlFoto deve ser uma URL válida.");
             _ = RuleFor(x => x.EspecialidadeId).Must(id => string.IsNullOrWhiteSpace(id) || GSHelpers.BeValidGuid(id)).WithMessage("EspecialidadeId deve ser um GUID válido.");
             _ = RuleFor(x => x.IdUtilizador).Must(id => string.IsNullOrWhiteSpace(id) || GSHelpers.BeValidGuid(id)).WithMessage("IdUtilizador deve ser um GUID válido.");
+            _ = RuleFor(x => x.TipoTecnico)
+              .InclusiveBetween(1, 3)
+              .WithMessage("TipoTecnico deve ser 1 (Fisioterapeuta), 2 (Auxiliar) ou 3 (Outro).");
             _ = RuleForEach(x => x.EntidadeContactos).SetValidator(new UpsertEntidadeContactoItemValidator()).When(x => x.EntidadeContactos != null);
         }
     }

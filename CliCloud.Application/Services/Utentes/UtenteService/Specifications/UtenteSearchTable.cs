@@ -10,6 +10,8 @@ namespace CliCloud.Application.Services.Utentes.UtenteService.Specifications
     {
         public UtenteSearchTable(List<TableFilter> filters, string? dynamicOrder = "")
         {
+          _ = Query.Where(x => x.TipoEntidade == EntidadeTipo.Utente);
+
           _ = Query
             .Include(x => x.Rua)
               .ThenInclude(x => x.Freguesia)

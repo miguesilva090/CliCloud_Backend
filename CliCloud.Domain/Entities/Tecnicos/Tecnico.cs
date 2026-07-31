@@ -3,6 +3,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using CliCloud.Domain.Entities.Especialidades;
 using CliCloud.Domain.Entities.Utility;
+using CliCloud.Domain.Enums;
 
 namespace CliCloud.Domain.Entities.Tecnicos
 {
@@ -13,6 +14,8 @@ namespace CliCloud.Domain.Entities.Tecnicos
     public Especialidade? Especialidade { get; set; }
     public double? Margem { get; set; }
     public Guid? IdUtilizador { get; set; }
+    /// <summary>Papel em tratamentos: Fisioterapeuta / Auxiliar / Outro.</summary>
+    public TipoTecnico TipoTecnico { get; set; } = TipoTecnico.Fisioterapeuta;
     public HorarioTecnico? Horario { get; set; }
   }
 }

@@ -100,6 +100,13 @@ namespace CliCloud.Application.Services.Tecnicos.TecnicoService.Specifications
                       _ = Query.Where(x => x.Especialidade != null && x.Especialidade.Nome.Contains(filter.Value));
                     }
                     break;
+                  case "tipotecnico":
+                    if(!string.IsNullOrWhiteSpace(filter.Value) && int.TryParse(filter.Value, out int tipoTecnico)
+                      && Enum.IsDefined(typeof(TipoTecnico), tipoTecnico))
+                    {
+                      _ = Query.Where(x => x.TipoTecnico == (TipoTecnico)tipoTecnico);
+                    }
+                    break;
                   default:
                     break;
                 }

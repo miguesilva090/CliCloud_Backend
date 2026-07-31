@@ -16,6 +16,7 @@ using CliCloud.Domain.Entities.Medicos;
 using CliCloud.Domain.Entities.Tecnicos;
 using CliCloud.Domain.Entities.Tratamentos;
 using CliCloud.Domain.Entities.Utentes;
+using CliCloud.Application.Services.Tratamentos.SessaoTratamentoService.Specifications;
 
 namespace CliCloud.Application.Services.Tratamentos.TratamentoService
 {
@@ -135,6 +136,10 @@ namespace CliCloud.Application.Services.Tratamentos.TratamentoService
     {
       try
       {
+        var block = await GetBloqueioEliminacaoPorReciboAsync(id);
+        if (block != null)
+          return ResponseFactory.Fail<Guid>(block);
+
         var entity = await _repository.RemoveByIdAsync<Tratamento, Guid>(id);
         await _repository.SaveChangesAsync();
         return ResponseFactory.Success(entity.Id);
@@ -155,6 +160,13 @@ namespace CliCloud.Application.Services.Tratamentos.TratamentoService
       {
         try
         {
+          var block = await GetBloqueioEliminacaoPorReciboAsync(id);
+          if (block != null)
+          {
+            fail.Add(block);
+            continue;
+          }
+
           var e = await _repository.GetByIdAsync<Tratamento, Guid>(id);
           if (e == null) { fail.Add($"Tratamento {id} não encontrado."); continue; }
           var removed = await _repository.RemoveByIdAsync<Tratamento, Guid>(id);
@@ -174,11 +186,30 @@ namespace CliCloud.Application.Services.Tratamentos.TratamentoService
     }
 
     /// <summary>
-    /// Atualiza o estado de "alta" de um tratamento.
-    /// No modelo novo vamos usar DataFim como indicador de alta:
-    /// - alta = true  => DataFim = DateTime.UtcNow (se ainda não tiver)
-    /// - alta = false => DataFim = null
+    /// Paridade TRATAMENDel_Execute: bloqueia se tratamento ou sessões tiverem recibo/documento.
     /// </summary>
+    private async Task<string?> GetBloqueioEliminacaoPorReciboAsync(Guid tratamentoId)
+    {
+      const string msg = "Tratamento já tem recibo associado";
+
+      var tratamento = await _repository.GetByIdAsync<Tratamento, Guid>(tratamentoId);
+      if (tratamento == null)
+        return $"Tratamento {tratamentoId} não encontrado.";
+
+      if (tratamento.ReciboId.HasValue || tratamento.DocumentoId.HasValue)
+        return msg;
+
+      var sessoes = (
+        await _repository.GetListAsync<SessaoTratamento, Guid>(
+          new SessoesTratamentoByTratamentoIdSpec(tratamentoId)
+        )
+      ).ToList();
+
+      if (sessoes.Any(s => s.ReciboId.HasValue || s.DocumentoId.HasValue))
+        return msg;
+
+      return null;
+    }
     public async Task<Response<Guid>> UpdateTratamentoAltaAsync(Guid id, bool alta)
     {
       var existing = await _repository.GetByIdAsync<Tratamento, Guid>(id);
