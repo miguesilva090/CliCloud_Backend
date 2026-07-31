@@ -28,6 +28,7 @@ namespace CliCloud.Application.Services.Utentes.UtenteService.Specifications
         .Include(x => x.Habilitacao)
         .Include(x => x.Profissao)
         .Include(x => x.Sexo)
+        .Include(x => x.EntidadeContactos)
         .Where(x => x.Id == id);
     }
   }
