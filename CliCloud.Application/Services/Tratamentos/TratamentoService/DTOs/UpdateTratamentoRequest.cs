@@ -87,7 +87,11 @@ namespace CliCloud.Application.Services.Tratamentos.TratamentoService.DTOs
       _ = RuleFor(x => x.FisioterapeutaId).Must(id => string.IsNullOrEmpty(id) || GSHelpers.BeValidGuid(id)).WithMessage("FisioterapeutaId inválido.");
       _ = RuleFor(x => x.AuxiliarId).Must(id => string.IsNullOrEmpty(id) || GSHelpers.BeValidGuid(id)).WithMessage("AuxiliarId inválido.");
       _ = RuleFor(x => x.OutroTecnicoId).Must(id => string.IsNullOrEmpty(id) || GSHelpers.BeValidGuid(id)).WithMessage("OutroTecnicoId inválido.");
-      _ = RuleFor(x => x.OrganismoId).Must(id => string.IsNullOrEmpty(id) || GSHelpers.BeValidGuid(id)).WithMessage("OrganismoId inválido.");
+      _ = RuleFor(x => x.OrganismoId)
+        .NotEmpty()
+        .WithMessage("Certifique-se que o organismo está preenchido")
+        .Must(id => GSHelpers.BeValidGuid(id))
+        .WithMessage("OrganismoId inválido.");
       _ = RuleFor(x => x.LocalTratamentoId).Must(id => string.IsNullOrEmpty(id) || GSHelpers.BeValidGuid(id)).WithMessage("LocalTratamentoId inválido.");
       _ = RuleFor(x => x.TratamentoPredId).Must(id => string.IsNullOrEmpty(id) || GSHelpers.BeValidGuid(id)).WithMessage("TratamentoPredId inválido.");
       _ = RuleFor(x => x.LocalOrigemId).Must(id => string.IsNullOrEmpty(id) || GSHelpers.BeValidGuid(id)).WithMessage("LocalOrigemId inválido.");
