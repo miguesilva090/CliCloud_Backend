@@ -16,6 +16,7 @@ namespace CliCloud.Application.Services.Tratamentos.SessaoTratamentoService
     Task<Response<Guid>> UpdateSessaoTratamentoAsync(UpdateSessaoTratamentoRequest request, Guid id);
     Task<Response<Guid>> DeleteSessaoTratamentoAsync(Guid id);
     Task<Response<IEnumerable<Guid>>> DeleteMultipleSessaoTratamentoAsync(IEnumerable<Guid> ids);
+    Task<Response<Guid>> CompensarFaltaAsync(CompensarFaltaSessaoTratamentoRequest request);
   }
 }
 

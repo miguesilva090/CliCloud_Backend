@@ -69,6 +69,7 @@ namespace CliCloud.Application.Services.Tratamentos.TratamentoService.DTOs
     public Guid? DocumentoId { get; set; }
     public int? SemanaCompleta { get; set; }
     public int? VemListEsp { get; set; }
+    public Guid? ListaEsperaTratamentoId { get; set; }
     public int? CartaoDevolv { get; set; }
     public int TerapiaFala { get; set; }
     public string? NumBenif { get; set; }

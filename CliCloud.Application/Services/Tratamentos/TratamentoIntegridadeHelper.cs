@@ -91,21 +91,36 @@ internal static class TratamentoIntegridadeHelper
         new SessoesTratamentoByTratamentoIdSpec(tratamentoId),
         cancellationToken
       )
-    ).ToList();
+    )
+    .OrderBy(s => s.Data ?? DateTime.MaxValue)
+    .ThenBy(s => s.NumSessao ?? int.MaxValue)
+    .ToList();
 
-    int totalFaltas = 0;
+    int faltas = sessoes.Count(s => s.Faltou == 1 && s.Desmarcado != 1);
+    int compensacoes = sessoes.Count(s => s.CompensaFalta == 1 && s.Desmarcado != 1);
+
+    tratamento.NFalta = Math.Max(0, faltas - compensacoes);
+
+    int pool = compensacoes;
     int consecutivas = 0;
+    int maxCons = 0;
+
     foreach (SessaoTratamento sessao in sessoes)
     {
-      bool faltaContabilizavel =
-        sessao.Faltou == 1 &&
-        sessao.CompensaFalta != 1 &&
-        sessao.Desmarcado != 1;
-
-      if (faltaContabilizavel)
+      if (sessao.Desmarcado == 1) continue;
+      if (sessao.CompensaFalta == 1) continue;
+      if (sessao.Faltou == 1)
       {
-        totalFaltas++;
-        consecutivas++;
+        if (pool > 0)
+        {
+          pool--;
+          consecutivas = 0;
+        }
+        else
+        {
+          consecutivas++;
+          if (consecutivas > maxCons) maxCons = consecutivas;
+        }
       }
       else
       {
@@ -113,13 +128,16 @@ internal static class TratamentoIntegridadeHelper
       }
     }
 
-    tratamento.NFalta = totalFaltas;
-    tratamento.NFaltaCons = consecutivas;
-    tratamento.NumSessao ??= sessoes
-      .Where(x => x.NumSessao.HasValue)
-      .Select(x => x.NumSessao!.Value)
-      .DefaultIfEmpty(0)
-      .Max();
+
+    tratamento.NFaltaCons = maxCons;
+    tratamento.NumSessao = Math.Max(
+      sessoes.Count,
+      sessoes
+        .Where(x => x.NumSessao.HasValue)
+        .Select(x => x.NumSessao!.Value)
+        .DefaultIfEmpty(0)
+        .Max()
+    );
 
     _ = await repository.UpdateAsync<Tratamento, Guid>(tratamento);
   }

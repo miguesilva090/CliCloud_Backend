@@ -98,6 +98,8 @@ namespace CliCloud.Domain.Entities.Tratamentos
     public Documento? Documento { get; set; }
     public int? SemanaCompleta { get; set; }
     public int? VemListEsp { get; set; }
+    public Guid? ListaEsperaTratamentoId { get; set; }
+    public ListaEsperaTratamento? ListaEsperaTratamento { get; set; }
     public int? CartaoDevolv { get; set; }
     public int TerapiaFala { get; set; }
     public string? NumBenif { get; set; }

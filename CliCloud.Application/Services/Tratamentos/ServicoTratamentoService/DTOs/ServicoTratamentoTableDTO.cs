@@ -7,7 +7,12 @@ namespace CliCloud.Application.Services.Tratamentos.ServicoTratamentoService.DTO
     public Guid Id { get; set; }
     public Guid TratamentoId { get; set; }
     public Guid? ServicoId { get; set; }
+    public string? ServicoDesignacao { get; set; }
+    public string? Duracao { get; set; }
     public int? Ordem { get; set; }
+    public int? UsaFisioter { get; set; }
+    public int? UsaAuxiliar { get; set; }
+    public int? UsaOutro { get; set; }
     public decimal? Preco { get; set; }
     public decimal? ValorUt { get; set; }
     public DateTime CreatedOn { get; set; }

@@ -9,6 +9,9 @@ namespace CliCloud.Application.Services.Tratamentos.ServicoTratamentoService.Spe
   {
     public ServicoTratamentoSearchTable(List<TableFilter> filters, string? dynamicOrder = "")
     {
+
+      _ = Query.Include(x => x.Servico);
+
       if (filters != null && filters.Count > 0)
         foreach (var f in filters)
         {

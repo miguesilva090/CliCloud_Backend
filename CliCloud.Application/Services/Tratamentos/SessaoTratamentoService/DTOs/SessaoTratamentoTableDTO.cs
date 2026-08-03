@@ -18,6 +18,7 @@ namespace CliCloud.Application.Services.Tratamentos.SessaoTratamentoService.DTOs
     public int? Desmarcado { get; set; }
     public DateTime CreatedOn { get; set; }
     public int ServicosCount { get; set; }
+    public int? CompensaFalta { get; set; }
   }
 }
 

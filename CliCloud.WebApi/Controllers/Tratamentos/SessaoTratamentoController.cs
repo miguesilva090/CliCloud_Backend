@@ -56,6 +56,23 @@ namespace CliCloud.WebApi.Controllers.Tratamentos
           }
         }
 
+        [Authorize(Roles = "client")]
+        [HttpPost("compensar-falta")]
+        public async Task<IActionResult> CompensarFaltaAsync(
+          [FromBody] CompensarFaltaSessaoTratamentoRequest request)
+        {
+            try
+            {
+              Response<Guid> result =
+                await _SessaoTratamentoService.CompensarFaltaAsync(request);
+              return Ok(result);
+            }
+            catch (Exception ex)
+            {
+              return BadRequest(ex.Message);
+            }
+        }
+
         // single by Id
         [Authorize(Roles = "client")]
         [HttpGet("{id}")]

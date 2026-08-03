@@ -65,6 +65,22 @@ namespace CliCloud.WebApi.Controllers.Tratamentos
             return Ok(result);
         }
 
+        [Authorize(Roles = "client")]
+        [HttpPost("marcacao-manual")]
+        public async Task<IActionResult> CreateMarcacaoManualAsync(
+            CreateMarcacaoManualTratamentoRequest request)
+            {
+                try
+                {
+                    Response<Guid> result = await _TratamentoService.CreateMarcacaoManualAsync(request);
+                    return Ok(result);
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(ex.Message);
+                }
+            }
+
         // create
         [Authorize(Roles = "client")]
         [HttpPost]

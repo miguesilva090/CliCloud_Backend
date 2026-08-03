@@ -109,6 +109,148 @@ namespace CliCloud.Application.Services.Tratamentos.TratamentoService
       }
     }
 
+    public async Task<Response<Guid>> CreateMarcacaoManualAsync(CreateMarcacaoManualTratamentoRequest request)
+    {
+      try
+      {
+        Guid? listaEsperaId = string.IsNullOrWhiteSpace(request.ListaEsperaTratamentoId) ? null : Guid.Parse(request.ListaEsperaTratamentoId);
+        ListaEsperaTratamento? listaEspera = null;
+          if (listaEsperaId.HasValue)
+          {
+            listaEspera = await _repository.GetByIdAsync<ListaEsperaTratamento, Guid>(
+              listaEsperaId.Value);
+          if (listaEspera == null || listaEspera.DeletedOn != null)
+            return ResponseFactory.Fail<Guid>("Registo da lista de espera não encontrado");
+
+          var jaConvertidos = await _repository.GetListAsync<Tratamento, Guid>(
+            new TratamentoByListaEsperaTratamentoIdSpec(listaEsperaId.Value));
+            if (jaConvertidos.Any())
+            {
+              var msg = "Esta prescrição já foi inserida num tratamento!";
+              var existente = jaConvertidos.First();
+              if (existente.Provisorio == 1)
+                msg += " Encontra-se no estado provisório";
+              return ResponseFactory.Fail<Guid>(msg);
+            }
+          }
+        
+        var datas = request.Sessoes
+          .Where(s => s.Data.HasValue)
+          .Select(s => s.Data!.Value.Date)
+          .OrderBy(d => d)
+          .ToList();
+
+        var tratamento = new Tratamento
+        {
+          UtenteId = Guid.Parse(request.UtenteId),
+          OrganismoId = Guid.Parse(request.OrganismoId),
+          MedicoId = ToNullableGuid(request.MedicoId),
+          FisioterapeutaId = ToNullableGuid(request.FisioterapeutaId),
+          AuxiliarId = ToNullableGuid(request.AuxiliarId),
+          OutroTecnicoId = ToNullableGuid(request.OutroTecnicoId),
+          LocalTratamentoId = ToNullableGuid(request.LocalTratamentoId),
+          LocalOrigemId = ToNullableGuid(request.LocalOrigemId),
+          Designacao = request.Designacao,
+          NomePatologia = request.NomePatologia,
+          NumSessao = request.NumSessao ?? request.Sessoes.Count,
+          DataInic = request.DataInic ?? (datas.Count > 0 ? datas.First() : null),
+          DataFim = request.DataFim ?? (datas.Count > 0 ? datas.Last() : null),
+          Data = DateTime.UtcNow.Date,
+          DuracaoTotal = request.DuracaoTotal,
+          Credencial = request.Credencial,
+          NumBenif = request.NumBenif,
+          Apolice = request.Apolice,
+          NFaltMax = request.NFaltMax,
+          NFaltComax = request.NFaltComax,
+          TaxaMod = request.TaxaMod,
+          Isencao = request.Isencao,
+          ConfDfim = request.ConfDfim ?? 0,
+          CredencialExterna = request.CredencialExterna,
+          NumCartao = request.NumCartao,
+          HoraFisio = request.HoraFisio,
+          HoraAux = request.HoraAux,
+          HoraOutro = request.HoraOutro,
+          Provisorio = request.Provisorio ?? 0,
+          Obs = request.Obs,
+          TecObs = request.TecObs,
+          SinistroId = ToNullableGuid(request.SinistroId),
+          SeguradoraId = ToNullableGuid(request.SeguradoraId),
+          ListaEsperaTratamentoId = listaEsperaId,
+          NFalta = 0,
+          NFaltaCons = 0,
+          NAltSess = 0,
+          Lotes = 0,
+          TerapiaFala = request.TerapiaFala,
+        };
+
+        TratamentoIntegridadeHelper.NormalizarTratamento(tratamento);
+
+        var created = await _repository.CreateAsync<Tratamento, Guid>(tratamento);
+
+        var ordem = 1;
+        foreach ( var svc in request.Servicos)
+        {
+          _ = await _repository.CreateAsync<ServicoTratamento, Guid>(new ServicoTratamento
+          {
+            TratamentoId = created.Id,
+            ServicoId = Guid.Parse(svc.ServicoId),
+            Duracao = svc.Duracao,
+            Ordem = svc.Ordem ?? ordem,
+            UsaFisioter = svc.UsaFisioter ?? 1,
+            UsaAuxiliar = svc.UsaAuxiliar ?? 0,
+            UsaOutro = svc.UsaOutro ?? 0,
+            Preco = svc.Preco,
+            DescInst = svc.DescInst,
+            ValorUt = svc.ValorUt,
+            Obs = svc.Obs,
+          });
+          ordem++;
+        }
+
+        var num = 1;
+        foreach( var sessao in request.Sessoes.OrderBy(s => s.Data))
+        {
+          _ = await _repository.CreateAsync<SessaoTratamento, Guid>(new SessaoTratamento
+          {
+            TratamentoId = created.Id,
+            NumSessao = sessao.NumSessao ?? num,
+            Data = sessao.Data!.Value.Date,
+            HoraInic = sessao.HoraInic,
+            Duracao = sessao.Duracao ?? request.DuracaoTotal,
+            FisioterapeutaId = ToNullableGuid(sessao.FisioterapeutaId) ?? created.FisioterapeutaId,
+            AuxiliarId = ToNullableGuid(sessao.AuxiliarId) ?? created.AuxiliarId,
+            OutroTecnicoId = ToNullableGuid(sessao.OutroTecnicoId) ?? created.OutroTecnicoId,
+            Faltou = 0,
+            CompensaFalta = 0,
+            Desmarcado = 0, 
+            Confirmado = 0,
+            Efetuado = 0,
+          });
+          num++;
+        }
+
+        // Persistir antes de recalcular (GetList das sessões vai à BD)
+        _ = await _repository.SaveChangesAsync();
+
+        await TratamentoIntegridadeHelper.RecalcularFaltasAsync(created.Id, _repository);
+
+        if (listaEspera != null && (request.Provisorio ?? 0) != 1)
+        {
+          await _repository.RemoveByIdAsync<ListaEsperaTratamento, Guid>(listaEspera.Id);
+        }
+
+        _ = await _repository.SaveChangesAsync();
+        return ResponseFactory.Success(created.Id);
+      }
+      catch (Exception ex)
+      {
+        return ResponseFactory.Fail<Guid>(ex.Message);
+      }
+    }
+
+    private static Guid? ToNullableGuid(string? value ) => 
+      string.IsNullOrWhiteSpace(value) ? null : Guid.Parse(value);
+
     public async Task<Response<Guid>> UpdateTratamentoAsync(UpdateTratamentoRequest request, Guid id)
     {
       var existing = await _repository.GetByIdAsync<Tratamento, Guid>(id);

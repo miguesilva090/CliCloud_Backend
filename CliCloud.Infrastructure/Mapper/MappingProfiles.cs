@@ -734,6 +734,7 @@ namespace CliCloud.Infrastructure.Mapper
         .ForMember(d => d.MedicoNome,o => o.MapFrom(s => s.Medico != null ? s.Medico.Nome : null))
         .ForMember(d => d.VemListEsp,o => o.MapFrom(s => s.VemListEsp));
       _ = CreateMap<TratamentoDtos.CreateTratamentoRequest, Tratamento>()
+        .ForMember(d => d.ListaEsperaTratamento, o => o.Ignore())
         .ForMember(d => d.UtenteId, o => o.MapFrom(s => ToNullableGuid(s.UtenteId)))
         .ForMember(d => d.MedicoId, o => o.MapFrom(s => ToNullableGuid(s.MedicoId)))
         .ForMember(d => d.FisioterapeutaId, o => o.MapFrom(s => ToNullableGuid(s.FisioterapeutaId)))
@@ -760,6 +761,7 @@ namespace CliCloud.Infrastructure.Mapper
         .ForMember(d => d.Seguradora, o => o.Ignore())
         .ForMember(d => d.Documento, o => o.Ignore());
       _ = CreateMap<TratamentoDtos.UpdateTratamentoRequest, Tratamento>()
+        .ForMember(d => d.ListaEsperaTratamento, o => o.Ignore())
         .ForMember(d => d.UtenteId, o => o.MapFrom(s => ToNullableGuid(s.UtenteId)))
         .ForMember(d => d.MedicoId, o => o.MapFrom(s => ToNullableGuid(s.MedicoId)))
         .ForMember(d => d.FisioterapeutaId, o => o.MapFrom(s => ToNullableGuid(s.FisioterapeutaId)))
@@ -1147,7 +1149,8 @@ namespace CliCloud.Infrastructure.Mapper
       // ---- ServicoTratamento ----
       _ = CreateMap<ServicoTratamento, ServicoTratamentoDtos.ServicoTratamentoDTO>();
       _ = CreateMap<ServicoTratamento, ServicoTratamentoDtos.ServicoTratamentoLightDTO>();
-      _ = CreateMap<ServicoTratamento, ServicoTratamentoDtos.ServicoTratamentoTableDTO>();
+      _ = CreateMap<ServicoTratamento, ServicoTratamentoDtos.ServicoTratamentoTableDTO>()
+        .ForMember(d => d.ServicoDesignacao, o => o.MapFrom(s => s.Servico != null ? s.Servico.Designacao : null));
       _ = CreateMap<ServicoTratamentoDtos.CreateServicoTratamentoRequest, ServicoTratamento>()
         .ForMember(d => d.TratamentoId, o => o.MapFrom(s => ToGuid(s.TratamentoId)))
         .ForMember(d => d.ServicoId, o => o.MapFrom(s => ToNullableGuid(s.ServicoId)))

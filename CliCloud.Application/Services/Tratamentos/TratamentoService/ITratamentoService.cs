@@ -13,10 +13,10 @@ namespace CliCloud.Application.Services.Tratamentos.TratamentoService
     Task<Response<IEnumerable<TratamentoTableDTO>>> GetAllTratamentoAsync(TratamentoAllFilter? filter);
     Task<Response<TratamentoDTO>> GetTratamentoAsync(Guid id);
     Task<Response<Guid>> CreateTratamentoAsync(CreateTratamentoRequest request);
+    Task<Response<Guid>> CreateMarcacaoManualAsync(CreateMarcacaoManualTratamentoRequest request);
     Task<Response<Guid>> UpdateTratamentoAsync(UpdateTratamentoRequest request, Guid id);
     Task<Response<Guid>> DeleteTratamentoAsync(Guid id);
     Task<Response<IEnumerable<Guid>>> DeleteMultipleTratamentoAsync(IEnumerable<Guid> ids);
     Task<Response<Guid>> UpdateTratamentoAltaAsync(Guid id, bool alta);
   }
 }
-

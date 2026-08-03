@@ -16,6 +16,13 @@ namespace CliCloud.Infrastructure.Persistence.Configurations
         .HasForeignKey(t => t.UtenteId)
         .OnDelete(DeleteBehavior.SetNull);
 
+      builder.HasOne(t => t.ListaEsperaTratamento)
+        .WithMany()
+        .HasForeignKey(t => t.ListaEsperaTratamentoId)
+        .OnDelete(DeleteBehavior.SetNull);
+
+      builder.HasIndex(t => t.ListaEsperaTratamentoId);
+
       builder.HasOne(t => t.Medico)
         .WithMany()
         .HasForeignKey(t => t.MedicoId)

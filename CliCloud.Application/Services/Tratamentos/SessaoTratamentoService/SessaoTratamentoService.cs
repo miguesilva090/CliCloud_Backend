@@ -83,6 +83,115 @@ namespace CliCloud.Application.Services.Tratamentos.SessaoTratamentoService
       }
     }
 
+    public async Task<Response<Guid>> CompensarFaltaAsync(CompensarFaltaSessaoTratamentoRequest request)
+    {
+      if (!request.Data.HasValue)
+        return ResponseFactory.Fail<Guid>("A data da sessão é obrigatória");
+
+      var tratamentoId = Guid.Parse(request.TratamentoId);
+      var tratamento = await _repository.GetByIdAsync<Tratamento, Guid>(tratamentoId);
+      if (tratamento == null)
+        return ResponseFactory.Fail<Guid>("Tratamento não encontrado");
+      
+      var sessoes = ( 
+        await _repository.GetListAsync<SessaoTratamento, Guid>(
+          new SessoesTratamentoByTratamentoIdSpec(tratamentoId)
+        )
+      ).ToList();
+
+      int faltas = sessoes.Count(s => s.Faltou == 1 && s.Desmarcado != 1);
+      int comps = sessoes.Count(s => s.CompensaFalta == 1 && s.Desmarcado != 1);
+      if (faltas <= comps)
+        return ResponseFactory.Fail<Guid>("Não existem faltas por compensar");
+
+      if (await ExisteSessaoNaDataAsync(tratamentoId, request.Data.Value.Date, null))
+        return ResponseFactory.Fail<Guid>("Já existe sessão nesta data");
+
+      static Guid? Ng(string? v) => 
+        string.IsNullOrWhiteSpace(v) ? null : Guid.Parse(v);
+
+      var horas = new List<string>();
+      if (!string.IsNullOrWhiteSpace(request.HoraFisio)) horas.Add(request.HoraFisio.Trim());
+      if (!string.IsNullOrWhiteSpace(request.HoraAux)) horas.Add(request.HoraAux.Trim());
+      if (!string.IsNullOrWhiteSpace(request.HoraOutro)) horas.Add(request.HoraOutro.Trim());
+      if (!string.IsNullOrWhiteSpace(request.HoraInic)) horas.Add(request.HoraInic.Trim());
+      var horaInic = horas.OrderBy(h => h).FirstOrDefault()
+        ?? tratamento.HoraFisio
+        ?? tratamento.HoraAux
+        ?? tratamento.HoraOutro;
+
+      var duracao = request.Duracao
+        ?? request.DuracaoFisio
+        ?? request.DuracaoAux
+        ?? request.DuracaoOutro
+        ?? tratamento.DuracaoTotal;
+
+      try
+      {
+        var created = await _repository.CreateAsync<SessaoTratamento, Guid>(new SessaoTratamento
+        {
+          TratamentoId = tratamentoId,
+          Data = request.Data.Value.Date,
+          HoraInic = horaInic,
+          Duracao = duracao,
+          FisioterapeutaId = Ng(request.FisioterapeutaId),
+          AuxiliarId = Ng(request.AuxiliarId),
+          OutroTecnicoId = Ng(request.OutroTecnicoId),
+          HoraFisio = request.HoraFisio,
+          HoraAux = request.HoraAux,
+          HoraOutro = request.HoraOutro,
+          DuracaoFisio = request.DuracaoFisio,
+          DuracaoAux = request.DuracaoAux,
+          DuracaoOutro = request.DuracaoOutro,
+          NumSessao = sessoes.Count + 1,
+          Faltou = 0,
+          CompensaFalta = 1,
+          Desmarcado = 0,
+          Confirmado = 0,
+          Efetuado = 0,
+          Pago = 0,
+        });
+
+        // Incluir a sessão criada (ainda pode não vir no GetList sem SaveChanges)
+        var ordenadas = sessoes
+          .Where(s => s.Id != created.Id)
+          .Append(created)
+          .OrderBy(s => s.Data ?? DateTime.MaxValue)
+          .ThenBy(s => s.NumSessao ?? int.MaxValue)
+          .ThenBy(s => s.Id)
+          .ToList();
+
+        int n = 1;
+        foreach (var s in ordenadas)
+        {
+          if (s.NumSessao != n)
+          {
+            s.NumSessao = n;
+            _ = await _repository.UpdateAsync<SessaoTratamento, Guid>(s);
+          }
+          n++;
+        }
+
+        tratamento.NumSessao = Math.Max(tratamento.NumSessao ?? 0, ordenadas.Count);
+        if (!tratamento.DataFim.HasValue
+          || tratamento.DataFim.Value.Date < request.Data.Value.Date)
+        {
+          tratamento.DataFim = request.Data.Value.Date;
+        }
+
+        _ = await _repository.UpdateAsync<Tratamento, Guid>(tratamento);
+
+        await TratamentoIntegridadeHelper.RecalcularFaltasAsync(tratamentoId, _repository);
+        _ = await _repository.SaveChangesAsync();
+        return ResponseFactory.Success(created.Id);
+      }
+      catch (Exception ex)
+      {
+        return ResponseFactory.Fail<Guid>(ex.Message);
+      }
+    }
+
+
     public async Task<Response<Guid>> CreateSessaoTratamentoAsync(CreateSessaoTratamentoRequest request)
     {
       if (!request.Data.HasValue)
