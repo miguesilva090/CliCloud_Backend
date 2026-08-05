@@ -48,6 +48,11 @@ namespace CliCloud.Application.Services.Tratamentos.TratamentoService.DTOs
     public DateTime? DataInic { get; set; }
     public DateTime? DataFim { get; set; }
     public string? DuracaoTotal { get; set; }
+
+    public int? UnidadeTempoFisio { get; set; }
+    public int? UnidadeTempoAux { get; set; }
+    public int? UnidadeTempoOutro { get; set; }
+
     public string? Credencial { get; set; }
     public string? NumBenif { get; set; }
     public string? Apolice { get; set; }
@@ -108,6 +113,22 @@ namespace CliCloud.Application.Services.Tratamentos.TratamentoService.DTOs
         _ = s.RuleFor(i => i.Data).NotNull()
           .WithMessage("A data da sessão é obrigatória.");
       });
+
+      _ = RuleFor(x => x.UnidadeTempoFisio)
+        .InclusiveBetween(1, 50)
+        .When(x => x.UnidadeTempoFisio.HasValue);
+
+      _ = RuleFor(x => x.UnidadeTempoAux)
+        .InclusiveBetween(1, 50)
+        .When(x => x.UnidadeTempoAux.HasValue);
+
+      _ = RuleFor(x => x.UnidadeTempoOutro)
+        .InclusiveBetween(1, 50)
+        .When(x => x.UnidadeTempoOutro.HasValue);
+
+        
+
+      
     }
   }
 }

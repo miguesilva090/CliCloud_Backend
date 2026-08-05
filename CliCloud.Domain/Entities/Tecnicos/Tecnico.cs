@@ -16,6 +16,7 @@ namespace CliCloud.Domain.Entities.Tecnicos
     public Guid? IdUtilizador { get; set; }
     /// <summary>Papel em tratamentos: Fisioterapeuta / Auxiliar / Outro.</summary>
     public TipoTecnico TipoTecnico { get; set; } = TipoTecnico.Fisioterapeuta;
+    public int MaxTratamentos { get; set; } = 1;
     public HorarioTecnico? Horario { get; set; }
   }
 }

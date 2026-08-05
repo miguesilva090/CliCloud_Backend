@@ -21,6 +21,11 @@ namespace CliCloud.Application.Services.Tratamentos.SessaoTratamentoService.DTOs
         public string? DuracaoFisio { get; set; }
         public string? DuracaoAux { get; set; }
         public string? DuracaoOutro { get; set; }
+
+        /// <summary>Informativo / futuro; U.Tempo efectivo do tratamento vem da ficha.</summary>
+        public int? UnidadeTempoFisio { get; set; }
+        public int? UnidadeTempoAux { get; set; }
+        public int? UnidadeTempoOutro { get; set; }
     }
 
     public class CompensarFaltaSessaoTratamentoValidator : AbstractValidator<CompensarFaltaSessaoTratamentoRequest>

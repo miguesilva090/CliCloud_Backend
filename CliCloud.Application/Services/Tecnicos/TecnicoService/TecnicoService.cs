@@ -189,6 +189,7 @@ namespace CliCloud.Application.Services.Tecnicos.TecnicoService
             newTecnico.TipoTecnico = Enum.IsDefined(typeof(TipoTecnico), request.TipoTecnico)
               ? (TipoTecnico)request.TipoTecnico
               : TipoTecnico.Fisioterapeuta;
+            newTecnico.MaxTratamentos = request.MaxTratamentos >= 1 ? request.MaxTratamentos : 1;
 
             // Converter EspecialidadeId de string para Guid
             if (!string.IsNullOrWhiteSpace(request.EspecialidadeId) && Guid.TryParse(request.EspecialidadeId, out Guid especialidadeId))
@@ -257,6 +258,7 @@ namespace CliCloud.Application.Services.Tecnicos.TecnicoService
             updatedTecnico.TipoTecnico = Enum.IsDefined(typeof(TipoTecnico), request.TipoTecnico)
               ? (TipoTecnico)request.TipoTecnico
               : TipoTecnico.Fisioterapeuta;
+            updatedTecnico.MaxTratamentos = request.MaxTratamentos >= 1 ? request.MaxTratamentos : 1;
 
             // Converter EspecialidadeId de string para Guid
             if (!string.IsNullOrWhiteSpace(request.EspecialidadeId) && Guid.TryParse(request.EspecialidadeId, out Guid especialidadeId))

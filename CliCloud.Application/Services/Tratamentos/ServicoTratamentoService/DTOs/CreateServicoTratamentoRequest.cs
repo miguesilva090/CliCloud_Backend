@@ -27,7 +27,7 @@ namespace CliCloud.Application.Services.Tratamentos.ServicoTratamentoService.DTO
     public CreateServicoTratamentoValidator()
     {
       _ = RuleFor(x => x.TratamentoId).NotEmpty().Must(GSHelpers.BeValidGuid).WithMessage("TratamentoId inválido.");
-      _ = RuleFor(x => x.ServicoId).Must(id => string.IsNullOrEmpty(id) || GSHelpers.BeValidGuid(id)).WithMessage("ServicoId inválido.");
+      _ = RuleFor(x => x.ServicoId).NotEmpty().WithMessage("Selecione um serviço").Must(id => !string.IsNullOrWhiteSpace(id) && GSHelpers.BeValidGuid(id!)).WithMessage("ServicoId inválido");
       _ = RuleFor(x => x.SessaoTratamentoId).Must(id => string.IsNullOrEmpty(id) || GSHelpers.BeValidGuid(id)).WithMessage("SessaoTratamentoId inválido.");
       _ = RuleFor(x => x.Duracao).MaximumLength(50);
       _ = RuleFor(x => x.Obs).MaximumLength(2000);

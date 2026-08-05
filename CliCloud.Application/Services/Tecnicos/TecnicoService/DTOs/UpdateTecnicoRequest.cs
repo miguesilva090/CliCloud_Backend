@@ -47,6 +47,9 @@ namespace CliCloud.Application.Services.Tecnicos.TecnicoService.DTOs
         public string? IdUtilizador { get; set; }
         /// <summary>1=Fisioterapeuta, 2=Auxiliar, 3=Outro.</summary>
         public int TipoTecnico { get; set; } = (int)CliCloud.Domain.Enums.TipoTecnico.Fisioterapeuta;
+
+        // Máx tratamentos no mesmo slot 
+        public int MaxTratamentos { get; set; } = 1;
     }
 
     public class UpdateTecnicoValidator : AbstractValidator<UpdateTecnicoRequest>
@@ -73,6 +76,7 @@ namespace CliCloud.Application.Services.Tecnicos.TecnicoService.DTOs
               .InclusiveBetween(1, 3)
               .WithMessage("TipoTecnico deve ser 1 (Fisioterapeuta), 2 (Auxiliar) ou 3 (Outro).");
             _ = RuleForEach(x => x.EntidadeContactos).SetValidator(new UpsertEntidadeContactoItemValidator()).When(x => x.EntidadeContactos != null);
+            _ = RuleFor(x => x.MaxTratamentos).InclusiveBetween(1, 50).WithMessage("Máximo de tratamentos no mesmo slot deve ser entre 1 e 50");
         }
     }
 }

@@ -4,6 +4,7 @@ using CliCloud.Infrastructure.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CliCloud.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260803154324_Add_Tecnico_MaxTratamentos")]
+    partial class Add_Tecnico_MaxTratamentos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -12726,15 +12729,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
 
                     b.Property<Guid?>("TratamentoPredId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<int?>("UnidadeTempoAux")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("UnidadeTempoFisio")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("UnidadeTempoOutro")
-                        .HasColumnType("int");
 
                     b.Property<Guid?>("UtenteId")
                         .HasColumnType("uniqueidentifier");

@@ -58,6 +58,11 @@ namespace CliCloud.Application.Services.Tratamentos.TratamentoService.DTOs
     public string? HoraAux { get; set; }
     public string? HoraOutro { get; set; }
     public string? DuracaoTotal { get; set; }
+
+    public int? UnidadeTempoFisio { get; set; }
+    public int? UnidadeTempoAux { get; set; }
+    public int? UnidadeTempoOutro { get; set; }
+
     public int? SelOutro { get; set; }
     public string? NumCartao { get; set; }
     public bool? Orespons { get; set; }
@@ -109,6 +114,21 @@ namespace CliCloud.Application.Services.Tratamentos.TratamentoService.DTOs
       _ = RuleFor(x => x.NumBenif).MaximumLength(50);
       _ = RuleFor(x => x.Apolice).MaximumLength(50);
       _ = RuleFor(x => x.NomePatologia).MaximumLength(250);
+
+      _ = RuleFor(x => x.UnidadeTempoFisio)
+        .InclusiveBetween(1, 50)
+        .When(x => x.UnidadeTempoFisio.HasValue)
+        .WithMessage("UnidadeTempoFisio deve estar entre 1 e 50");
+
+      _ = RuleFor(x => x.UnidadeTempoAux)
+        .InclusiveBetween(1, 50)
+        .When(x => x.UnidadeTempoAux.HasValue)
+        .WithMessage("UnidadeTempoAux deve estar entre 1 e 50");
+
+      _ = RuleFor(x => x.UnidadeTempoOutro)
+        .InclusiveBetween(1, 50)
+        .When(x => x.UnidadeTempoOutro.HasValue)
+        .WithMessage("UnidadeTempoOutro deve estar entre 1 e 50");
     }
   }
 }

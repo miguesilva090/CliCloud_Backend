@@ -60,6 +60,11 @@ namespace CliCloud.Application.Services.Tratamentos.TratamentoService.DTOs
     public string? HoraAux { get; set; }
     public string? HoraOutro { get; set; }
     public string? DuracaoTotal { get; set; }
+
+    public int? UnidadeTempoFisio { get; set; }
+    public int? UnidadeTempoAux { get; set; }
+    public int? UnidadeTempoOutro { get; set; }
+    
     public int? SelOutro { get; set; }
     public string? NumCartao { get; set; }
     public bool? Orespons { get; set; }

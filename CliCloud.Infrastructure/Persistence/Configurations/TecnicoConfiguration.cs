@@ -23,6 +23,10 @@ namespace CliCloud.Infrastructure.Persistence.Configurations
         .WithMany()
         .HasForeignKey(t => t.EspecialidadeId)
         .OnDelete(DeleteBehavior.SetNull);
+
+      builder.Property(t => t.MaxTratamentos)
+        .HasDefaultValue(1)
+        .IsRequired();
     }
   }
 }
