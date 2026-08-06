@@ -4,6 +4,7 @@ using CliCloud.Application.Services.Credenciais.LoteDirectService.Specifications
 using CliCloud.Application.Services.Faturacao.CredenciaisSnsService.DTOs;
 using CliCloud.Application.Services.Faturacao.CredenciaisSnsService.Filters;
 using CliCloud.Application.Services.Faturacao.CredenciaisSnsService.Specifications;
+using CliCloud.Application.Services.Servicos.TipoServicoService;
 using CliCloud.Application.Utility;
 using CliCloud.Domain.Entities.Core;
 using CliCloud.Domain.Entities.Credenciais;
@@ -14,9 +15,8 @@ namespace CliCloud.Application.Services.Faturacao.CredenciaisSnsService;
 public sealed class CredenciaisSnsService(
     IRepositoryAsync repository,
     ICredenciaisSnsAgregadoDeleteExecutor deleteExecutor,
-    ICredenciaisSnsFisioterapiaGateway fisioterapiaGateway,
     ICredenciaisSnsFisioterapiaDeleteExecutor fisioterapiaDeleteExecutor,
-    ICredenciaisSnsLegadoLookup legadoLookup,
+    ITipoServicoCodigoLookup tipoServicoCodigoLookup,
     ICurrentClinicaService currentClinicaService
 ) : ICredenciaisSnsService
 {
@@ -28,9 +28,8 @@ public sealed class CredenciaisSnsService(
 
     private readonly IRepositoryAsync _repository = repository;
     private readonly ICredenciaisSnsAgregadoDeleteExecutor _deleteExecutor = deleteExecutor;
-    private readonly ICredenciaisSnsFisioterapiaGateway _fisioterapiaGateway = fisioterapiaGateway;
     private readonly ICredenciaisSnsFisioterapiaDeleteExecutor _fisioterapiaDeleteExecutor = fisioterapiaDeleteExecutor;
-    private readonly ICredenciaisSnsLegadoLookup _legadoLookup = legadoLookup;
+    private readonly ITipoServicoCodigoLookup _tipoServicoCodigoLookup = tipoServicoCodigoLookup;
     private readonly ICurrentClinicaService _currentClinicaService = currentClinicaService;
 
     public async Task<PaginatedResponse<CredenciaisSnsLoteTableDTO>> GetPaginatedAsync(CredenciaisSnsTableFilter filter)
@@ -50,14 +49,12 @@ public sealed class CredenciaisSnsService(
                 filter.PageNumber = 1;
 
             string orderFisio = filter.Sorting != null ? GSHelpers.GenerateOrderByString(filter) : "";
-            int? filtroLegado = await ResolverFiltroLegadoAsync().ConfigureAwait(false);
-            PaginatedResponse<CredenciaisSnsLoteTableDTO> pageFisio = await _fisioterapiaGateway
-                .GetPaginatedAsync(
-                    filter.Filters ?? [],
+            CredenciaisSnsFisioterapiaSearchSpec specFisio = new(filter.Filters ?? [], orderFisio);
+            PaginatedResponse<CredenciaisSnsLoteTableDTO> pageFisio = await _repository
+                .GetPaginatedResultsAsync<LoteFisioterapia, CredenciaisSnsLoteTableDTO, Guid>(
                     filter.PageNumber,
                     filter.PageSize,
-                    orderFisio,
-                    filtroLegado)
+                    specFisio)
                 .ConfigureAwait(false);
 
             await PreencherEnriquecimentosAsync(pageFisio.Data).ConfigureAwait(false);
@@ -171,9 +168,9 @@ public sealed class CredenciaisSnsService(
             .Distinct()
             .ToArray();
 
-        int? filtroLegado = await ResolverFiltroLegadoAsync().ConfigureAwait(false);
-        IReadOnlyDictionary<int, string> nomesTipoServicoLegado = await _legadoLookup
-            .ObterNomesTipoServicoAsync(tipoServicoCodigos, filtroLegado)
+        int? filtroClinica = await ResolverFiltroClinicaAsync().ConfigureAwait(false);
+        IReadOnlyDictionary<int, string> nomesTipoServico = await _tipoServicoCodigoLookup
+            .ObterNomesPorCodigoAsync(tipoServicoCodigos, filtroClinica)
             .ConfigureAwait(false);
 
         Dictionary<int, string> nomesTipoServicoPorIndice =
@@ -197,9 +194,9 @@ public sealed class CredenciaisSnsService(
                 && !string.IsNullOrWhiteSpace(designaLote))
                 row.TipoLoteDesignacao = designaLote;
 
-            if (nomesTipoServicoLegado.TryGetValue(row.TipoServico, out string? nomeTipoServicoLegado)
-                && !string.IsNullOrWhiteSpace(nomeTipoServicoLegado))
-                row.TipoServicoDesignacao = nomeTipoServicoLegado;
+            if (nomesTipoServico.TryGetValue(row.TipoServico, out string? nomeTipoServico)
+                && !string.IsNullOrWhiteSpace(nomeTipoServico))
+                row.TipoServicoDesignacao = nomeTipoServico;
             else if (nomesTipoServicoPorIndice.TryGetValue(row.Indice, out string? nomePorIndice)
                 && !string.IsNullOrWhiteSpace(nomePorIndice))
                 row.TipoServicoDesignacao = nomePorIndice;
@@ -208,7 +205,7 @@ public sealed class CredenciaisSnsService(
         }
     }
 
-    private async Task<int?> ResolverFiltroLegadoAsync()
+    private async Task<int?> ResolverFiltroClinicaAsync()
     {
         if (!Guid.TryParse(_currentClinicaService.ClinicaId, out Guid clinicaId) || clinicaId == Guid.Empty)
             return null;

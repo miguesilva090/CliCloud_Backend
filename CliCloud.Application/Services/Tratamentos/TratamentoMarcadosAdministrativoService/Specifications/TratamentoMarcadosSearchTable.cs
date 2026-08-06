@@ -23,6 +23,16 @@ public sealed class TratamentoMarcadosSearchTable : Specification<Tratamento>
 
     _ = Query.Where(x => x.DeletedOn == null);
 
+    if (filter.Modo == ModoListagemTratamentoMarcados.Marcados)
+    {
+      _ = Query.Where(x => 
+        x.DataInic.HasValue
+        && (x.DataFim == null || x.DataFim.Value.Date >= hoje)
+        && (x.Suspenso ?? 0) == 0
+        && (x.Provisorio ?? 0) == 0
+      );
+    }
+
     if (filter.LocalTratamentoId.HasValue)
     {
       _ = Query.Where(x => x.LocalTratamentoId == filter.LocalTratamentoId.Value);

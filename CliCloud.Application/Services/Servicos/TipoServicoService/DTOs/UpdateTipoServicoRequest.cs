@@ -6,6 +6,8 @@ namespace CliCloud.Application.Services.Servicos.TipoServicoService.DTOs
   public class UpdateTipoServicoRequest : IDto
   {
     public required string Descricao { get; set; }
+    public int? Codigo { get; set; }
+    public int? Filtro { get; set; }
     public decimal? TaxaModeradoraSns { get; set; }
     public bool PartilhaSemRequisicao { get; set; }
   }

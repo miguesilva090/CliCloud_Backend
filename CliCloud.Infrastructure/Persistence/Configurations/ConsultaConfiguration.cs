@@ -110,8 +110,8 @@ namespace CliCloud.Infrastructure.Persistence.Configurations
         .HasForeignKey(s => s.ConsultaId)
         .OnDelete(DeleteBehavior.Cascade);
 
-      // BD legada (testeApp): Sinistrado é bit; CredencialExterna e Justificacao são int
-      builder.Property(c => c.Sinistrado).HasConversion(LegacyValueConverters.NullableIntFromBool);
+      // Compatibilidade de tipos: Sinistrado é bit; CredencialExterna e Justificacao são int
+      builder.Property(c => c.Sinistrado).HasConversion(SqlBitIntConverters.NullableIntFromBool);
 
       builder.Property(c => c.HoraChegada)
         .HasColumnType("nvarchar(max)")

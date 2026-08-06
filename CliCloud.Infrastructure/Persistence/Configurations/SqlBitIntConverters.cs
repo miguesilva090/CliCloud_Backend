@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CliCloud.Infrastructure.Persistence.Configurations;
 
 /// <summary>
-/// Conversores para colunas legadas SQL Server (bit) mapeadas como int/int? no modelo.
+/// Conversores para colunas SQL Server (bit) mapeadas como int/int? no modelo.
 /// </summary>
-public static class LegacyValueConverters
+public static class SqlBitIntConverters
 {
   public static readonly ValueConverter<int?, bool?> NullableIntFromBool = new(
     v => v.HasValue ? v.Value != 0 : null,

@@ -19,7 +19,7 @@ namespace CliCloud.Application.Services.Core.ClinicaService
 
     Task<Response<Guid>> SetDefaultClinicaAsync(Guid id, bool porDefeito);
 
-    Task<Response<AvisosClinicaLegacyDTO>> GetAvisosClinicaAsync(Guid id);
+    Task<Response<AvisosClinicaDTO>> GetAvisosClinicaAsync(Guid id);
 
     Task<Response<int[]>> GetFolgasClinicaAsync(Guid id);
     Task<Response<int?>> GetPortaCartaoClinicaAsync(Guid id);

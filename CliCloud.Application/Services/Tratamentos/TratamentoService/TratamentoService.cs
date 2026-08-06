@@ -17,6 +17,9 @@ using CliCloud.Domain.Entities.Tecnicos;
 using CliCloud.Domain.Entities.Tratamentos;
 using CliCloud.Domain.Entities.Utentes;
 using CliCloud.Application.Services.Tratamentos.SessaoTratamentoService.Specifications;
+using CliCloud.Application.Services.Tratamentos.DisponibilidadeTecnicoTratamentoService;
+using CliCloud.Application.Services.Tratamentos.DisponibilidadeTecnicoTratamentoService.DTOs;
+
 
 namespace CliCloud.Application.Services.Tratamentos.TratamentoService
 {
@@ -25,12 +28,14 @@ namespace CliCloud.Application.Services.Tratamentos.TratamentoService
     private readonly IRepositoryAsync _repository;
     private readonly IMapper _mapper;
     private readonly IConfiguracaoEmailService _configuracaoEmailService;
+    private readonly IDisponibilidadeTecnicoTratamentoService _disponibilidadeTecnicoTratamentoService;
 
-    public TratamentoService(IRepositoryAsync repository, IMapper mapper, IConfiguracaoEmailService configuracaoEmailService)
+    public TratamentoService(IRepositoryAsync repository, IMapper mapper, IConfiguracaoEmailService configuracaoEmailService, IDisponibilidadeTecnicoTratamentoService disponibilidadeTecnicoTratamentoService)
     {
       _repository = repository;
       _mapper = mapper;
       _configuracaoEmailService = configuracaoEmailService;
+      _disponibilidadeTecnicoTratamentoService = disponibilidadeTecnicoTratamentoService;
     }
 
     public async Task<Response<IEnumerable<TratamentoDTO>>> GetTratamentoAsync(string keyword = "")
@@ -113,6 +118,13 @@ namespace CliCloud.Application.Services.Tratamentos.TratamentoService
     {
       try
       {
+        DisponibilidadeValidacaoResult validacaoDisponibilidade =
+          await ValidarDisponibilidadeSessoesAsync(request);
+        if (!validacaoDisponibilidade.IsSuccess)
+        {
+          return ResponseFactory.Fail<Guid>(validacaoDisponibilidade.ErrorMessage!);
+        }
+
         Guid? listaEsperaId = string.IsNullOrWhiteSpace(request.ListaEsperaTratamentoId) ? null : Guid.Parse(request.ListaEsperaTratamentoId);
         ListaEsperaTratamento? listaEspera = null;
           if (listaEsperaId.HasValue)
@@ -253,6 +265,77 @@ namespace CliCloud.Application.Services.Tratamentos.TratamentoService
 
     private static Guid? ToNullableGuid(string? value ) => 
       string.IsNullOrWhiteSpace(value) ? null : Guid.Parse(value);
+
+    private sealed record DisponibilidadeValidacaoResult(bool IsSuccess, string? ErrorMessage)
+    {
+      public static DisponibilidadeValidacaoResult Ok() => new(true, null);
+      public static DisponibilidadeValidacaoResult Fail(string message) => new(false, message);
+    }
+
+    private async Task<DisponibilidadeValidacaoResult> ValidarDisponibilidadeSessoesAsync(
+      CreateMarcacaoManualTratamentoRequest request)
+    {
+      foreach (CreateMarcacaoManualSessaoItem sessao in request.Sessoes)
+      {
+        if (!sessao.Data.HasValue || string.IsNullOrWhiteSpace(sessao.HoraInic))
+          continue;
+
+        DateTime data = sessao.Data.Value.Date;
+        string hora = NormalizarHora(sessao.HoraInic);
+
+        var checks = new List<(string? tecnicoId, int? unidadeTempo)>
+        {
+          (sessao.FisioterapeutaId ?? request.FisioterapeutaId, request.UnidadeTempoFisio),
+          (sessao.AuxiliarId ?? request.AuxiliarId, request.UnidadeTempoAux),
+          (sessao.OutroTecnicoId ?? request.OutroTecnicoId, request.UnidadeTempoOutro),
+        };
+
+        foreach ((string? tecnicoIdRaw, int? unidadeTempoRaw) in checks)
+        {
+          if (string.IsNullOrWhiteSpace(tecnicoIdRaw) || !Guid.TryParse(tecnicoIdRaw, out Guid tecnicoId))
+            continue;
+
+          int unidadeTempo = unidadeTempoRaw.GetValueOrDefault(1);
+          if (unidadeTempo < 1) unidadeTempo = 1;
+
+          Response<HorasPossiveisTecnicoResponse> disponibilidade =
+            await _disponibilidadeTecnicoTratamentoService.GetHorasPossiveisAsync(
+              new HorasPossiveisTecnicoRequest
+              {
+                TecnicoId = tecnicoId,
+                Data = data,
+                UnidadeTempo = unidadeTempo,
+              });
+
+          if (disponibilidade.Status == ResponseStatus.Failure)
+          {
+            string msg = disponibilidade.Messages.Values.SelectMany(x => x).FirstOrDefault()
+              ?? "Sessão indisponível.";
+            return DisponibilidadeValidacaoResult.Fail(msg);
+          }
+
+          IReadOnlyList<string> horas = disponibilidade.Data?.Horas ?? [];
+          bool horaLivre = horas.Any(h => string.Equals(NormalizarHora(h), hora, StringComparison.Ordinal));
+
+          if (!horaLivre)
+          {
+            return DisponibilidadeValidacaoResult.Fail(
+              $"Sessão dia {data:dd/MM/yyyy} às {hora} já não se encontra disponível."
+            );
+          }
+        }
+      }
+
+      return DisponibilidadeValidacaoResult.Ok();
+    }
+
+    private static string NormalizarHora(string hora)
+    {
+      if (TimeSpan.TryParse(hora, out TimeSpan ts))
+        return $"{(int)ts.TotalHours:00}:{ts.Minutes:00}";
+
+      return hora.Trim();
+    }
 
     public async Task<Response<Guid>> UpdateTratamentoAsync(UpdateTratamentoRequest request, Guid id)
     {

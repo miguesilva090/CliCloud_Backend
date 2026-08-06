@@ -6,7 +6,7 @@ using CliCloud.Application.Services.Credenciais.LoteDirectService.Filters;
 using CliCloud.Application.Services.Credenciais.LoteDirectService.Specifications;
 using CliCloud.Application.Utility;
 using CliCloud.Domain.Entities.Credenciais;
-using CliCloud.Application.Services.Faturacao.CredenciaisSnsService;
+using CliCloud.Application.Services.Servicos.TipoServicoService;
 using CliCloud.Domain.Entities.Core;
 using CliCloud.Domain.Entities.Organismos;
 using Microsoft.Extensions.Logging;
@@ -24,7 +24,7 @@ namespace CliCloud.Application.Services.Credenciais.LoteDirectService
         ILoteDirectPassarAtivoExecutor passarAtivoExecutor,
         ILoteDirectNovoLoteResolver novoLoteResolver,
         ILoteDirectEspHistoricoGateway espHistoricoGateway,
-        ICredenciaisSnsLegadoLookup legadoLookup,
+        ITipoServicoCodigoLookup tipoServicoCodigoLookup,
         ICurrentClinicaService currentClinicaService,
         ILogger<LoteDirectService> logger
         ) : ILoteDirectService
@@ -41,7 +41,7 @@ namespace CliCloud.Application.Services.Credenciais.LoteDirectService
         private readonly ILoteDirectPassarAtivoExecutor _passarAtivoExecutor = passarAtivoExecutor;
         private readonly ILoteDirectNovoLoteResolver _novoLoteResolver = novoLoteResolver;
         private readonly ILoteDirectEspHistoricoGateway _espHistoricoGateway = espHistoricoGateway;
-        private readonly ICredenciaisSnsLegadoLookup _legadoLookup = legadoLookup;
+        private readonly ITipoServicoCodigoLookup _tipoServicoCodigoLookup = tipoServicoCodigoLookup;
         private readonly ICurrentClinicaService _currentClinicaService = currentClinicaService;
         private readonly ILogger<LoteDirectService> _logger = logger;
 
@@ -343,9 +343,9 @@ namespace CliCloud.Application.Services.Credenciais.LoteDirectService
                 .Distinct()
                 .ToArray();
 
-            int? filtroLegado = await ResolverFiltroLegadoAsync().ConfigureAwait(false);
-            IReadOnlyDictionary<int, string> nomesTipoServicoLegado = await _legadoLookup
-                .ObterNomesTipoServicoAsync(tipoServicoCodigos, filtroLegado)
+            int? filtroClinica = await ResolverFiltroClinicaAsync().ConfigureAwait(false);
+            IReadOnlyDictionary<int, string> nomesTipoServico = await _tipoServicoCodigoLookup
+                .ObterNomesPorCodigoAsync(tipoServicoCodigos, filtroClinica)
                 .ConfigureAwait(false);
 
             foreach (LoteDirectTableDTO row in linhas)
@@ -367,13 +367,13 @@ namespace CliCloud.Application.Services.Credenciais.LoteDirectService
                     row.TipoLoteDesignacao = designaLote;
 
                 if (row.TipoServico is int tipoServico
-                    && nomesTipoServicoLegado.TryGetValue(tipoServico, out string? nomeTipoServico)
+                    && nomesTipoServico.TryGetValue(tipoServico, out string? nomeTipoServico)
                     && !string.IsNullOrWhiteSpace(nomeTipoServico))
                     row.TipoServicoDesignacao = nomeTipoServico;
             }
         }
 
-        private async Task<int?> ResolverFiltroLegadoAsync()
+        private async Task<int?> ResolverFiltroClinicaAsync()
         {
             if (!Guid.TryParse(_currentClinicaService.ClinicaId, out Guid clinicaId) || clinicaId == Guid.Empty)
                 return null;

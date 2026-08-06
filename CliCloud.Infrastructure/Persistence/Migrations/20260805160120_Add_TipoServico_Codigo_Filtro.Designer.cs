@@ -4,6 +4,7 @@ using CliCloud.Infrastructure.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CliCloud.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260805160120_Add_TipoServico_Codigo_Filtro")]
+    partial class Add_TipoServico_Codigo_Filtro
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1823,48 +1826,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.ToTable("ConsultaMarcacao", "Consultas");
                 });
 
-            modelBuilder.Entity("CliCloud.Domain.Entities.Consultas.EstadoExameEsp", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Abreviatura")
-                        .IsRequired()
-                        .HasMaxLength(4)
-                        .HasColumnType("nvarchar(4)");
-
-                    b.Property<int>("Codigo")
-                        .HasColumnType("int");
-
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Descricao")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<Guid?>("LastModifiedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("LastModifiedOn")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Abreviatura")
-                        .IsUnique();
-
-                    b.HasIndex("Codigo")
-                        .IsUnique();
-
-                    b.ToTable("EstadoExameEsp", "Consultas");
-                });
-
             modelBuilder.Entity("CliCloud.Domain.Entities.Consultas.ExamesSemPapelAssinaturaSessao", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2223,169 +2184,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("PedidoConsultaUtente", "Consultas");
-                });
-
-            modelBuilder.Entity("CliCloud.Domain.Entities.Consultas.RequisicaoEsp", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Codigo")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CodigoMedico")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DataAgendamento")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("DataCativacao")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DataRealizacao")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DataServico")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("DeletedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("DeletedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("EnpAssinado")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("Estado")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("Historico")
-                        .HasColumnType("bit");
-
-                    b.Property<Guid?>("LastModifiedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("LastModifiedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("NumeroRequisicao")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<DateTime>("UltimaData")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Codigo")
-                        .IsUnique();
-
-                    b.HasIndex("NumeroRequisicao");
-
-                    b.ToTable("RequisicaoEsp", "Consultas");
-                });
-
-            modelBuilder.Entity("CliCloud.Domain.Entities.Consultas.RequisicaoEspEfetuadoNaoPrescrito", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Codigo")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CodigoMcdt")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("DeletedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("DeletedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("LastModifiedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("LastModifiedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("NAmostras")
-                        .HasColumnType("int");
-
-                    b.Property<Guid>("RequisicaoEspId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Codigo")
-                        .IsUnique();
-
-                    b.HasIndex("RequisicaoEspId");
-
-                    b.ToTable("RequisicaoEspEfetuadoNaoPrescrito", "Consultas");
-                });
-
-            modelBuilder.Entity("CliCloud.Domain.Entities.Consultas.RequisicaoEspLinha", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Codigo")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CodigoMcdt")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("DeletedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("DeletedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("LastModifiedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("LastModifiedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid>("RequisicaoEspId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Codigo")
-                        .IsUnique();
-
-                    b.HasIndex("RequisicaoEspId");
-
-                    b.ToTable("RequisicaoEspLinha", "Consultas");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.Consultas.Sala", b =>
@@ -4819,91 +4617,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.HasIndex("ServicoId");
 
                     b.ToTable("LoteDirectLinha789", "Credenciais");
-                });
-
-            modelBuilder.Entity("CliCloud.Domain.Entities.Credenciais.LoteFisioterapia", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Ano")
-                        .HasColumnType("int");
-
-                    b.Property<int>("CodigoOrganismo")
-                        .HasColumnType("int");
-
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("DataLote")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("DeletedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("DeletedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Indice")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("Isencao")
-                        .HasColumnType("int");
-
-                    b.Property<Guid?>("LastModifiedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("LastModifiedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Mes")
-                        .HasColumnType("int");
-
-                    b.Property<int>("NumeroLote")
-                        .HasColumnType("int");
-
-                    b.Property<int>("NumeroRequisicoes")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Quantidade")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Tipo")
-                        .HasMaxLength(1)
-                        .HasColumnType("nvarchar(1)");
-
-                    b.Property<int>("TipoLote")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TipoServico")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("TotalC")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("TotalK")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Valor")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("ValorTaxa")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Indice")
-                        .IsUnique();
-
-                    b.HasIndex("Ano", "Mes");
-
-                    b.HasIndex("Ano", "Mes", "CodigoOrganismo", "TipoLote", "TipoServico", "NumeroLote");
-
-                    b.ToTable("LoteFisioterapia", "Credenciais");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.Credenciais.TipoLote", b =>
@@ -10170,10 +9883,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("CodigoMcdt")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
                     b.Property<Guid>("CreatedBy")
                         .HasColumnType("uniqueidentifier");
 
@@ -15421,28 +15130,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Navigation("UtentePedido");
                 });
 
-            modelBuilder.Entity("CliCloud.Domain.Entities.Consultas.RequisicaoEspEfetuadoNaoPrescrito", b =>
-                {
-                    b.HasOne("CliCloud.Domain.Entities.Consultas.RequisicaoEsp", "RequisicaoEsp")
-                        .WithMany("EfetuadosNaoPrescritos")
-                        .HasForeignKey("RequisicaoEspId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("RequisicaoEsp");
-                });
-
-            modelBuilder.Entity("CliCloud.Domain.Entities.Consultas.RequisicaoEspLinha", b =>
-                {
-                    b.HasOne("CliCloud.Domain.Entities.Consultas.RequisicaoEsp", "RequisicaoEsp")
-                        .WithMany("Linhas")
-                        .HasForeignKey("RequisicaoEspId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("RequisicaoEsp");
-                });
-
             modelBuilder.Entity("CliCloud.Domain.Entities.Consultas.Sala", b =>
                 {
                     b.HasOne("CliCloud.Domain.Entities.Core.Clinica", "Clinica")
@@ -17695,13 +17382,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("CliCloud.Domain.Entities.Consultas.ConsultaMarcacao", b =>
                 {
                     b.Navigation("Consulta");
-                });
-
-            modelBuilder.Entity("CliCloud.Domain.Entities.Consultas.RequisicaoEsp", b =>
-                {
-                    b.Navigation("EfetuadosNaoPrescritos");
-
-                    b.Navigation("Linhas");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.Credenciais.LoteDirect", b =>

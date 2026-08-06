@@ -183,7 +183,7 @@ namespace CliCloud.WebApi.Controllers.Core
                 !Guid.TryParse(_currentClinica.ClinicaId, out Guid clinicaId))
                 return BadRequest("Clínica atual inválida.");
 
-            Response<AvisosClinicaLegacyDTO> result = await _ClinicaService.GetAvisosClinicaAsync(clinicaId);
+            Response<AvisosClinicaDTO> result = await _ClinicaService.GetAvisosClinicaAsync(clinicaId);
             return Ok(result);
         }
 

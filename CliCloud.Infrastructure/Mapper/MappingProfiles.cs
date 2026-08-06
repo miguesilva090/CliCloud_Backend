@@ -2700,6 +2700,14 @@ namespace CliCloud.Infrastructure.Mapper
         .ForMember(d => d.TipoLoteDesignacao, o => o.Ignore())
         .ForMember(d => d.TipoServicoDesignacao, o => o.Ignore());
 
+      _ = CreateMap<LoteFisioterapia, CliCloud.Application.Services.Faturacao.CredenciaisSnsService.DTOs.CredenciaisSnsLoteTableDTO>()
+        .ForMember(d => d.Id, o => o.MapFrom(s => Guid.Parse($"00000000-0000-4000-8000-{s.Indice:D12}")))
+        .ForMember(d => d.MesNome, o => o.Ignore())
+        .ForMember(d => d.OrganismoSigla, o => o.Ignore())
+        .ForMember(d => d.OrganismoNome, o => o.Ignore())
+        .ForMember(d => d.TipoLoteDesignacao, o => o.Ignore())
+        .ForMember(d => d.TipoServicoDesignacao, o => o.Ignore());
+
       _ = CreateMap<Admissao, CliCloud.Application.Services.Consultas.OrdemEntradaAdministrativoService.DTOs.OrdemEntradaTableDTO>()
         .ForMember(d => d.UtenteNumero, o => o.MapFrom(s => s.Utente != null ? s.Utente.NumeroUtente : null))
         .ForMember(d => d.UtenteNome, o => o.MapFrom(s => s.Utente != null ? s.Utente.Nome : null))

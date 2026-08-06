@@ -6,6 +6,8 @@ namespace CliCloud.Application.Services.Servicos.TipoServicoService.DTOs
   {
     public Guid Id { get; set; }
     public string Descricao { get; set; } = string.Empty;
+    public int? Codigo { get; set; }
+    public int? Filtro { get; set; }
     public decimal? TaxaModeradoraSns { get; set; }
     public bool PartilhaSemRequisicao { get; set; }
     public DateTime CreatedOn { get; set; }

@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using CliCloud.Domain.Entities.Common;
 
@@ -25,5 +26,8 @@ namespace CliCloud.Domain.Entities.Servicos
     public decimal MargemUtentePercent { get; set; }
 
     public bool Inativo { get; set; }
+
+    [StringLength(20)]
+    public string? CodigoMcdt { get; set; }
   }
 }

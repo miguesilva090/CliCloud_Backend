@@ -1,4 +1,5 @@
 using CliCloud.Application.Services.Consultas.FechoDiarioAdministrativoService;
+using CliCloud.Domain.Entities.Consultas;
 using CliCloud.Infrastructure.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,7 +7,7 @@ namespace CliCloud.Infrastructure.Persistence.Consultas;
 
 public sealed class RequisicaoEspFechoUpdater(ApplicationDbContext dbContext) : IRequisicaoEspFechoUpdater
 {
-  private const int EstadoEfetivadoLegado = 5;
+  private const int EstadoEfetivadoFallback = 5;
 
   public async Task MarcarRealizadoSeAplicavelAsync(
     string numeroRequisicao,
@@ -14,46 +15,33 @@ public sealed class RequisicaoEspFechoUpdater(ApplicationDbContext dbContext) : 
     CancellationToken cancellationToken = default
   )
   {
-    int? estado = await dbContext.Database
-      .SqlQuery<int?>(
-        $"""
-        SELECT TOP 1 Estado AS Value
-        FROM dbo.RequisicoesEsp
-        WHERE NumeroRequisicao = {numeroRequisicao} AND ISNULL(Apagado, 0) = 0
-        """
-      )
-      .FirstOrDefaultAsync(cancellationToken);
+    RequisicaoEsp? req = await dbContext
+      .Set<RequisicaoEsp>()
+      .FirstOrDefaultAsync(x => x.NumeroRequisicao == numeroRequisicao, cancellationToken)
+      .ConfigureAwait(false);
 
-    if (estado is null)
-    {
+    if (req is null)
       return;
+
+    int estadoEfet = await ObterCodigoEstadoAsync("EFET", cancellationToken).ConfigureAwait(false)
+      ?? EstadoEfetivadoFallback;
+
+    if (req.Estado == estadoEfet)
+    {
+      req.DataRealizacao = dataRealizacao;
+      req.UltimaData = dataRealizacao;
+    }
+    else
+    {
+      int? estadoReal = await ObterCodigoEstadoAsync("REAL", cancellationToken).ConfigureAwait(false);
+      if (estadoReal.HasValue)
+        req.Estado = estadoReal.Value;
+
+      req.DataRealizacao = dataRealizacao;
+      req.UltimaData = dataRealizacao;
     }
 
-    if (estado == EstadoEfetivadoLegado)
-    {
-      _ = await dbContext.Database.ExecuteSqlRawAsync(
-        """
-        UPDATE dbo.RequisicoesEsp
-        SET DataRealizacao = {0}, UltimaData = {0}
-        WHERE NumeroRequisicao = {1} AND ISNULL(Apagado, 0) = 0
-        """,
-        [dataRealizacao, numeroRequisicao],
-        cancellationToken
-      );
-      return;
-    }
-
-    _ = await dbContext.Database.ExecuteSqlRawAsync(
-      """
-      UPDATE dbo.RequisicoesEsp
-      SET DataRealizacao = {0},
-          Estado = (SELECT Codigo FROM dbo.EstadoExameESP WHERE Abreviatura = 'REAL'),
-          UltimaData = {0}
-      WHERE NumeroRequisicao = {1} AND ISNULL(Apagado, 0) = 0
-      """,
-      [dataRealizacao, numeroRequisicao],
-      cancellationToken
-    );
+    _ = await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
   }
 
   public async Task<bool> ReverterAgendamentoSePossivelAsync(
@@ -61,40 +49,38 @@ public sealed class RequisicaoEspFechoUpdater(ApplicationDbContext dbContext) : 
     CancellationToken cancellationToken = default
   )
   {
-    int? estado = await dbContext.Database
-      .SqlQuery<int?>(
-        $"""
-        SELECT TOP 1 Estado AS Value
-        FROM dbo.RequisicoesEsp
-        WHERE NumeroRequisicao = {numeroRequisicao} AND ISNULL(Apagado, 0) = 0
-        """
-      )
-      .FirstOrDefaultAsync(cancellationToken);
+    RequisicaoEsp? req = await dbContext
+      .Set<RequisicaoEsp>()
+      .FirstOrDefaultAsync(x => x.NumeroRequisicao == numeroRequisicao, cancellationToken)
+      .ConfigureAwait(false);
 
-    if (estado is null)
-    {
+    if (req is null)
       return true;
-    }
 
-    if (estado == EstadoEfetivadoLegado)
-    {
+    int estadoEfet = await ObterCodigoEstadoAsync("EFET", cancellationToken).ConfigureAwait(false)
+      ?? EstadoEfetivadoFallback;
+    if (req.Estado == estadoEfet)
       return false;
-    }
 
-    _ = await dbContext.Database.ExecuteSqlRawAsync(
-      """
-      UPDATE dbo.RequisicoesEsp
-      SET Estado = (SELECT Codigo FROM dbo.EstadoExameESP WHERE Abreviatura = 'CAT'),
-          DataAgendamento = NULL,
-          DataServico = NULL,
-          CodigoMedico = NULL,
-          UltimaData = DataCativacao
-      WHERE NumeroRequisicao = {0} AND ISNULL(Apagado, 0) = 0
-      """,
-      [numeroRequisicao],
-      cancellationToken
-    );
+    int? estadoCat = await ObterCodigoEstadoAsync("CAT", cancellationToken).ConfigureAwait(false);
+    if (estadoCat.HasValue)
+      req.Estado = estadoCat.Value;
+
+    req.DataAgendamento = null;
+    req.DataServico = null;
+    req.CodigoMedico = null;
+    req.UltimaData = req.DataCativacao;
+
+    _ = await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
     return true;
   }
+
+  private async Task<int?> ObterCodigoEstadoAsync(string abreviatura, CancellationToken cancellationToken)
+    => await dbContext
+      .Set<EstadoExameEsp>()
+      .Where(x => x.Abreviatura == abreviatura)
+      .Select(x => (int?)x.Codigo)
+      .FirstOrDefaultAsync(cancellationToken)
+      .ConfigureAwait(false);
 }

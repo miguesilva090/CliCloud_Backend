@@ -10,8 +10,8 @@ namespace CliCloud.Infrastructure.Persistence.Configurations
     {
       builder.ToTable("TipoServico", "Servicos");
 
-      // Índice na Descricao para pesquisas
       builder.HasIndex(t => t.Descricao);
+      builder.HasIndex(t => new { t.Codigo, t.Filtro });
     }
   }
 }

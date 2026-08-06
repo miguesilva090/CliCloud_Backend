@@ -254,6 +254,10 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     public DbSet<Admissao> Admissoes { get; set; }
     public DbSet<AdmissaoServico> AdmissoesServicos { get; set; }
     public DbSet<TipoAdmissao> TiposAdmissao { get; set; }
+    public DbSet<RequisicaoEsp> RequisicoesEsp { get; set; }
+    public DbSet<RequisicaoEspLinha> RequisicoesEspLinhas { get; set; }
+    public DbSet<RequisicaoEspEfetuadoNaoPrescrito> RequisicoesEspEfetuadosNaoPrescritos { get; set; }
+    public DbSet<EstadoExameEsp> EstadosExameEsp { get; set; }
     
     // DbSets - Tratamentos
     public DbSet<Tratamento> Tratamentos { get; set; }
@@ -472,6 +476,7 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     public DbSet<LoteDirectLinha789> LotesDirectLinha789 { get; set; }
     public DbSet<LoteDirectAgregado> LotesDirectAgregado { get; set; }
     public DbSet<LoteDirectDetalhe> LotesDirectDetalhe { get; set; }
+    public DbSet<LoteFisioterapia> LotesFisioterapia { get; set; }
 
     // DbSets - ListaEsperaConsulta
     public DbSet<ListaEsperaConsulta> ListaEsperaConsultas { get; set; }
@@ -640,6 +645,10 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
       _ = modelBuilder.ApplyConfiguration(new ServicoConsultaConfiguration());
       _ = modelBuilder.ApplyConfiguration(new AdmissaoConfiguration());
       _ = modelBuilder.ApplyConfiguration(new AdmissaoServicoConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new EstadoExameEspConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new RequisicaoEspConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new RequisicaoEspLinhaConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new RequisicaoEspEfetuadoNaoPrescritoConfiguration());
       
       // Tratamentos configurations
       _ = modelBuilder.ApplyConfiguration(new TratamentoConfiguration());
@@ -812,6 +821,7 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
       _ = modelBuilder.ApplyConfiguration(new LoteDirectLinha789Configuration());
       _ = modelBuilder.ApplyConfiguration(new LoteDirectAgregadoConfiguration());
       _ = modelBuilder.ApplyConfiguration(new LoteDirectDetalheConfiguration());
+      _ = modelBuilder.ApplyConfiguration(new LoteFisioterapiaConfiguration());
 
       // ListaEsperaConsulta configurations
       _ = modelBuilder.ApplyConfiguration(new ListaEsperaConsultaConfiguration());

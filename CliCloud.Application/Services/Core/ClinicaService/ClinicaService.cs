@@ -645,20 +645,20 @@ namespace CliCloud.Application.Services.Core.ClinicaService
       }
     }
 
-    public async Task<Response<AvisosClinicaLegacyDTO>> GetAvisosClinicaAsync(Guid id)
+    public async Task<Response<AvisosClinicaDTO>> GetAvisosClinicaAsync(Guid id)
     {
       try
       {
         var clinica = await _repository.GetByIdAsync<Clinica, ClinicaDTO, Guid>(id);
-        if (clinica == null) return ResponseFactory.Fail<AvisosClinicaLegacyDTO>("Clínica não encontrada.");
+        if (clinica == null) return ResponseFactory.Fail<AvisosClinicaDTO>("Clínica não encontrada.");
 
-        return ResponseFactory.Success(new AvisosClinicaLegacyDTO
+        return ResponseFactory.Success(new AvisosClinicaDTO
         {
           MsgFaltaPagamento = clinica.MsgFaltaPagamento,
           MsgCredenciais = clinica.MsgCredenciais
         });
       }
-      catch (Exception ex) { return ResponseFactory.Fail<AvisosClinicaLegacyDTO>(ex.Message); }
+      catch (Exception ex) { return ResponseFactory.Fail<AvisosClinicaDTO>(ex.Message); }
     }
 
     public async Task<Response<int[]>> GetFolgasClinicaAsync(Guid id)
