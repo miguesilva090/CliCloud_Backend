@@ -69,6 +69,7 @@ using TratamentoDtos = CliCloud.Application.Services.Tratamentos.TratamentoServi
 using SessaoTratamentoDtos = CliCloud.Application.Services.Tratamentos.SessaoTratamentoService.DTOs;
 using AdmissaoTratamentoAdministrativoDtos = CliCloud.Application.Services.Tratamentos.AdmissaoTratamentoAdministrativoService.DTOs;
 using TratamentoMarcadosAdministrativoDtos = CliCloud.Application.Services.Tratamentos.TratamentoMarcadosAdministrativoService.DTOs;
+using HistoricoTratamentoAdministrativoDtos = CliCloud.Application.Services.Tratamentos.HistoricoTratamentoAdministrativoService.DTOs;
 using ServicoTratamentoDtos = CliCloud.Application.Services.Tratamentos.ServicoTratamentoService.DTOs;
 using ServicoSessaoDtos = CliCloud.Application.Services.Tratamentos.ServicoSessaoService.DTOs;
 using AparelhoDtos = CliCloud.Application.Services.Tratamentos.AparelhoService.DTOs;
@@ -1113,6 +1114,17 @@ namespace CliCloud.Infrastructure.Mapper
             )
         )
         .ForMember(d => d.Debito, o => o.Ignore());
+      _ = CreateMap<Tratamento, HistoricoTratamentoAdministrativoDtos.HistoricoTratamentoTableDTO>()
+        .ForMember(d => d.UtenteNome, o => o.MapFrom(s => s.Utente != null ? s.Utente.Nome : null))
+        .ForMember(d => d.NumeroUtente, o => o.MapFrom(s => s.Utente != null ? s.Utente.NumeroUtente : null))
+        .ForMember(d => d.MedicoNome, o => o.MapFrom(s => s.Medico != null ? s.Medico.Nome : null))
+        .ForMember(d => d.OrganismoNome, o => o.MapFrom(s =>
+          s.Organismo != null
+            ? (s.Organismo.Nome ?? s.Organismo.NomeComercial ?? s.Organismo.Abreviatura)
+            : null))
+        .ForMember(d => d.FisioterapeutaNome, o => o.MapFrom(s => s.Fisioterapeuta != null ? s.Fisioterapeuta.Nome : null))
+        .ForMember(d => d.AuxiliarNome, o => o.MapFrom(s => s.Auxiliar != null ? s.Auxiliar.Nome : null))
+        .ForMember(d => d.OutroTecnicoNome, o => o.MapFrom(s => s.OutroTecnico != null ? s.OutroTecnico.Nome : null));
       _ = CreateMap<SessaoTratamentoDtos.CreateSessaoTratamentoRequest, SessaoTratamento>()
         .ForMember(d => d.TratamentoId, o => o.MapFrom(s => ToGuid(s.TratamentoId)))
         .ForMember(d => d.FisioterapeutaId, o => o.MapFrom(s => ToNullableGuid(s.FisioterapeutaId)))
