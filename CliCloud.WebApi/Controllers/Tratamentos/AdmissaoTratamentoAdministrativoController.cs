@@ -26,4 +26,16 @@ public class AdmissaoTratamentoAdministrativoController(
     Guid id,
     [FromBody] UpdateAdmissaoTratamentoSituacaoRequest request
   ) => Ok(await _service.UpdateSituacaoAsync(id, request));
+
+  [Authorize(Roles = "client")]
+  [HttpPut("{id:guid}/desmarcar")]
+  public async Task<IActionResult> Desmarcar(
+    Guid id,
+    [FromBody] DesmarcarAdmissaoTratamentoRequest request
+  ) => Ok(await _service.DesmarcarAsync(id, request));
+
+  [Authorize(Roles = "client")]
+  [HttpPut("{id:guid}/remover-desmarcacao")]
+  public async Task<IActionResult> RemoverDesmarcacao(Guid id) => 
+    Ok(await _service.RemoverDesmarcacaoAsync(id));
 }

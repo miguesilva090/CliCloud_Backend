@@ -24,7 +24,11 @@ public sealed class AdmissaoTratamentoSearchTable : Specification<SessaoTratamen
       .Include(x => x.OutroTecnico);
 
     _ = Query.Where(x => x.DeletedOn == null);
-    _ = Query.Where(x => x.Desmarcado == null || x.Desmarcado == 0);
+    _ = Query.Where(x => x.HistSess == null || x.HistSess == 0);
+    if (!filter.IncluirDesmarcados)
+    {
+      _ = Query.Where(x => x.Desmarcado == null || x.Desmarcado == 0);
+    }
 
     DateTime dia = (filter.DataReferencia ?? DateTime.Today).Date;
     _ = Query.Where(x => x.Data.HasValue && x.Data.Value.Date == dia);
@@ -43,7 +47,6 @@ public sealed class AdmissaoTratamentoSearchTable : Specification<SessaoTratamen
     }
     else if (filter.Modo == ModoListagemAdmissaoTratamento.LocalTratamento)
     {
-      // Sem local seleccionado: lista vazia (legado obriga escolha de local).
       _ = Query.Where(x => false);
     }
 

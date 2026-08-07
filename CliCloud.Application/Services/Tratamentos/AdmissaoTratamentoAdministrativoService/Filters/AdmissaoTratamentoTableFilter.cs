@@ -16,4 +16,6 @@ public class AdmissaoTratamentoTableFilter : PaginationFilter
   public Guid? LocalTratamentoId { get; set; }
   public Guid? FisioterapeutaId { get; set; }
   public Guid? UtenteId { get; set; }
+
+  public bool IncluirDesmarcados { get; set; }
 }

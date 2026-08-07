@@ -4,6 +4,7 @@ using CliCloud.Infrastructure.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CliCloud.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260807093940_Add_SessaoTratmento_MotivoDesmarcacaoId")]
+    partial class Add_SessaoTratmento_MotivoDesmarcacaoId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -12691,7 +12694,7 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("LastModifiedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("MotivoDesmarcacaoId")
+                    b.Property<Guid?>("MotivosDesmarcacaoId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("NumDestacavel")
@@ -12741,7 +12744,7 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("FisioterapeutaId");
 
-                    b.HasIndex("MotivoDesmarcacaoId");
+                    b.HasIndex("MotivosDesmarcacaoId");
 
                     b.HasIndex("OutroTecnicoId");
 
@@ -17088,9 +17091,9 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .HasForeignKey("FisioterapeutaId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("CliCloud.Domain.Entities.Tratamentos.MotivosDesmarcacao", "MotivoDesmarcacao")
+                    b.HasOne("CliCloud.Domain.Entities.Tratamentos.MotivosDesmarcacao", "MotivosDesmarcacao")
                         .WithMany()
-                        .HasForeignKey("MotivoDesmarcacaoId")
+                        .HasForeignKey("MotivosDesmarcacaoId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("CliCloud.Domain.Entities.Tecnicos.Tecnico", "OutroTecnico")
@@ -17120,7 +17123,7 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
 
                     b.Navigation("Fisioterapeuta");
 
-                    b.Navigation("MotivoDesmarcacao");
+                    b.Navigation("MotivosDesmarcacao");
 
                     b.Navigation("OutroTecnico");
 

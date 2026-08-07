@@ -61,6 +61,8 @@ namespace CliCloud.Domain.Entities.Tratamentos
     public int? CompensaFalta { get; set; }
     public string? ObsFalta { get; set; }
     public int? Desmarcado { get; set; }
+    public Guid? MotivoDesmarcacaoId { get; set; }
+    public MotivosDesmarcacao? MotivoDesmarcacao { get; set; }
     
     // Outros campos
     public string? Destino { get; set; }

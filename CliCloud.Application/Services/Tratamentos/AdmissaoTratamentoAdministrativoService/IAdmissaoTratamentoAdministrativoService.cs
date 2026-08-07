@@ -15,4 +15,11 @@ public interface IAdmissaoTratamentoAdministrativoService : ITransientService
     Guid id,
     UpdateAdmissaoTratamentoSituacaoRequest request
   );
+
+  Task<Response<Guid>> DesmarcarAsync(
+    Guid id,
+    DesmarcarAdmissaoTratamentoRequest request
+  );
+
+  Task<Response<Guid>> RemoverDesmarcacaoAsync(Guid id);
 }

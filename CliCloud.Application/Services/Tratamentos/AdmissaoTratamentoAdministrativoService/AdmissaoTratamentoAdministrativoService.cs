@@ -44,6 +44,11 @@ public class AdmissaoTratamentoAdministrativoService(IRepositoryAsync repository
       return ResponseFactory.Fail<Guid>("Sessão de tratamento não encontrada.");
     }
 
+    if ((entity.Desmarcado ?? 0) == 1)
+    {
+      return ResponseFactory.Fail<Guid>("Sessão desmarcada. Remova a desmarcação primeiro.");
+    }
+
     string campo = request.Campo.Trim().ToLowerInvariant();
     int valor = request.Valor;
     int faltouAntes = entity.Faltou ?? 0;
@@ -108,6 +113,88 @@ public class AdmissaoTratamentoAdministrativoService(IRepositoryAsync repository
         _ = await _repository.UpdateAsync<Tratamento, Guid>(tratamento);
       }
     }
+
+    // Paridade legado SESSTRAT.UpdateHistoricoSessao
+    entity.HistSess =
+      (entity.Faltou ?? 0) == 1
+      || (entity.Confirmado ?? 0) == 1
+      || (entity.Efetuado ?? 0) == 1
+      || (entity.Desmarcado ?? 0) == 1
+        ? 1
+        : 0;
+
+    try
+    {
+      _ = await _repository.UpdateAsync<SessaoTratamento, Guid>(entity);
+      _ = await _repository.SaveChangesAsync();
+    }
+    catch (Exception ex) when (ex.Message.Contains("Nada a ser atualizado"))
+    {
+      return ResponseFactory.Success(entity.Id);
+    }
+
+    return ResponseFactory.Success(entity.Id);
+  }
+
+  public async Task<Response<Guid>> DesmarcarAsync(
+    Guid id,
+    DesmarcarAdmissaoTratamentoRequest request
+  )
+  {
+    SessaoTratamento? entity = await _repository.GetByIdAsync<SessaoTratamento, Guid>(id);
+    if (entity == null)
+    {
+      return ResponseFactory.Fail<Guid>("Sessão de tratamento não encontrada.");
+    }
+
+    MotivosDesmarcacao? motivo = await _repository.GetByIdAsync<MotivosDesmarcacao, Guid>(
+      request.MotivoDesmarcacaoId
+    );
+    if (motivo == null || motivo.DeletedOn != null)
+    {
+      return ResponseFactory.Fail<Guid>("Deve selecionar o motivo da desmarcação");
+    }
+
+    entity.Desmarcado = 1;
+    entity.MotivoDesmarcacaoId = request.MotivoDesmarcacaoId;
+    entity.HistSess = 1;
+
+    string stamp =
+      $"[{DateTime.Now:dd/MM/yyyy HH:mm}] Desmarcado — {motivo.Descricao}";
+    entity.ObservSessao = string.IsNullOrWhiteSpace(entity.ObservSessao)
+      ? stamp
+      : entity.ObservSessao + Environment.NewLine + stamp;
+
+    try
+    {
+      _ = await _repository.UpdateAsync<SessaoTratamento, Guid>(entity);
+      _ = await _repository.SaveChangesAsync();
+    }
+    catch (Exception ex) when (ex.Message.Contains("Nada a ser atualizado"))
+    {
+      return ResponseFactory.Success(entity.Id);
+    }
+
+    return ResponseFactory.Success(entity.Id);
+  }
+
+  public async Task<Response<Guid>> RemoverDesmarcacaoAsync(Guid id)
+  {
+    SessaoTratamento? entity = await _repository.GetByIdAsync<SessaoTratamento, Guid>(id);
+    if (entity == null)
+    {
+      return ResponseFactory.Fail<Guid>("Sessão de tratamento não encontrada.");
+    }
+
+    entity.Desmarcado = 0;
+    entity.MotivoDesmarcacaoId = null;
+    // Paridade legado SESSTRAT.UpdateHistoricoSessao após ActualizaSituacaoDesmarcou(valor=0)
+    entity.HistSess =
+      (entity.Faltou ?? 0) == 1
+      || (entity.Confirmado ?? 0) == 1
+      || (entity.Efetuado ?? 0) == 1
+        ? 1
+        : 0;
 
     try
     {
