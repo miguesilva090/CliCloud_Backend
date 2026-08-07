@@ -90,7 +90,8 @@ public class FechoDiarioTratamentoAdministrativoService(IRepositoryAsync reposit
 
   private async Task FecharTratamentoAsync(Tratamento tratamento, DateTime data)
   {
-    tratamento.DataFim ??= data;
+    tratamento.DataFim = data;
+    tratamento.ConfDfim = 1;
     _ = await _repository.UpdateAsync<Tratamento, Guid>(tratamento);
 
     List<SessaoTratamento> todas = (
@@ -101,23 +102,8 @@ public class FechoDiarioTratamentoAdministrativoService(IRepositoryAsync reposit
 
     foreach (SessaoTratamento s in todas)
     {
-      foreach (ServicoSessao servSess in s.Servicos.Where(x => x.DeletedOn == null))
-      {
-        await _repository.RemoveAsync<ServicoSessao, Guid>(servSess);
-      }
-
-      await _repository.RemoveAsync<SessaoTratamento, Guid>(s);
-    }
-
-    List<ServicoTratamento> servicos = (
-      await _repository.GetListAsync<ServicoTratamento, Guid>(
-        new ServicosTratamentoDoTratamentoSpec(tratamento.Id)
-      )
-    ).ToList();
-
-    foreach (ServicoTratamento st in servicos)
-    {
-      await _repository.RemoveAsync<ServicoTratamento, Guid>(st);
+      s.HistSess = 1;
+      _ = await _repository.UpdateAsync<SessaoTratamento, Guid>(s);
     }
   }
 }
