@@ -3,6 +3,7 @@ using CliCloud.Domain.Entities.Atestados;
 using CliCloud.Domain.Entities.CartaConducao;
 using CliCloud.Domain.Entities.Consultas;
 using CliCloud.Domain.Entities.Exames;
+using CliCloud.Domain.Entities.Prescricao;
 using CliCloud.Domain.Entities.Core;
 using CliCloud.Domain.Entities.Core.Email;
 using CliCloud.Domain.Entities.Documentos;
@@ -53,6 +54,7 @@ using ListaEsperaTratamentoAdministrativoDtos =
   CliCloud.Application.Services.Tratamentos.ListaEsperaTratamentoAdministrativoService.DTOs;
 using PatologiaDtos = CliCloud.Application.Services.Tratamentos.PatologiaService.DTOs;
 using ExameDtos = CliCloud.Application.Services.Exames.ExameService.DTOs;
+using ReceitaMedicaDtos = CliCloud.Application.Services.Prescricao.ReceitaMedicaService.DTOs;
 using TipoExameDtos = CliCloud.Application.Services.Exames.TipoExameService.DTOs;
 using AcordosDtos = CliCloud.Application.Services.Exames.AcordosService.DTOs;
 using CategoriaProcedimentoDtos = CliCloud.Application.Services.Exames.CategoriaProcedimentoService.DTOs;
@@ -435,6 +437,33 @@ namespace CliCloud.Infrastructure.Mapper
         .ForMember(d => d.Medico, o => o.Ignore())
         .ForMember(d => d.Prioridade, o => o.Ignore())
         .ForMember(d => d.Organismo, o => o.Ignore());
+
+      // ---- ReceitaMedica (prescrição electrónica) ----
+      _ = CreateMap<ReceitaLinha, ReceitaMedicaDtos.ReceitaLinhaDTO>();
+      _ = CreateMap<ReceitaMedica, ReceitaMedicaDtos.ReceitaMedicaDTO>()
+        .ForMember(d => d.Linhas, o => o.MapFrom(s => s.Linhas));
+      _ = CreateMap<ReceitaMedica, ReceitaMedicaDtos.ReceitaMedicaTableDTO>()
+        .ForMember(d => d.UtenteNome, o => o.MapFrom(s => s.Utente != null ? s.Utente.Nome : null))
+        .ForMember(d => d.MedicoNome, o => o.MapFrom(s => s.Medico != null ? s.Medico.Nome : null));
+      _ = CreateMap<ReceitaMedicaDtos.CreateReceitaLinhaRequest, ReceitaLinha>()
+        .ForMember(d => d.ReceitaMedicaId, o => o.Ignore())
+        .ForMember(d => d.ReceitaMedica, o => o.Ignore())
+        .ForMember(d => d.DataValidade, o => o.Ignore());
+      _ = CreateMap<ReceitaMedicaDtos.CreateReceitaMedicaRequest, ReceitaMedica>()
+        .ForMember(d => d.Linhas, o => o.MapFrom(s => s.Linhas))
+        .ForMember(d => d.Utente, o => o.Ignore())
+        .ForMember(d => d.Medico, o => o.Ignore())
+        .ForMember(d => d.Clinica, o => o.Ignore());
+      _ = CreateMap<ReceitaMedicaDtos.UpdateReceitaMedicaRequest, ReceitaMedica>()
+        .ForMember(d => d.Linhas, o => o.Ignore())
+        .ForMember(d => d.Utente, o => o.Ignore())
+        .ForMember(d => d.Medico, o => o.Ignore())
+        .ForMember(d => d.Clinica, o => o.Ignore())
+        .ForMember(d => d.ClinicaId, o => o.Ignore());
+      _ = CreateMap<ReceitaMedicaDtos.UpdateReceitaLinhaRequest, ReceitaLinha>()
+        .ForMember(d => d.ReceitaMedicaId, o => o.Ignore())
+        .ForMember(d => d.ReceitaMedica, o => o.Ignore())
+        .ForMember(d => d.DataValidade, o => o.Ignore());
 
       // ---- FichaClinicaSecaoTemplate (Separadores) ----
       _ = CreateMap<FichaClinicaSecaoTemplate, FichaClinicaSecaoTemplateDtos.FichaClinicaSecaoTemplateDTO>();

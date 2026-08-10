@@ -20,6 +20,7 @@ public interface IInfarmedApiClient : ITransientService
         bool contar = false,
         int? tipoReceita = null,
         bool? prescritivel = null,
+        string? dci = null,
         CancellationToken cancellationToken = default
     );
 
@@ -39,6 +40,10 @@ public interface IInfarmedApiClient : ITransientService
     Task<Response<IReadOnlyList<MedicamentoPrescricaoOpcaoDto>>> GetEquivalentesByCnpemAsync(
         string cnpem,
         IReadOnlyList<int>? patologias = null,
+        CancellationToken cancellationToken = default
+    );
+
+    Task<Response<IReadOnlyList<RegimeExcepcionalDto>>> GetRegimesExcepcionaisAtivosAsync(
         CancellationToken cancellationToken = default
     );
 }

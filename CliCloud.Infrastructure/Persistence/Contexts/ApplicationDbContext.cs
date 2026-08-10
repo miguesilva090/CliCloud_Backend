@@ -60,6 +60,7 @@ using CliCloud.Domain.Entities.Notificacoes;
 using CliCloud.Domain.Entities.Sinistros;
 using CliCloud.Domain.Entities.Credenciais;
 using CliCloud.Domain.Entities.Stocks;
+using CliCloud.Domain.Entities.Prescricao;
 using Microsoft.EntityFrameworkCore;
 
 //---------------------------------- CLI COMMANDS --------------------------------------------------
@@ -484,6 +485,10 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     // DbSets - GlobalBooking (tabelas legado dbo)
     public DbSet<PedidoConsulta> PedidosConsulta { get; set; }
     public DbSet<PedidoConsultaUtente> PedidosConsultaUtentes { get; set; }
+
+    // DbSets - Prescricao
+    public DbSet<ReceitaMedica> ReceitasMedicas { get; set; }
+    public DbSet<ReceitaLinha> ReceitasLinhas { get; set; }
 
     // DbSets - FicheiroEletronico
     public DbSet<FicheiroEletronicoRegisto> FicheiroEletronicoRegistos => Set<FicheiroEletronicoRegisto>();

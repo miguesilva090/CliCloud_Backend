@@ -29,7 +29,8 @@ public class MedicamentosInfarmedController(IInfarmedApiClient infarmedApiClient
     [HttpGet]
     public async Task<IActionResult> ListagemResumoAsync(
         [FromQuery] string? nome = null,
-        [FromQuery] int tipo = 10,
+        [FromQuery] string? dci = null,
+        [FromQuery] int tipo = 30,
         [FromQuery] int page = 1,
         [FromQuery] bool contar = false,
         [FromQuery] int? tipoReceita = null,
@@ -38,7 +39,7 @@ public class MedicamentosInfarmedController(IInfarmedApiClient infarmedApiClient
     {
         Response<MedicamentoListagemResumoResultDto> result =
             await _infarmedApiClient.ListagemResumoAsync(
-                nome, tipo, page, contar, tipoReceita, prescritivel, cancellationToken);
+                nome, tipo, page, contar, tipoReceita, prescritivel, dci, cancellationToken);
         return Ok(result);
     }
 
@@ -92,6 +93,19 @@ public class MedicamentosInfarmedController(IInfarmedApiClient infarmedApiClient
 
         Response<IReadOnlyList<MedicamentoPrescricaoOpcaoDto>> result =
             await _infarmedApiClient.GetEquivalentesByCnpemAsync(cnpem, ids, cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Catálogo SNS de regimes excepcionais (patologias/comparticipação) via ApiInfarmed.
+    /// </summary>
+    [Authorize(Roles = "client")]
+    [HttpGet("regimes-excecionais")]
+    public async Task<IActionResult> GetRegimesExcepcionaisAsync(
+        CancellationToken cancellationToken = default)
+    {
+        Response<IReadOnlyList<RegimeExcepcionalDto>> result =
+            await _infarmedApiClient.GetRegimesExcepcionaisAtivosAsync(cancellationToken);
         return Ok(result);
     }
 

@@ -98,6 +98,7 @@ public class InfarmedApiClient(
         bool contar = false,
         int? tipoReceita = null,
         bool? prescritivel = null,
+        string? dci = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -112,6 +113,10 @@ public class InfarmedApiClient(
         if (string.IsNullOrWhiteSpace(_options.BaseUrl))
             return ResponseFactory.Fail<MedicamentoListagemResumoResultDto>(
                 "InfarmedApi: BaseUrl não está configurado.");
+
+        if (string.IsNullOrWhiteSpace(nome) && string.IsNullOrWhiteSpace(dci))
+            return ResponseFactory.Fail<MedicamentoListagemResumoResultDto>(
+                "Indique nome ou substância activa (DCI) para pesquisar.");
         
         try
         {
@@ -127,6 +132,9 @@ public class InfarmedApiClient(
 
             if (!string.IsNullOrWhiteSpace(nome))
                 qs.Add($"nome={Uri.EscapeDataString(nome.Trim())}");
+
+            if (!string.IsNullOrWhiteSpace(dci))
+                qs.Add($"dci={Uri.EscapeDataString(dci.Trim())}");
 
             if (tipoReceita is not null)
                 qs.Add($"tipoReceita={tipoReceita.Value}");
@@ -171,7 +179,7 @@ public class InfarmedApiClient(
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro inesperado na listagem resumo Infarmed. Nome={Nome}", nome);
+            _logger.LogError(ex, "Erro inesperado na listagem resumo Infarmed. Nome={Nome} Dci={Dci}", nome, dci);
             return ResponseFactory.Fail<MedicamentoListagemResumoResultDto>(
                 "Erro inesperado ao listar medicamentos no Infarmed.");
         }
@@ -346,5 +354,124 @@ private static void AppendPatologias(List<string> parts, IReadOnlyList<int>? pat
     parts.Add($"patologias={Uri.EscapeDataString(string.Join(",", patologias))}");
 }
 
+public async Task<Response<IReadOnlyList<RegimeExcepcionalDto>>> GetRegimesExcepcionaisAtivosAsync(
+    CancellationToken cancellationToken = default)
+{
+    if (string.IsNullOrWhiteSpace(_options.BaseUrl))
+        return ResponseFactory.Fail<IReadOnlyList<RegimeExcepcionalDto>>(
+            "InfarmedApi:BaseUrl não está configurado.");
+
+    try
+    {
+        var client = _httpClientFactory.CreateClient(InfarmedApiOptions.HttpClientName);
+        var all = new List<RegimeExcepcionalDto>();
+        var page = 1;
+        const int pageSize = 200;
+
+        while (true)
+        {
+            var url =
+                $"refs/regime-excecional?page={page}&pageSize={pageSize}&sort=DESCR&sortDir=asc&IND_ATIVO=S";
+
+            using var response = await client.GetAsync(url, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var body = await response.Content.ReadAsStringAsync(cancellationToken);
+                _logger.LogWarning(
+                    "ApiInfarmed regimes falhou. Status={StatusCode} Body={Body}",
+                    (int)response.StatusCode,
+                    body);
+                return ResponseFactory.Fail<IReadOnlyList<RegimeExcepcionalDto>>(
+                    $"Erro ao contactar ApiInfarmed ({(int)response.StatusCode}).");
+            }
+
+            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
+            var root = doc.RootElement;
+
+            if (!root.TryGetProperty("items", out var itemsEl) &&
+                !root.TryGetProperty("Items", out itemsEl))
+            {
+                break;
+            }
+
+            var pageCount = 0;
+            foreach (var item in itemsEl.EnumerateArray())
+            {
+                pageCount++;
+                var id = ReadIntProperty(item, "REGIME_EXCECIONAL_ID", "regimeExcepcionalId");
+                if (id <= 0) continue;
+
+                all.Add(new RegimeExcepcionalDto
+                {
+                    RegimeExcepcionalId = id,
+                    Descr = ReadStringProperty(item, "DESCR", "descr"),
+                    IndAtivo = ReadStringProperty(item, "IND_ATIVO", "indAtivo"),
+                });
+            }
+
+            var totalCount = ReadIntProperty(root, "totalCount", "TotalCount");
+            if (pageCount == 0 || page * pageSize >= totalCount)
+                break;
+
+            page++;
+        }
+
+        IReadOnlyList<RegimeExcepcionalDto> result = all
+            .GroupBy(x => x.RegimeExcepcionalId)
+            .Select(g => g.First())
+            .OrderBy(x => x.Descr, StringComparer.Create(
+                new System.Globalization.CultureInfo("pt-PT"), false))
+            .ToList();
+
+        return ResponseFactory.Success(result);
+    }
+    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+    {
+        throw;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Erro inesperado ao listar regimes excepcionais Infarmed.");
+        return ResponseFactory.Fail<IReadOnlyList<RegimeExcepcionalDto>>(
+            "Erro inesperado ao obter regimes excepcionais no Infarmed.");
+    }
+}
+
+private static int ReadIntProperty(JsonElement el, params string[] names)
+{
+    foreach (var name in names)
+    {
+        if (el.TryGetProperty(name, out var prop) &&
+            prop.ValueKind == JsonValueKind.Number &&
+            prop.TryGetInt32(out var value))
+        {
+            return value;
+        }
+
+        if (el.TryGetProperty(name, out prop) &&
+            prop.ValueKind == JsonValueKind.String &&
+            int.TryParse(prop.GetString(), out var parsed))
+        {
+            return parsed;
+        }
+    }
+
+    return 0;
+}
+
+private static string? ReadStringProperty(JsonElement el, params string[] names)
+{
+    foreach (var name in names)
+    {
+        if (el.TryGetProperty(name, out var prop) &&
+            prop.ValueKind == JsonValueKind.String)
+        {
+            return prop.GetString();
+        }
+    }
+
+    return null;
+}
 
 }

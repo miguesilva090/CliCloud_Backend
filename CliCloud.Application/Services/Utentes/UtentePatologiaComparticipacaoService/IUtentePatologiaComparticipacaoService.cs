@@ -9,5 +9,7 @@ namespace CliCloud.Application.Services.Utentes.UtentePatologiaComparticipacaoSe
         Task<Response<IEnumerable<UtentePatologiaComparticipacaoDTO>>> GetByUtenteIdAsync(Guid utenteId);
         Task<Response<Guid>> CreateAsync(CreateUtentePatologiaComparticipacaoRequest request);
         Task<Response<Guid>> DeleteAsync(Guid id);
+        Task<Response<IEnumerable<UtentePatologiaComparticipacaoDTO>>> ReplaceByUtenteAsync(
+            ReplaceUtentePatologiasComparticipacaoRequest request);
     }
 }

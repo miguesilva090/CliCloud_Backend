@@ -27,7 +27,7 @@ public sealed class TratamentoMarcadosSearchTable : Specification<Tratamento>
     {
       _ = Query.Where(x => 
         x.DataInic.HasValue
-        && (x.DataFim == null || x.DataFim.Value.Date >= hoje)
+        && (x.DataFim == null || x.DataFim.Value.Date > hoje)
         && (x.Suspenso ?? 0) == 0
         && (x.Provisorio ?? 0) == 0
       );
@@ -179,9 +179,8 @@ public sealed class TratamentoMarcadosSearchTable : Specification<Tratamento>
             case "iniciados":
               _ = Query.Where(x =>
                 x.DataInic.HasValue
-                && x.DataFim.HasValue
                 && x.DataInic.Value.Date < hoje
-                && x.DataFim.Value.Date >= hoje
+                && (x.DataFim == null || x.DataFim.Value.Date > hoje)
                 && (x.Suspenso ?? 0) == 0
                 && (x.Provisorio ?? 0) == 0
               );
@@ -189,7 +188,7 @@ public sealed class TratamentoMarcadosSearchTable : Specification<Tratamento>
             case "terminados":
               _ = Query.Where(x =>
                 x.DataFim.HasValue
-                && x.DataFim.Value.Date < hoje
+                && x.DataFim.Value.Date <= hoje
                 && (x.Suspenso ?? 0) == 0
                 && (x.Provisorio ?? 0) == 0
               );

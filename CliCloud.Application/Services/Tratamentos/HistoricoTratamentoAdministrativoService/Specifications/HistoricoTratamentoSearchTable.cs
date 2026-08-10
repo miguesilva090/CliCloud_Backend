@@ -27,7 +27,7 @@ public sealed class HistoricoTratamentoSearchTable : Specification<Tratamento>
     _ = Query.Where(x => x.DeletedOn == null);
     // Concluídos = histórico (paridade funcional vs Marcados activos)
     _ = Query.Where(x =>
-      x.DataFim.HasValue && x.DataFim.Value.Date < hoje
+      x.DataFim.HasValue && x.DataFim.Value.Date <= hoje
     );
 
     switch (modo)

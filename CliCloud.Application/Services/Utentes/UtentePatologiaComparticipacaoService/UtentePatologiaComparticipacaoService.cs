@@ -46,7 +46,8 @@ namespace CliCloud.Application.Services.Utentes.UtentePatologiaComparticipacaoSe
 
             if (await _repository.ExistsAsync<UtentePatologiaComparticipacao, Guid>(existsSpec))
             {
-                return ResponseFactory.Fail<Guid>("Já existe esta patologia de comparticipação para este utente");
+                return ResponseFactory.Fail<Guid>(
+                    "O utente já tem associada a patologia indicada");
             }
 
             var entity = _mapper.Map(request, new UtentePatologiaComparticipacao());
@@ -80,6 +81,64 @@ namespace CliCloud.Application.Services.Utentes.UtentePatologiaComparticipacaoSe
             catch (Exception ex)
             {
                 return ResponseFactory.Fail<Guid>(ex.Message);
+            }
+        }
+
+        public async Task<Response<IEnumerable<UtentePatologiaComparticipacaoDTO>>> ReplaceByUtenteAsync(
+            ReplaceUtentePatologiasComparticipacaoRequest request)
+        {
+            try
+            {
+                var desired = request.Items
+                    .GroupBy(x => x.CodigoComparticipacao)
+                    .Select(g => g.First())
+                    .ToList();
+
+                var existing = (await _repository
+                    .GetListAsync<UtentePatologiaComparticipacao, Guid>(
+                        new UtentePatologiaComparticipacaoByUtenteId(request.UtenteId)
+                    )).ToList();
+
+                var desiredCodes = desired.Select(x => x.CodigoComparticipacao).ToHashSet();
+                var existingCodes = existing.Select(x => x.CodigoComparticipacao).ToHashSet();
+
+                foreach (var row in existing.Where(x => !desiredCodes.Contains(x.CodigoComparticipacao)))
+                {
+                    await _repository.RemoveAsync<UtentePatologiaComparticipacao, Guid>(row);
+                }
+
+                foreach (var item in desired.Where(x => !existingCodes.Contains(x.CodigoComparticipacao)))
+                {
+                    var entity = new UtentePatologiaComparticipacao
+                    {
+                        UtenteId = request.UtenteId,
+                        CodigoComparticipacao = item.CodigoComparticipacao,
+                        Designacao = item.Designacao,
+                    };
+                    _ = await _repository.CreateAsync<UtentePatologiaComparticipacao, Guid>(entity);
+                }
+
+                foreach (var row in existing.Where(x => desiredCodes.Contains(x.CodigoComparticipacao)))
+                {
+                    var match = desired.First(d => d.CodigoComparticipacao == row.CodigoComparticipacao);
+                    if (!string.Equals(row.Designacao, match.Designacao, StringComparison.Ordinal))
+                    {
+                        row.Designacao = match.Designacao;
+                        await _repository.UpdateAsync<UtentePatologiaComparticipacao, Guid>(row);
+                    }
+                }
+
+                _ = await _repository.SaveChangesAsync();
+
+                var list = await _repository
+                    .GetListAsync<UtentePatologiaComparticipacao, UtentePatologiaComparticipacaoDTO, Guid>(
+                        new UtentePatologiaComparticipacaoByUtenteId(request.UtenteId)
+                    );
+                return ResponseFactory.Success(list);
+            }
+            catch (Exception ex)
+            {
+                return ResponseFactory.Fail<IEnumerable<UtentePatologiaComparticipacaoDTO>>(ex.Message);
             }
         }
     }
