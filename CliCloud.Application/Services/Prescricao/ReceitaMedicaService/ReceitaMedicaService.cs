@@ -85,6 +85,8 @@ namespace CliCloud.Application.Services.Prescricao.ReceitaMedicaService
         foreach (var linha in entity.Linhas)
           linha.DataValidade = CalcularValidade(request.DataPrescricao, linha.CodValidade);
 
+        SyncPrescricaoPorNomeHeader(entity);
+
         var created = await _repository.CreateAsync<ReceitaMedica, Guid>(entity);
         _ = await _repository.SaveChangesAsync();
         return ResponseFactory.Success(created.Id);
@@ -138,8 +140,14 @@ namespace CliCloud.Application.Services.Prescricao.ReceitaMedicaService
             DataValidade = CalcularValidade(request.DataPrescricao, req.CodValidade),
             CodJustificacaoQuantidade = req.CodJustificacaoQuantidade,
             JustificacaoQuantidade = req.JustificacaoQuantidade,
+            CodTipoPrescricao = req.CodTipoPrescricao,
+            CodMotivo = req.CodMotivo,
+            CodIndicacaoTerapeutica = req.CodIndicacaoTerapeutica,
+            Diploma = req.Diploma,
           });
         }
+
+        SyncPrescricaoPorNomeHeader(existing);
 
         var updated = await _repository.UpdateAsync<ReceitaMedica, Guid>(existing);
         _ = await _repository.SaveChangesAsync();
@@ -332,5 +340,18 @@ namespace CliCloud.Application.Services.Prescricao.ReceitaMedicaService
         2 => dataPrescricao.Date.AddMonths(6),
         _ => dataPrescricao.Date.AddMonths(12),
       };
+
+    /// <summary>
+    /// Agrega no cabeçalho (legado PrescricaoPorNome / MotivoPrescricaoNome)
+    /// a partir das linhas por nome comercial.
+    /// </summary>
+    private static void SyncPrescricaoPorNomeHeader(ReceitaMedica entity)
+    {
+      var porNome = (entity.Linhas ?? [])
+        .Where(l => l.TipoLinha <= 3 && l.CodTipoPrescricao != 2)
+        .ToList();
+      entity.PrescricaoPorNome = porNome.Count > 0 ? 1 : 0;
+      entity.MotivoPrescricaoNome = porNome.FirstOrDefault()?.CodMotivo;
+    }
   }
 }

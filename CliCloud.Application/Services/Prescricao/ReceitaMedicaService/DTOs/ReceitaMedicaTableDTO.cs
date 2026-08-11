@@ -27,6 +27,10 @@ namespace CliCloud.Application.Services.Prescricao.ReceitaMedicaService.DTOs
     public DateTime? DataValidade { get; set; }
     public string? CodJustificacaoQuantidade { get; set; }
     public string? JustificacaoQuantidade { get; set; }
+    public int? CodTipoPrescricao { get; set; }
+    public int? CodMotivo { get; set; }
+    public int? CodIndicacaoTerapeutica { get; set; }
+    public string? Diploma { get; set; }
   }
 
   public class ReceitaMedicaDTO : IDto

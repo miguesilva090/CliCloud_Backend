@@ -40,5 +40,17 @@ namespace CliCloud.Domain.Entities.Prescricao
         public DateTime? DataValidade { get; set; }
         [StringLength(10)] public string? CodJustificacaoQuantidade { get; set; }
         [StringLength(500)] public string? JustificacaoQuantidade { get; set; }
+
+        /// <summary>1 = por nome/marca · 2 = por DCI (legado CodigoTipoPrescricao).</summary>
+        public int? CodTipoPrescricao { get; set; }
+
+        /// <summary>Motivo 1–4 quando prescrição por nome (CodTipoPrescricao != 2).</summary>
+        public int? CodMotivo { get; set; }
+
+        /// <summary>Indicação terapêutica 1–7 (canábis / tipoLinha == 2) — P1.3b.</summary>
+        public int? CodIndicacaoTerapeutica { get; set; }
+
+        /// <summary>Diploma/despacho Infarmed (normaRegimeExcecional / regimeExcecional).</summary>
+        [StringLength(500)] public string? Diploma { get; set; }
     }
 }

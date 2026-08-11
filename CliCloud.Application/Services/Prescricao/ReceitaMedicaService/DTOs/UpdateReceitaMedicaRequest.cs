@@ -26,6 +26,10 @@ namespace CliCloud.Application.Services.Prescricao.ReceitaMedicaService.DTOs
     public int? CodValidade { get; set; }
     public string? CodJustificacaoQuantidade { get; set; }
     public string? JustificacaoQuantidade { get; set; }
+    public int? CodTipoPrescricao { get; set; }
+    public int? CodMotivo { get; set; }
+    public int? CodIndicacaoTerapeutica { get; set; }
+    public string? Diploma { get; set; }
   }
 
   public class UpdateReceitaMedicaRequest : IDto
@@ -70,10 +74,19 @@ namespace CliCloud.Application.Services.Prescricao.ReceitaMedicaService.DTOs
               && !string.IsNullOrWhiteSpace(l.PosologiaFrequenciaValor))
           || !string.IsNullOrWhiteSpace(l.Posologia)))
         .WithMessage("Atenção, a POSOLOGIA é de preenchimento obrigatório.");
-      _ = RuleFor(x => x)
-        .Must(r => r.PrescricaoPorNome == 0 || r.MotivoPrescricaoNome.HasValue
-          || (r.TipoReceita != 1 && r.TipoReceita != 2))
-        .WithMessage("Atenção, a prescrição por medicamento (nome comercial) exige motivo obrigatório.");
+      _ = RuleFor(x => x.Linhas)
+        .Must(linhas => linhas.All(l =>
+          l.TipoLinha > 3
+          || l.CodTipoPrescricao == 2
+          || (l.CodMotivo is >= 1 and <= 4)))
+        .WithMessage(
+          "O Preenchimento do motivo da prescrição por medicamento é de caracter obrigatório");
+      _ = RuleFor(x => x.Linhas)
+        .Must(linhas => linhas.All(l =>
+          l.TipoLinha != 2
+          || (l.CodIndicacaoTerapeutica is >= 1 and <= 7)))
+        .WithMessage(
+          "O Preenchimento da indicação terapêutica é de caracter obrigatório");
     }
   }
 }

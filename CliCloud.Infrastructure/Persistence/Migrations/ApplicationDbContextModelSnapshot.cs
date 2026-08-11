@@ -7536,6 +7536,15 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
+                    b.Property<int?>("CodIndicacaoTerapeutica")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CodMotivo")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CodTipoPrescricao")
+                        .HasColumnType("int");
+
                     b.Property<int?>("CodValidade")
                         .HasColumnType("int");
 
@@ -7563,6 +7572,10 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Designacao")
                         .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Diploma")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
