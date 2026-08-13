@@ -75,7 +75,7 @@ namespace CliCloud.WebApi.Controllers.Prescricao
 
     [Authorize(Roles = "client")]
     [HttpPost("{id:guid}/enviar")]
-    public async Task<IActionResult> EnviarAsync(Guid id)
+    public async Task<IActionResult> EnviarAsync(Guid id, [FromBody] EnviarReceitaMedicaRequest? request)
     {
       try
       {
@@ -83,7 +83,8 @@ namespace CliCloud.WebApi.Controllers.Prescricao
         if (clinicaId is null)
           return BadRequest("Sem clinica associada ao utilizador. Selecione uma clínica");
 
-        Response<Guid> result = await receitaMedicaService.EnviarAsync(id, clinicaId.Value);
+        request ??= new EnviarReceitaMedicaRequest();
+        Response<Guid> result = await receitaMedicaService.EnviarAsync(id, clinicaId.Value, request);
         return Ok(result);
       }
       catch (Exception ex)

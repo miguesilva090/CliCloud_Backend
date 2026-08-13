@@ -490,6 +490,12 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
     public DbSet<ReceitaMedica> ReceitasMedicas { get; set; }
     public DbSet<ReceitaLinha> ReceitasLinhas { get; set; }
 
+    // DbSets - MedicacaoCronica
+    public DbSet<MedicacaoCronica> MedicacoesCronicas { get; set; }
+
+    // DbSets - MedicacaoFavorita
+    public DbSet<MedicacaoFavorita> MedicacoesFavoritas { get; set; }
+
     // DbSets - FicheiroEletronico
     public DbSet<FicheiroEletronicoRegisto> FicheiroEletronicoRegistos => Set<FicheiroEletronicoRegisto>();
 
@@ -832,6 +838,12 @@ namespace CliCloud.Infrastructure.Persistence.Contexts
       _ = modelBuilder.ApplyConfiguration(new ListaEsperaConsultaConfiguration());
       _ = modelBuilder.ApplyConfiguration(new PedidoConsultaConfiguration());
       _ = modelBuilder.ApplyConfiguration(new PedidoConsultaUtenteConfiguration());
+
+      // MedicacaoCronica configurations
+      _ = modelBuilder.ApplyConfiguration(new MedicacaoCronicaConfiguration());
+
+      // MedicacaoFavorita configurations
+      _ = modelBuilder.ApplyConfiguration(new MedicacaoFavoritaConfiguration());
 
 
       // Odontologia - chaves alternativas e FKs por código

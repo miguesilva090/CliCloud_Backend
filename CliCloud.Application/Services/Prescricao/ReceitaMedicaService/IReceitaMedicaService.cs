@@ -11,8 +11,8 @@ namespace CliCloud.Application.Services.Prescricao.ReceitaMedicaService
     Task<Response<ReceitaMedicaDTO>> GetByIdAsync(Guid id);
     Task<Response<Guid>> CreateAsync(CreateReceitaMedicaRequest request);
     Task<Response<Guid>> UpdateAsync(Guid id, UpdateReceitaMedicaRequest request);
-    /// <summary>Paridade PrescricaoRSPSend / EnviarDesmaterializadas.</summary>
-    Task<Response<Guid>> EnviarAsync(Guid id, Guid clinicaId);
+    /// <summary>Paridade PrescricaoRSPSend / EnviarDesmaterializadas (requer token prescritor).</summary>
+    Task<Response<Guid>> EnviarAsync(Guid id, Guid clinicaId, EnviarReceitaMedicaRequest request);
     /// <summary>Paridade PrescricaoRSPDel: local se não enviada; SPMS se já enviada.</summary>
     Task<Response<Guid>> AnularAsync(Guid id, AnularReceitaMedicaRequest request, Guid clinicaId);
   }

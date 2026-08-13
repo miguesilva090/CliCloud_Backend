@@ -10,4 +10,5 @@ public class RegistoPrescricaoRspRequest : IDto
     public string? ChavePedido { get; set; }
     public string? ChavePedidoRelacionado { get; set; }
     public string CorpoXml { get; set; } = string.Empty;
+    public string? TokenPrescritor { get; set; }
 }

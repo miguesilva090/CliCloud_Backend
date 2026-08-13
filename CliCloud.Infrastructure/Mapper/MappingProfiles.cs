@@ -55,6 +55,8 @@ using ListaEsperaTratamentoAdministrativoDtos =
 using PatologiaDtos = CliCloud.Application.Services.Tratamentos.PatologiaService.DTOs;
 using ExameDtos = CliCloud.Application.Services.Exames.ExameService.DTOs;
 using ReceitaMedicaDtos = CliCloud.Application.Services.Prescricao.ReceitaMedicaService.DTOs;
+using MedicacaoCronicaDtos = CliCloud.Application.Services.Prescricao.MedicacaoCronicaService.DTOs;
+using MedicacaoFavoritaDtos = CliCloud.Application.Services.Prescricao.MedicacaoFavoritaService.DTOs;
 using TipoExameDtos = CliCloud.Application.Services.Exames.TipoExameService.DTOs;
 using AcordosDtos = CliCloud.Application.Services.Exames.AcordosService.DTOs;
 using CategoriaProcedimentoDtos = CliCloud.Application.Services.Exames.CategoriaProcedimentoService.DTOs;
@@ -464,6 +466,13 @@ namespace CliCloud.Infrastructure.Mapper
         .ForMember(d => d.ReceitaMedicaId, o => o.Ignore())
         .ForMember(d => d.ReceitaMedica, o => o.Ignore())
         .ForMember(d => d.DataValidade, o => o.Ignore());
+
+      // ---- MedicacaoCronica ----
+      _ = CreateMap<MedicacaoCronica, MedicacaoCronicaDtos.MedicacaoCronicaDTO>();
+      _ = CreateMap<MedicacaoCronicaDtos.CreateMedicacaoCronicaRequest, MedicacaoCronica>()
+        .ForMember(d => d.Utente, o => o.Ignore())
+        .ForMember(d => d.DataInicio, o => o.Ignore())
+        .ForMember(d => d.DataFim, o => o.Ignore());
 
       // ---- FichaClinicaSecaoTemplate (Separadores) ----
       _ = CreateMap<FichaClinicaSecaoTemplate, FichaClinicaSecaoTemplateDtos.FichaClinicaSecaoTemplateDTO>();
@@ -2781,6 +2790,11 @@ namespace CliCloud.Infrastructure.Mapper
 
       _ = CreateMap<CliCloud.Application.Services.Consultas.ListaEsperaAdministrativoService.DTOs.CreateListaEsperaRequest, ListaEsperaConsulta>()
         .ForMember(d => d.Id, o => o.Ignore());
+
+      _ = CreateMap<MedicacaoFavorita, MedicacaoFavoritaDtos.MedicacaoFavoritaDTO>();
+      _ = CreateMap<MedicacaoFavoritaDtos.CreateMedicacaoFavoritaRequest, MedicacaoFavorita>()
+        .ForMember(d => d.Id, o => o.Ignore())
+        .ForMember(d => d.Medico, o => o.Ignore());
 
       _ = CreateMap<CliCloud.Application.Services.Consultas.ListaEsperaAdministrativoService.DTOs.UpdateListaEsperaRequest, ListaEsperaConsulta>()
         .ForMember(d => d.Id, o => o.Ignore())

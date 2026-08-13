@@ -163,7 +163,7 @@ namespace CliCloud.Application.Services.Prescricao.ReceitaMedicaService
       }
     }
 
-    public async Task<Response<Guid>> EnviarAsync(Guid id, Guid clinicaId)
+    public async Task<Response<Guid>> EnviarAsync(Guid id, Guid clinicaId, EnviarReceitaMedicaRequest request)
     {
       try
       {
@@ -190,6 +190,9 @@ namespace CliCloud.Application.Services.Prescricao.ReceitaMedicaService
             string.IsNullOrWhiteSpace(receita.Clinica?.LocalPrescricao))
           return ResponseFactory.Fail<Guid>("Local de prescrição inválido.");
 
+        if (string.IsNullOrWhiteSpace(request.TokenPrescritor))
+          return ResponseFactory.Fail<Guid>("Autenticação do prescritor é obrigatória");
+
         // Paridade: GuardarDesmaterializada gera XML → EnviarDesmaterializadas envia
         var xml = ReceitaPemXmlBuilder.Build(receita);
         if (string.IsNullOrWhiteSpace(xml))
@@ -210,6 +213,7 @@ namespace CliCloud.Application.Services.Prescricao.ReceitaMedicaService
             AtivadoEmUtc = DateTime.UtcNow,
             ChavePedido = $"RegistoPrescricaoMedicamentos-{receita.Id:D}",
             CorpoXml = xml,
+            TokenPrescritor = request.TokenPrescritor.Trim(),
           });
 
         if (!IsSpmsOk(spmsResult))

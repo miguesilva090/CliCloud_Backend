@@ -4,6 +4,7 @@ using CliCloud.Infrastructure.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CliCloud.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260813122002_Add_Prescricao_MedicacaoCronica")]
+    partial class Add_Prescricao_MedicacaoCronica
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -7600,80 +7603,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .HasFilter("[DeletedOn] IS NULL");
 
                     b.ToTable("MedicacaoCronica", "Prescricao");
-                });
-
-            modelBuilder.Entity("CliCloud.Domain.Entities.Prescricao.MedicacaoFavorita", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Cnpem")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("DeletedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("DeletedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("DescricaoEmbalagem")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("Designacao")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("Dosagem")
-                        .HasMaxLength(254)
-                        .HasColumnType("nvarchar(254)");
-
-                    b.Property<string>("EmbId")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("FormaFarmaceutica")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<Guid?>("LastModifiedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("LastModifiedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid>("MedicoId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Posologia")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<string>("PrincipioAtivo")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<int>("TipoLinha")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MedicoId", "Cnpem")
-                        .IsUnique()
-                        .HasDatabaseName("IX_MedicacaoFavorita_MedicoId_Cnpem")
-                        .HasFilter("[DeletedOn] IS NULL");
-
-                    b.ToTable("MedicacaoFavorita", "Prescricao");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.Prescricao.ReceitaLinha", b =>
@@ -16632,17 +16561,6 @@ namespace CliCloud.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Utente");
-                });
-
-            modelBuilder.Entity("CliCloud.Domain.Entities.Prescricao.MedicacaoFavorita", b =>
-                {
-                    b.HasOne("CliCloud.Domain.Entities.Medicos.Medico", "Medico")
-                        .WithMany()
-                        .HasForeignKey("MedicoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Medico");
                 });
 
             modelBuilder.Entity("CliCloud.Domain.Entities.Prescricao.ReceitaLinha", b =>

@@ -128,6 +128,12 @@ public class SpmsPrescricaoSoapService(IRepositoryAsync repository) : ISpmsPresc
         if (cfg is null) return ResponseFactory.Fail<SpmsSoapOperationResultDTO>("Configuração de WebService não encontrada");
         if (string.IsNullOrWhiteSpace(cfg.UrlAcssRsp)) return ResponseFactory.Fail<SpmsSoapOperationResultDTO>("URL ACSS RSP em falta");
         if (string.IsNullOrWhiteSpace(request.CorpoXml)) return ResponseFactory.Fail<SpmsSoapOperationResultDTO>("CorpoXml é obrigatório");
+
+        // Paridade legado oCorpo.token no MessageBody do registo RSP
+        var corpoComToken = string.IsNullOrWhiteSpace(request.TokenPrescritor)
+            ? request.CorpoXml
+            : $"<token>{Escape(request.TokenPrescritor)}</token>{request.CorpoXml}";
+
         var body = BuildOperationRequestXml(
             "rsp",
             "http://xmlns.dmm.spms.pt/201207/RegistoPrescricaoMedicamentosRSP",
@@ -137,7 +143,7 @@ public class SpmsPrescricaoSoapService(IRepositoryAsync repository) : ISpmsPresc
             request.AtivadoEmUtc,
             request.ChavePedido,
             request.ChavePedidoRelacionado,
-            request.CorpoXml
+            corpoComToken
         );
         return await ExecutarOperacaoGenericaAsync(cfg, cfg.UrlAcssRsp, body, "process");
     }
